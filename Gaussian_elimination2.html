@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gaussian Elimination Tool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.6.0/math.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-center mb-6 text-blue-800">Phép Biến Đổi Gauss</h1>
+        
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4 text-blue-700">Nhập Ma Trận</h2>
+            
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Số hàng (n):</label>
+                <input type="number" id="rows" min="1" max="10" value="3" class="border rounded px-3 py-2 w-20">
+                
+                <label class="block text-gray-700 mb-2 mt-4">Số cột (m):</label>
+                <input type="number" id="cols" min="1" max="10" value="3" class="border rounded px-3 py-2 w-20">
+                
+                <button id="createMatrix" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    Tạo Ma Trận
+                </button>
+            </div>
+            
+            <div id="matrixInput" class="mb-4 overflow-x-auto">
+                <!-- Matrix input will be generated here -->
+            </div>
+            
+            <div class="flex flex-wrap gap-4">
+                <button id="gaussElimination" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                    Thực Hiện Biến Đổi Gauss
+                </button>
+                <button id="resetMatrix" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+                    Đặt Lại Ma Trận
+                </button>
+                <button id="randomMatrix" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
+                    Ma Trận Ngẫu Nhiên
+                </button>
+            </div>
+        </div>
+        
+        <div id="stepsContainer" class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4 text-blue-700">Các Bước Biến Đổi</h2>
+            <div id="steps" class="space-y-6">
+                <!-- Steps will be shown here -->
+            </div>
+        </div>
+        
+        <div id="finalResult" class="bg-white rounded-lg shadow-md p-6 hidden">
+            <h2 class="text-xl font-semibold mb-4 text-green-700">Kết Quả Cuối Cùng</h2>
+            <div id="rankResult" class="mb-4 text-lg font-medium"></div>
+            <div id="finalMatrix" class="overflow-x-auto"></div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentMatrix = [];
+        let stepsHistory = [];
+        let currentStep = 0;
+        
+        // DOM elements
+        const rowsInput = document.getElementById('rows');
+        const colsInput = document.getElementById('cols');
+        const createMatrixBtn = document.getElementById('createMatrix');
+        const matrixInputDiv = document.getElementById('matrixInput');
+        const gaussEliminationBtn = document.getElementById('gaussElimination');
+        const resetMatrixBtn = document.getElementById('resetMatrix');
+        const randomMatrixBtn = document.getElementById('randomMatrix');
+        const stepsContainer = document.getElementById('stepsContainer');
+        const stepsDiv = document.getElementById('steps');
+        const finalResultDiv = document.getElementById('finalResult');
+        const rankResultDiv = document.getElementById('rankResult');
+        const finalMatrixDiv = document.getElementById('finalMatrix');
+        
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', () => {
+            createMatrix();
+            
+            // Event listeners
+            createMatrixBtn.addEventListener('click', createMatrix);
+            gaussEliminationBtn.addEventListener('click', performGaussElimination);
+            resetMatrixBtn.addEventListener('click', resetMatrix);
+            randomMatrixBtn.addEventListener('click', generateRandomMatrix);
+        });
+        
+        // Create matrix input grid
+        function createMatrix() {
+            const rows = parseInt(rowsInput.value);
+            const cols = parseInt(colsInput.value);
+            
+            let html = '<table class="border-collapse"><tbody>';
+            
+            for (let i = 0; i < rows; i++) {
+                html += '<tr>';
+                for (let j = 0; j < cols; j++) {
+                    html += `<td class="border px-3 py-2"><input type="number" id="cell-${i}-${j}" 
+                            class="w-16 text-center border rounded" value="${i === j ? 1 : 0}"></td>`;
+                }
+                html += '</tr>';
+            }
+            
+            html += '</tbody></table>';
+            matrixInputDiv.innerHTML = html;
+            
+            // Hide steps and final result when creating new matrix
+            stepsContainer.classList.add('hidden');
+            finalResultDiv.classList.add('hidden');
+        }
+        
+        // Get current matrix from input
+        function getCurrentMatrix() {
+            const rows = parseInt(rowsInput.value);
+            const cols = parseInt(colsInput.value);
+            const matrix = [];
+            
+            for (let i = 0; i < rows; i++) {
+                const row = [];
+                for (let j = 0; j < cols; j++) {
+                    const value = parseFloat(document.getElementById(`cell-${i}-${j}`).value) || 0;
+                    row.push(value);
+                }
+                matrix.push(row);
+            }
+            
+            return matrix;
+        }
+        
+        // Update matrix input with values from a matrix
+        function updateMatrixInput(matrix) {
+            for (let i = 0; i < matrix.length; i++) {
+                for (let j = 0; j < matrix[i].length; j++) {
+                    const cell = document.getElementById(`cell-${i}-${j}`);
+                    if (cell) {
+                        // Round to 3 decimal places for display
+                        cell.value = Math.round(matrix[i][j] * 1000) / 1000;
+                    }
+                }
+            }
+        }
+        
+        // Reset matrix to initial state
+        function resetMatrix() {
+            createMatrix();
+            stepsHistory = [];
+            currentStep = 0;
+            stepsDiv.innerHTML = '';
+            stepsContainer.classList.add('hidden');
+            finalResultDiv.classList.add('hidden');
+        }
+        
+        // Generate random matrix
+        function generateRandomMatrix() {
+            const rows = parseInt(rowsInput.value);
+            const cols = parseInt(colsInput.value);
+            
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    const randomValue = Math.floor(Math.random() * 10) - 2; // -2 to 7
+                    document.getElementById(`cell-${i}-${j}`).value = randomValue;
+                }
+            }
+        }
+        
+        // Perform Gaussian elimination
+        function performGaussElimination() {
+            currentMatrix = getCurrentMatrix();
+            stepsHistory = [];
+            stepsDiv.innerHTML = '';
+            stepsContainer.classList.remove('hidden');
+            finalResultDiv.classList.add('hidden');
+            
+            // Clone the matrix for operations
+            let matrix = JSON.parse(JSON.stringify(currentMatrix));
+            const rows = matrix.length;
+            const cols = matrix[0].length;
+            
+            let rank = 0;
+            let stepDescription = '';
+            
+            // Add initial matrix to steps
+            addStep(matrix, "Ma trận ban đầu");
+            
+            for (let col = 0; col < cols && rank < rows; col++) {
+                // Step 1: Find a row with non-zero element in current column
+                let pivotRow = -1;
+                for (let row = rank; row < rows; row++) {
+                    if (matrix[row][col] !== 0) {
+                        pivotRow = row;
+                        break;
+                    }
+                }
+                
+                if (pivotRow === -1) continue; // All zeros in this column
+                
+                // Step 2: Swap rows if needed
+                if (pivotRow !== rank) {
+                    [matrix[rank], matrix[pivotRow]] = [matrix[pivotRow], matrix[rank]];
+                    addStep(matrix, `Đổi hàng ${rank + 1} và hàng ${pivotRow + 1}`);
+                }
+                
+                // Step 3: Normalize the pivot row to make leading entry 1
+                const pivotValue = matrix[rank][col];
+                if (pivotValue !== 1) {
+                    for (let j = col; j < cols; j++) {
+                        matrix[rank][j] /= pivotValue;
+                    }
+                    addStep(matrix, `Chuẩn hóa hàng ${rank + 1} bằng cách chia cho ${pivotValue.toFixed(3)}`);
+                }
+                
+                // Step 4: Eliminate other rows in this column
+                for (let row = 0; row < rows; row++) {
+                    if (row !== rank && matrix[row][col] !== 0) {
+                        const factor = matrix[row][col];
+                        for (let j = col; j < cols; j++) {
+                            matrix[row][j] -= factor * matrix[rank][j];
+                        }
+                        
+                        // Only show step if we actually changed something
+                        if (factor !== 0) {
+                            addStep(matrix, `Hàng ${row + 1} = Hàng ${row + 1} - ${factor.toFixed(3)} × Hàng ${rank + 1}`);
+                        }
+                    }
+                }
+                
+                rank++;
+            }
+            
+            // After reaching row echelon form
+            addStep(matrix, "Ma trận bậc thang", true);
+            
+            // Now perform back substitution to get reduced row echelon form
+            for (let i = rank - 1; i >= 0; i--) {
+                // Find the pivot column
+                let pivotCol = -1;
+                for (let j = 0; j < cols; j++) {
+                    if (matrix[i][j] !== 0) {
+                        pivotCol = j;
+                        break;
+                    }
+                }
+                
+                if (pivotCol === -1) continue;
+                
+                // Eliminate above rows
+                for (let row = i - 1; row >= 0; row--) {
+                    if (matrix[row][pivotCol] !== 0) {
+                        const factor = matrix[row][pivotCol];
+                        for (let j = pivotCol; j < cols; j++) {
+                            matrix[row][j] -= factor * matrix[i][j];
+                        }
+                        
+                        addStep(matrix, `Hàng ${row + 1} = Hàng ${row + 1} - ${factor.toFixed(3)} × Hàng ${i + 1}`);
+                    }
+                }
+            }
+            
+            // Final reduced row echelon form
+            addStep(matrix, "Ma trận bậc thang rút gọn", true);
+            
+            // Show final result
+            showFinalResult(matrix, rank);
+        }
+        
+        // Add a step to the history
+        function addStep(matrix, description, isMajor = false) {
+            const step = {
+                matrix: JSON.parse(JSON.stringify(matrix)),
+                description: description,
+                isMajor: isMajor
+            };
+            stepsHistory.push(step);
+            renderStep(step, stepsHistory.length - 1);
+        }
+        
+        // Render a step
+        function renderStep(step, index) {
+            const stepDiv = document.createElement('div');
+            stepDiv.className = `border-l-4 ${step.isMajor ? 'border-green-500 bg-green-50' : 'border-blue-300'} pl-4 py-2`;
+            
+            const descP = document.createElement('p');
+            descP.className = 'font-medium mb-2';
+            descP.textContent = `Bước ${index + 1}: ${step.description}`;
+            stepDiv.appendChild(descP);
+            
+            const matrixDiv = document.createElement('div');
+            matrixDiv.className = 'overflow-x-auto mb-2';
+            
+            const matrixTable = document.createElement('table');
+            matrixTable.className = 'border-collapse';
+            
+            const tbody = document.createElement('tbody');
+            
+            for (let i = 0; i < step.matrix.length; i++) {
+                const row = document.createElement('tr');
+                
+                for (let j = 0; j < step.matrix[i].length; j++) {
+                    const cell = document.createElement('td');
+                    cell.className = 'border px-3 py-2 text-center';
+                    // Format number to show up to 3 decimal places
+                    const value = step.matrix[i][j];
+                    cell.textContent = Math.abs(value) < 0.0001 ? '0' : 
+                                      Math.round(value * 1000) / 1000;
+                    
+                    // Highlight pivot positions
+                    if (step.isMajor && isPivot(step.matrix, i, j)) {
+                        cell.className += ' bg-yellow-100 font-bold';
+                    }
+                    
+                    row.appendChild(cell);
+                }
+                
+                tbody.appendChild(row);
+            }
+            
+            matrixTable.appendChild(tbody);
+            matrixDiv.appendChild(matrixTable);
+            stepDiv.appendChild(matrixDiv);
+            
+            // Add LaTeX representation
+            const latexDiv = document.createElement('div');
+            latexDiv.className = 'text-sm bg-gray-100 p-2 rounded overflow-x-auto';
+            
+            // Create LaTeX matrix representation
+            let latex = '\\begin{bmatrix}';
+            for (let i = 0; i < step.matrix.length; i++) {
+                for (let j = 0; j < step.matrix[i].length; j++) {
+                    const value = step.matrix[i][j];
+                    latex += Math.abs(value) < 0.0001 ? '0' : Math.round(value * 1000) / 1000;
+                    if (j < step.matrix[i].length - 1) latex += ' & ';
+                }
+                if (i < step.matrix.length - 1) latex += ' \\\\ ';
+            }
+            latex += '\\end{bmatrix}';
+            
+            latexDiv.innerHTML = `$$${latex}$$`;
+            stepDiv.appendChild(latexDiv);
+            
+            stepsDiv.appendChild(stepDiv);
+            
+            // Scroll to the new step
+            stepDiv.scrollIntoView({ behavior: 'smooth' });
+            
+            // Render MathJax
+            if (window.MathJax) {
+                MathJax.typeset();
+            }
+        }
+        
+        // Check if a position is a pivot in row echelon form
+        function isPivot(matrix, row, col) {
+            // Check if this is the first non-zero element in its row
+            for (let j = 0; j < col; j++) {
+                if (matrix[row][j] !== 0) return false;
+            }
+            
+            // Check if it's non-zero (should be 1 in reduced form)
+            if (matrix[row][col] === 0) return false;
+            
+            // Check if all below elements in this column are zero
+            for (let i = row + 1; i < matrix.length; i++) {
+                if (matrix[i][col] !== 0) return false;
+            }
+            
+            return true;
+        }
+        
+        // Show final result
+        function showFinalResult(matrix, rank) {
+            finalResultDiv.classList.remove('hidden');
+            
+            // Display rank
+            rankResultDiv.textContent = `Hạng (rank) của ma trận là ${rank}`;
+            
+            // Display final matrix
+            finalMatrixDiv.innerHTML = '';
+            
+            const matrixTable = document.createElement('table');
+            matrixTable.className = 'border-collapse';
+            
+            const tbody = document.createElement('tbody');
+            
+            for (let i = 0; i < matrix.length; i++) {
+                const row = document.createElement('tr');
+                
+                for (let j = 0; j < matrix[i].length; j++) {
+                    const cell = document.createElement('td');
+                    cell.className = 'border px-3 py-2 text-center';
+                    // Format number to show up to 3 decimal places
+                    const value = matrix[i][j];
+                    cell.textContent = Math.abs(value) < 0.0001 ? '0' : 
+                                      Math.round(value * 1000) / 1000;
+                    
+                    // Highlight pivot positions
+                    if (isPivot(matrix, i, j)) {
+                        cell.className += ' bg-green-100 font-bold';
+                    }
+                    
+                    row.appendChild(cell);
+                }
+                
+                tbody.appendChild(row);
+            }
+            
+            matrixTable.appendChild(tbody);
+            finalMatrixDiv.appendChild(matrixTable);
+            
+            // Add LaTeX representation
+            const latexDiv = document.createElement('div');
+            latexDiv.className = 'text-sm bg-gray-100 p-2 rounded mt-4 overflow-x-auto';
+            
+            // Create LaTeX matrix representation
+            let latex = '\\begin{bmatrix}';
+            for (let i = 0; i < matrix.length; i++) {
+                for (let j = 0; j < matrix[i].length; j++) {
+                    const value = matrix[i][j];
+                    latex += Math.abs(value) < 0.0001 ? '0' : Math.round(value * 1000) / 1000;
+                    if (j < matrix[i].length - 1) latex += ' & ';
+                }
+                if (i < matrix.length - 1) latex += ' \\\\ ';
+            }
+            latex += '\\end{bmatrix}';
+            
+            latexDiv.innerHTML = `$$${latex}$$`;
+            finalMatrixDiv.appendChild(latexDiv);
+            
+            // Render MathJax
+            if (window.MathJax) {
+                MathJax.typeset();
+            }
+        }
+    </script>
+</body>
+</html>
