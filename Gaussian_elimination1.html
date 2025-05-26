@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phép Biến Đổi Gauss</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.0.0/math.min.js"></script>
+</head>
+<body class="bg-gray-100 flex flex-col items-center p-6">
+    <h1 class="text-3xl font-bold mb-6">Phần Mềm Thực Hành Phép Biến Đổi Gauss</h1>
+    
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-2xl mb-6">
+        <h2 class="text-xl font-semibold mb-4">Nhập Ma Trận</h2>
+        <div class="flex space-x-4 mb-4">
+            <div>
+                <label class="block text-sm font-medium">Số hàng (n):</label>
+                <input id="rows" type="number" min="1" value="3" class="w-20 p-2 border rounded">
+            </div>
+            <div>
+                <label class="block text-sm font-medium">Số cột (m):</label>
+                <input id="cols" type="number" min="1" value="4" class="w-20 p-2 border rounded">
+            </div>
+        </div>
+        <button onclick="generateMatrixInput()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Tạo Ma Trận</button>
+        <div id="matrix-input" class="mt-4 grid gap-2"></div>
+        <button onclick="performGaussElimination()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 mt-4">Thực Hiện Biến Đổi</button>
+    </div>
+
+    <div id="steps" class="bg-white p-6 rounded-lg shadow-lg w-full max-w-2xl">
+        <h2 class="text-xl font-semibold mb-4">Các Bước Biến Đổi</h2>
+        <div id="step-content" class="space-y-4"></div>
+    </div>
+
+    <canvas id="matrix-canvas" class="hidden"></canvas>
+
+    <script>
+        let matrix = [];
+        let n, m;
+
+        function generateMatrixInput() {
+            n = parseInt(document.getElementById('rows').value);
+            m = parseInt(document.getElementById('cols').value);
+            const matrixInput = document.getElementById('matrix-input');
+            matrixInput.innerHTML = '';
+            matrixInput.style.gridTemplateColumns = `repeat(${m}, minmax(0, 1fr))`;
+
+            for (let i = 0; i < n; i++) {
+                for (let j = 0; j < m; j++) {
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.value = 0;
+                    input.className = 'p-2 border rounded';
+                    input.id = `a${i}${j}`;
+                    matrixInput.appendChild(input);
+                }
+            }
+        }
+
+        function getMatrix() {
+            matrix = [];
+            for (let i = 0; i < n; i++) {
+                const row = [];
+                for (let j = 0; j < m; j++) {
+                    row.push(parseFloat(document.getElementById(`a${i}${j}`).value));
+                }
+                matrix.push(row);
+            }
+            return matrix;
+        }
+
+        function displayMatrix(matrix, stepDescription, stepContainer) {
+            let latex = '\\[ \\begin{bmatrix}';
+            for (let i = 0; i < matrix.length; i++) {
+                for (let j = 0; j < matrix[i].length; j++) {
+                    latex += math.format(matrix[i][j], { fraction: 'ratio' });
+                    if (j < matrix[i].length - 1) latex += ' & ';
+                }
+                if (i < matrix.length - 1) latex += ' \\\\ ';
+            }
+            latex += '\\end{bmatrix} \\]';
+
+            const stepDiv = document.createElement('div');
+            stepDiv.innerHTML = `<p>${stepDescription}</p><div>${latex}</div>`;
+            stepContainer.appendChild(stepDiv);
+            MathJax.typeset();
+        }
+
+        function swapRows(matrix, row1, row2) {
+            [matrix[row1], matrix[row2]] = [matrix[row2], matrix[row1]];
+        }
+
+        function performGaussElimination() {
+            const stepContainer = document.getElementById('step-content');
+            stepContainer.innerHTML = '';
+            matrix = getMatrix();
+            let rank = 0;
+
+            // Gaussian Elimination to Row Echelon Form
+            let A = math.matrix(matrix).toArray();
+            let pivotCol = 0;
+            for (let pivotRow = 0; pivotRow < n && pivotCol < m; pivotCol++) {
+                // Find non-zero pivot
+                let maxRow = pivotRow;
+                for (let i = pivotRow + 1; i < n; i++) {
+                    if (Math.abs(A[i][pivotCol]) > Math.abs(A[maxRow][pivotCol])) {
+                        maxRow = i;
+                    }
+                }
+
+                if (Math.abs(A[maxRow][pivotCol]) < 1e-10) continue;
+
+                // Swap rows if needed
+                if (maxRow !== pivotRow) {
+                    swapRows(A, pivotRow, maxRow);
+                    displayMatrix(A, `Hoán đổi hàng ${pivotRow + 1} và hàng ${maxRow + 1}`, stepContainer);
+                }
+
+                // Normalize pivot row
+                const pivot = A[pivotRow][pivotCol];
+                for (let j = pivotCol; j < m; j++) {
+                    A[pivotRow][j] /= pivot;
+                }
+                displayMatrix(A, `Chia hàng ${pivotRow + 1} cho ${math.format(pivot, { fraction: 'ratio' })} để a(${pivotRow + 1},${pivotCol + 1}) = 1`, stepContainer);
+
+                // Eliminate below pivot
+                for (let i = pivotRow + 1; i < n; i++) {
+                    if (Math.abs(A[i][pivotCol]) > 1e-10) {
+                        const factor = A[i][pivotCol];
+                        for (let j = pivotCol; j < m; j++) {
+                            A[i][j] -= factor * A[pivotRow][j];
+                        }
+                        displayMatrix(A, `Biến đổi hàng ${i + 1} bằng cách trừ ${math.format(factor, { fraction: 'ratio' })} lần hàng ${pivotRow + 1}`, stepContainer);
+                    }
+                }
+
+                rank++;
+                pivotRow++;
+            }
+
+            // Display rank
+            const rankDiv = document.createElement('div');
+            rankDiv.innerHTML = `<p class="text-lg font-bold">Hạng (rank) của ma trận là ${rank}</p>`;
+            stepContainer.appendChild(rankDiv);
+
+            // Reduced Row Echelon Form
+            for (let row = rank - 1; row >= 0; row--) {
+                let pivotCol = 0;
+                while (pivotCol < m && Math.abs(A[row][pivotCol]) < 1e-10) pivotCol++;
+                if (pivotCol >= m) continue;
+
+                // Eliminate above pivot
+                for (let i = 0; i < row; i++) {
+                    if (Math.abs(A[i][pivotCol]) > 1e-10) {
+                        const factor = A[i][pivotCol];
+                        for (let j = pivotCol; j < m; j++) {
+                            A[i][j] -= factor * A[row][j];
+                        }
+                        displayMatrix(A, `Biến đổi hàng ${i + 1} bằng cách trừ ${math.format(factor, { fraction: 'ratio' })} lần hàng ${row + 1}`, stepContainer);
+                    }
+                }
+            }
+
+            displayMatrix(A, 'Ma trận bậc thang rút gọn', stepContainer);
+        }
+    </script>
+</body>
+</html>
