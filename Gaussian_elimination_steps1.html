@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ứng dụng biến đổi Gauss từng bước</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 20px; max-width: 900px; margin: auto; }
+  input[type=text] { width: 50px; padding: 5px; }
+  table { border-collapse: collapse; margin-top: 10px; }
+  td, th { border: 1px solid #ccc; padding: 5px 10px; text-align: center; }
+  .pivot { background-color: #f9d342; }
+  button {
+    margin-top: 15px;
+    margin-right: 10px;
+    padding: 8px 15px;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: #28a745; /* xanh lá */
+    border: none;
+    color: white;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+  }
+  button:hover {
+    background-color: #218838;
+  }
+  #randomMatrixBtn {
+    background-color: #f59e0b; /* vàng cam */
+  }
+  #randomMatrixBtn:hover {
+    background-color: #d97706; /* vàng cam đậm */
+  }
+  #status { margin-top: 20px; font-weight: bold; white-space: pre-line; }
+</style>
+</head>
+<body>
+
+<h1>Ứng dụng biến đổi Gauss từng bước</h1>
+
+<div>
+  <label for="rows">Số dòng (m): </label>
+  <input type="number" id="rows" min="1" max="20" value="3" />
+  <label for="cols">Số cột (n): </label>
+  <input type="number" id="cols" min="1" max="20" value="4" />
+  <button id="createMatrixBtn">Tạo ma trận</button>
+</div>
+
+<div id="matrixInputDiv" style="margin-top: 20px;"></div>
+
+<div>
+  <button id="startGaussBtn" disabled>Bắt đầu biến đổi Gauss</button>
+  <button id="nextStepBtn" disabled>Bước tiếp theo</button>
+  <button id="randomMatrixBtn">Tạo ma trận ngẫu nhiên</button>
+</div>
+
+<div id="resultDiv" style="margin-top: 30px;"></div>
+
+<div id="status"></div>
+
+<script>
+  let matrix = [];
+  let m = 0, n = 0;
+  let currentStep = 0; // pivot row index
+  let stepsDone = false; // true when REF is reached
+  let rrefPhase = false; // true when in RREF phase
+  let rrefStep = 0; // tracks RREF steps (back substitution)
+
+  const createMatrixBtn = document.getElementById('createMatrixBtn');
+  const matrixInputDiv = document.getElementById('matrixInputDiv');
+  const startGaussBtn = document.getElementById('startGaussBtn');
+  const nextStepBtn = document.getElementById('nextStepBtn');
+  const randomMatrixBtn = document.getElementById('randomMatrixBtn');
+  const resultDiv = document.getElementById('resultDiv');
+  const statusDiv = document.getElementById('status');
+
+  createMatrixBtn.addEventListener('click', () => {
+    m = parseInt(document.getElementById('rows').value);
+    n = parseInt(document.getElementById('cols').value);
+    if (m < 1 || n < 1) {
+      alert('Số dòng và số cột phải lớn hơn 0');
+      return;
+    }
+    generateInputMatrix(m, n);
+    startGaussBtn.disabled = false;
+    nextStepBtn.disabled = true;
+    resultDiv.innerHTML = '';
+    statusDiv.innerHTML = '';
+    currentStep = 0;
+    stepsDone = false;
+    rrefPhase = false;
+    rrefStep = 0;
+  });
+
+  startGaussBtn.addEventListener('click', () => {
+    if (!readMatrixInput()) {
+      alert('Ma trận nhập chưa hợp lệ!');
+      return;
+    }
+    currentStep = 0;
+    stepsDone = false;
+    rrefPhase = false;
+    rrefStep = 0;
+    startGaussBtn.disabled = true;
+    nextStepBtn.disabled = false;
+    resultDiv.innerHTML = '';
+    statusDiv.innerHTML = `Bắt đầu biến đổi Gauss với ma trận ${m}x${n}.`;
+    displayMatrix(matrix, currentStep);
+  });
+
+  nextStepBtn.addEventListener('click', () => {
+    if (stepsDone && rrefPhase && rrefStep >= m) {
+      statusDiv.innerHTML += '\nBiến đổi ma trận bậc thang rút gọn đã hoàn thành.';
+      nextStepBtn.disabled = true;
+      return;
+    }
+    performGaussStep();
+  });
+
+  randomMatrixBtn.addEventListener('click', () => {
+    m = parseInt(document.getElementById('rows').value);
+    n = parseInt(document.getElementById('cols').value);
+    if (m < 1 || n < 1) {
+      alert('Số dòng và số cột phải lớn hơn 0');
+      return;
+    }
+    generateInputMatrix(m, n);
+    fillRandomMatrix(m, n);
+    startGaussBtn.disabled = false;
+    nextStepBtn.disabled = true;
+    resultDiv.innerHTML = '';
+    statusDiv.innerHTML = `Đã tạo ma trận ngẫu nhiên ${m}x${n} với các số nguyên từ -10 đến 10.`;
+    currentStep = 0;
+    stepsDone = false;
+    rrefPhase = false;
+    rrefStep = 0;
+  });
+
+  // Hàm tạo bảng nhập liệu
+  function generateInputMatrix(m, n) {
+    let html = '<table><tbody>';
+    for (let i = 0; i < m; i++) {
+      html += '<tr>';
+      for (let j = 0; j < n; j++) {
+        html += `<td><input type="text" id="cell-${i}-${j}" value="0"></td>`;
+      }
+      html += '</tr>';
+    }
+    html += '</tbody></table>';
+    matrixInputDiv.innerHTML = html;
+  }
+
+  // Hàm điền ma trận với số nguyên ngẫu nhiên
+  function fillRandomMatrix(rows, cols) {
+    for (let i = 0; i < rows; i++) {
+      for (let j = 0; j < cols; j++) {
+        const input = document.getElementById(`cell-${i}-${j}`);
+        if (input) {
+          input.value = Math.floor(Math.random() * 21) - 10; // Số nguyên từ -10 đến 10
+        }
+      }
+    }
+  }
+
+  // Đọc ma trận từ input
+  function readMatrixInput() {
+    matrix = [];
+    for (let i = 0; i < m; i++) {
+      let row = [];
+      for (let j = 0; j < n; j++) {
+        const val = document.getElementById(`cell-${i}-${j}`).value.trim();
+        if (val === '') return false;
+        row.push(val);
+      }
+      matrix.push(row);
+    }
+    return true;
+  }
+
+  // Hàm kiểm tra xem giá trị có phải là số
+  function isNumeric(val) {
+    return !isNaN(parseFloat(val)) && isFinite(val);
+  }
+
+  // Hàm chuyển số thực sang phân số tối giản xấp xỉ (độ chính xác 1e-6)
+  function toFraction(x, tolerance = 1.0E-6) {
+    if (!isNumeric(x)) return x; // Trả về nguyên chuỗi nếu là biểu thức ký hiệu
+    x = parseFloat(x);
+    if (Number.isInteger(x)) return x.toString();
+    let sign = x < 0 ? -1 : 1;
+    x = Math.abs(x);
+    if (x === 0) return "0";
+    let lower_n = 0, lower_d = 1;
+    let upper_n = 1, upper_d = 0;
+    while (true) {
+      let middle_n = lower_n + upper_n;
+      let middle_d = lower_d + upper_d;
+      if (middle_d * (x + tolerance) < middle_n) {
+        upper_n = middle_n;
+        upper_d = middle_d;
+      } else if (middle_n < (x - tolerance) * middle_d) {
+        lower_n = middle_n;
+        lower_d = middle_d;
+      } else {
+        let numerator = sign * middle_n;
+        let denominator = middle_d;
+        if (denominator === 1) return numerator.toString();
+        return numerator + "/" + denominator;
+      }
+    }
+  }
+
+  // Hàm xử lý biểu thức ký hiệu đơn giản (nhân, chia, trừ)
+  function simplifyExpression(expr, operation, factor) {
+    if (isNumeric(expr) && isNumeric(factor)) {
+      const numExpr = parseFloat(expr);
+      const numFactor = parseFloat(factor);
+      if (operation === 'divide') return numExpr / numFactor;
+      if (operation === 'multiply') return numExpr * numFactor;
+      if (operation === 'subtract') return numExpr - numFactor;
+    }
+    // Xử lý biểu thức ký hiệu
+    if (operation === 'divide') {
+      if (factor === '1') return expr;
+      return `(${expr})/${factor}`;
+    }
+    if (operation === 'multiply') {
+      if (factor === '0') return '0';
+      if (factor === '1') return expr;
+      return `${factor}*${expr}`;
+    }
+    if (operation === 'subtract') {
+      if (factor === '0') return expr;
+      return `${expr} - ${factor}`;
+    }
+    return expr;
+  }
+
+  // Hiển thị ma trận với pivot tô màu
+  function displayMatrix(mat, pivotRow = -1, pivotCol = -1) {
+    let html = '<table><tbody>';
+    for (let i = 0; i < mat.length; i++) {
+      html += '<tr>';
+      for (let j = 0; j < mat[i].length; j++) {
+        let cellClass = '';
+        if (i === pivotRow && j === pivotCol) cellClass = 'pivot';
+        const val = mat[i][j];
+        const displayedVal = isNumeric(val) ? toFraction(val) : val;
+        html += `<td class="${cellClass}">${displayedVal}</td>`;
+      }
+      html += '</tr>';
+    }
+    html += '</tbody></table>';
+    resultDiv.innerHTML = html;
+  }
+
+  // Hàm đếm số dòng khác 0
+  function countNonZeroRows(mat) {
+    let count = 0;
+    for (let i = 0; i < mat.length; i++) {
+      let row = mat[i];
+      let allZero = true;
+      for (let j = 0; j < row.length; j++) {
+        if (isNumeric(row[j])) {
+          if (Math.abs(parseFloat(row[j])) > 1e-12) {
+            allZero = false;
+            break;
+          }
+        } else if (row[j] !== '0') {
+          allZero = false;
+          break;
+        }
+      }
+      if (!allZero) count++;
+    }
+    return count;
+  }
+
+  // Hàm kiểm tra giá trị có phải là số 0 hoặc biểu thức 0
+  function isZero(val) {
+    if (isNumeric(val)) return Math.abs(parseFloat(val)) < 1e-12;
+    return val === '0';
+  }
+
+  // Thực hiện 1 bước biến đổi Gauss hoặc RREF
+  function performGaussStep() {
+    if (!rrefPhase) {
+      // Phase 1: Achieve Row Echelon Form (REF)
+      if (currentStep >= Math.min(m, n)) {
+        stepsDone = true;
+        statusDiv.innerHTML += '\nĐã đạt ma trận bậc thang.';
+        showRankInfo();
+        // Start RREF phase
+        rrefPhase = true;
+        rrefStep = countNonZeroRows(matrix) - 1; // Start from last non-zero row
+        if (rrefStep < 0) {
+          statusDiv.innerHTML += '\nMa trận toàn 0, không cần biến đổi thêm.';
+          nextStepBtn.disabled = true;
+        } else {
+          statusDiv.innerHTML += '\nBắt đầu biến đổi thành ma trận bậc thang rút gọn.';
+        }
+        return;
+      }
+
+      // Tìm pivot
+      let pivot = currentStep;
+      while (pivot < m && isZero(matrix[pivot][currentStep])) {
+        pivot++;
+      }
+      if (pivot === m) {
+        statusDiv.innerHTML = `Cột ${currentStep + 1} không có pivot, chuyển sang cột tiếp theo.`;
+        currentStep++;
+        displayMatrix(matrix, -1, -1);
+        return;
+      }
+
+      // Hoán vị nếu cần
+      if (pivot !== currentStep) {
+        let temp = matrix[currentStep];
+        matrix[currentStep] = matrix[pivot];
+        matrix[pivot] = temp;
+        statusDiv.innerHTML = `Hoán vị dòng ${currentStep + 1} và dòng ${pivot + 1} để đưa phần tử pivot về vị trí.`;
+        displayMatrix(matrix, currentStep, currentStep);
+        return;
+      }
+
+      // Chuẩn hóa dòng pivot
+      let pivotValue = matrix[currentStep][currentStep];
+      if (!isZero(pivotValue)) {
+        for (let j = currentStep; j < n; j++) {
+          matrix[currentStep][j] = simplifyExpression(matrix[currentStep][j], 'divide', pivotValue);
+        }
+        statusDiv.innerHTML = `Chuẩn hóa dòng ${currentStep + 1} để pivot = 1.`;
+        displayMatrix(matrix, currentStep, currentStep);
+      }
+
+      // Khử các phần tử phía dưới pivot
+      for (let i = currentStep + 1; i < m; i++) {
+        let factor = matrix[i][currentStep];
+        if (!isZero(factor)) {
+          for (let j = currentStep; j < n; j++) {
+            const term = simplifyExpression(matrix[currentStep][j], 'multiply', factor);
+            matrix[i][j] = simplifyExpression(matrix[i][j], 'subtract', term);
+          }
+        }
+      }
+      statusDiv.innerHTML += ` Loại bỏ các phần tử phía dưới pivot ở cột ${currentStep + 1}.`;
+      displayMatrix(matrix, currentStep, currentStep);
+
+      currentStep++;
+    } else {
+      // Phase 2: Achieve Reduced Row Echelon Form (RREF)
+      if (rrefStep < 0) {
+        statusDiv.innerHTML += '\nMa trận bậc thang rút gọn hoàn thành.';
+        nextStepBtn.disabled = true;
+        return;
+      }
+
+      // Tìm pivot column cho hàng rrefStep
+      let pivotCol = -1;
+      for (let j = 0; j < n; j++) {
+        if (isNumeric(matrix[rrefStep][j])) {
+          if (Math.abs(parseFloat(matrix[rrefStep][j]) - 1) < 1e-12) {
+            pivotCol = j;
+            break;
+          }
+        } else if (matrix[rrefStep][j] === '1') {
+          pivotCol = j;
+          break;
+        }
+      }
+
+      if (pivotCol === -1) {
+        // No pivot in this row (zero row)
+        rrefStep--;
+        return;
+      }
+
+      // Khử các phần tử phía trên pivot
+      for (let i = 0; i < rrefStep; i++) {
+        let factor = matrix[i][pivotCol];
+        if (!isZero(factor)) {
+          for (let j = pivotCol; j < n; j++) {
+            const term = simplifyExpression(matrix[rrefStep][j], 'multiply', factor);
+            matrix[i][j] = simplifyExpression(matrix[i][j], 'subtract', term);
+          }
+          statusDiv.innerHTML = `Khử phần tử tại dòng ${i + 1}, cột ${pivotCol + 1} bằng cách trừ ${factor} lần dòng ${rrefStep + 1}.`;
+          displayMatrix(matrix, rrefStep, pivotCol);
+        }
+      }
+
+      rrefStep--;
+      if (rrefStep < 0) {
+        statusDiv.innerHTML += '\nMa trận bậc thang rút gọn hoàn thành.';
+        displayMatrix(matrix, -1, -1);
+        nextStepBtn.disabled = true;
+      }
+    }
+  }
+
+  // Hiển thị số dòng khác 0 và hạng ma trận
+  function showRankInfo() {
+    const nonZeroRows = countNonZeroRows(matrix);
+    statusDiv.innerHTML += `\nSố dòng khác 0 sau biến đổi Gauss là: ${nonZeroRows}\nHạng của ma trận là: ${nonZeroRows}`;
+  }
+</script>
+
+</body>
+</html>
