@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Giải hệ phương trình bằng phương pháp Gauss</title>
+  <!-- Thêm MathJax để render LaTeX -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.0.0/math.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 900px;
+      margin: auto;
+    }
+    input[type="text"] {
+      width: 50px;
+      padding: 5px;
+    }
+    table {
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    td, th {
+      border: 1px solid #ccc;
+      padding: 5px 10px;
+      text-align: center;
+    }
+    .pivot {
+      background-color: #f9d342;
+    }
+    button {
+      margin-top: 15px;
+      margin-right: 10px;
+      padding: 8px 15px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #28a745;
+      border: none;
+      color: white;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #218838;
+    }
+    #randomMatrixBtn {
+      background-color: #f59e0b;
+    }
+    #randomMatrixBtn:hover {
+      background-color: #d97706;
+    }
+    #status {
+      margin-top: 20px;
+      font-weight: bold;
+      white-space: pre-line;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Giải hệ phương trình bằng phương pháp Gauss</h1>
+<p>Nhập ma trận mở rộng của hệ phương trình (các hệ số và vế phải).</p>
+
+<div>
+  <label for="rows">Số phương trình (m): </label>
+  <input type="number" id="rows" min="1" max="10" value="3" />
+  <label for="cols">Số ẩn (n): </label>
+  <input type="number" id="cols" min="1" max="10" value="3" />
+  <button id="createMatrixBtn">Tạo hệ phương trình</button>
+</div>
+
+<div id="matrixInputDiv" style="margin-top: 20px;"></div>
+
+<div>
+  <button id="startGaussBtn" disabled>Bắt đầu giải hệ</button>
+  <button id="nextStepBtn" disabled>Bước tiếp theo</button>
+  <button id="randomMatrixBtn">Tạo hệ ngẫu nhiên</button>
+</div>
+
+<div id="resultDiv" style="margin-top: 30px;"></div>
+<div id="status"></div>
+
+<script>
+  function toFraction(num) {
+    return math.fraction(num).toFraction();
+  }
+
+  function formatMatrix(A) {
+    return A.map(row => row.map(val => toFraction(val)));
+  }
+
+  function displayMatrix(A) {
+    let html = '<table><tbody>';
+    for (let i = 0; i < A.length; i++) {
+      html += '<tr>';
+      for (let j = 0; j < A[i].length; j++) {
+        html += `<td>${A[i][j]}</td>`;
+      }
+      html += '</tr>';
+    }
+    html += '</tbody></table>';
+    resultDiv.innerHTML = html;
+  }
+
+  let matrix = [];
+  let m = 0, n = 0;
+  let step = 0;
+  let rrefPhase = false;
+
+  const createMatrixBtn = document.getElementById('createMatrixBtn');
+  const startGaussBtn = document.getElementById('startGaussBtn');
+  const nextStepBtn = document.getElementById('nextStepBtn');
+  const randomMatrixBtn = document.getElementById('randomMatrixBtn');
+  const matrixInputDiv = document.getElementById('matrixInputDiv');
+  const resultDiv = document.getElementById('resultDiv');
+  const statusDiv = document.getElementById('status');
+
+  createMatrixBtn.addEventListener('click', () => {
+    m = parseInt(document.getElementById('rows').value);
+    n = parseInt(document.getElementById('cols').value);
+    generateInputMatrix(m, n + 1);
+    startGaussBtn.disabled = false;
+    nextStepBtn.disabled = true;
+    statusDiv.innerText = '';
+    resultDiv.innerHTML = '';
+    rrefPhase = false;
+  });
+
+  function generateInputMatrix(rows, cols) {
+    let html = '<table><tbody>';
+    for (let i = 0; i < rows; i++) {
+      html += '<tr>';
+      for (let j = 0; j < cols; j++) {
+        html += `<td><input type="text" id="cell-${i}-${j}" value="0"></td>`;
+      }
+      html += '</tr>';
+    }
+    html += '</tbody></table>';
+    matrixInputDiv.innerHTML = html;
+  }
+
+  function readMatrix() {
+    const A = [];
+    for (let i = 0; i < m; i++) {
+      const row = [];
+      for (let j = 0; j <= n; j++) {
+        const val = document.getElementById(`cell-${i}-${j}`).value;
+        const num = parseFloat(val);
+        if (isNaN(num)) return null;
+        row.push(math.fraction(num));
+      }
+      A.push(row);
+    }
+    return A;
+  }
+
+  startGaussBtn.addEventListener('click', () => {
+    const A = readMatrix();
+    if (!A) {
+      alert("Vui lòng nhập đầy đủ số hợp lệ.");
+      return;
+    }
+    matrix = A;
+    step = 0;
+    displayMatrix(formatMatrix(matrix));
+    nextStepBtn.disabled = false;
+    statusDiv.innerText = 'Bắt đầu biến đổi Gauss...';
+  });
+
+  nextStepBtn.addEventListener('click', () => {
+    if (!rrefPhase) {
+      if (step >= Math.min(m, n)) {
+        statusDiv.innerText += '\nBắt đầu khử lùi để đạt RREF.';
+        step = Math.min(m, n) - 1;
+        rrefPhase = true;
+        return;
+      }
+      let pivot = matrix[step][step];
+      if (pivot.n === 0) {
+        for (let i = step + 1; i < m; i++) {
+          if (matrix[i][step].n !== 0) {
+            [matrix[step], matrix[i]] = [matrix[i], matrix[step]];
+            pivot = matrix[step][step];
+            statusDiv.innerText += `\nHoán vị dòng ${step + 1} và ${i + 1}`;
+            break;
+          }
+        }
+      }
+      if (pivot.n === 0) {
+        statusDiv.innerText += `\nCột ${step + 1} không có pivot khả thi`;
+        step++;
+        return;
+      }
+      for (let j = step; j <= n; j++) matrix[step][j] = math.divide(matrix[step][j], pivot);
+      for (let i = step + 1; i < m; i++) {
+        const factor = matrix[i][step];
+        for (let j = step; j <= n; j++) {
+          matrix[i][j] = math.subtract(matrix[i][j], math.multiply(factor, matrix[step][j]));
+        }
+      }
+      statusDiv.innerText += `\nĐã chuẩn hóa dòng ${step + 1}`;
+      displayMatrix(formatMatrix(matrix));
+      step++;
+    } else {
+      if (step < 0) {
+        statusDiv.innerText += '\nRREF hoàn tất. Tìm nghiệm...';
+        solveSystem();
+        nextStepBtn.disabled = true;
+        return;
+      }
+      for (let i = 0; i < step; i++) {
+        const factor = matrix[i][step];
+        for (let j = step; j <= n; j++) {
+          matrix[i][j] = math.subtract(matrix[i][j], math.multiply(factor, matrix[step][j]));
+        }
+      }
+      statusDiv.innerText += `\nĐã khử phần tử trên pivot dòng ${step + 1}`;
+      displayMatrix(formatMatrix(matrix));
+      step--;
+    }
+  });
+
+  function solveSystem() {
+    // Kiểm tra hệ có vô nghiệm không
+    for (let i = 0; i < m; i++) {
+      let allZeros = true;
+      for (let j = 0; j < n; j++) {
+        if (!math.equal(matrix[i][j], 0)) {
+          allZeros = false;
+          break;
+        }
+      }
+      if (allZeros && !math.equal(matrix[i][n], 0)) {
+        statusDiv.innerHTML += '\\[ \\text{Hệ phương trình vô nghiệm (mâu thuẫn: } 0 = ' + toFraction(matrix[i][n]) + '). \\]';
+        MathJax.typeset();
+        return;
+      }
+    }
+
+    // Tìm các cột pivot và biến tự do
+    let pivots = new Array(n).fill(-1); // pivots[j] là hàng chứa pivot của cột j
+    let freeVars = new Array(n).fill(true); // freeVars[j] = true nếu x_j là biến tự do
+    for (let i = 0; i < m; i++) {
+      for (let j = 0; j < n; j++) {
+        if (math.equal(matrix[i][j], 1)) {
+          pivots[j] = i;
+          freeVars[j] = false;
+          break;
+        }
+      }
+    }
+
+    // Đếm số biến tự do
+    let numFreeVars = freeVars.filter(val => val).length;
+    if (numFreeVars === 0) {
+      // Nghiệm duy nhất
+      let solution = new Array(n).fill(0);
+      for (let j = 0; j < n; j++) {
+        let i = pivots[j];
+        if (i >= 0) {
+          solution[j] = toFraction(matrix[i][n]);
+        }
+      }
+      let solutionText = solution.map((val, i) => `x_{${i + 1}} = ${val}`).join('\\\\');
+      statusDiv.innerHTML += '\\[ \\text{Hệ phương trình có nghiệm duy nhất: } \\begin{cases} ' + solutionText + ' \\end{cases} \\]';
+      MathJax.typeset();
+      return;
+    }
+
+    // Nghiệm tổng quát (vô số nghiệm)
+    let solution = new Array(n).fill(null);
+    let params = [];
+    let paramIndex = 1;
+    for (let j = 0; j < n; j++) {
+      if (freeVars[j]) {
+        // Đặt tên tham số: t_1 nếu chỉ có 1 tham số, t_1, t_2, ... nếu nhiều tham số
+        let paramName = numFreeVars === 1 ? 't_1' : `t_${paramIndex}`;
+        params.push(paramName);
+        solution[j] = paramName;
+        paramIndex++;
+      } else {
+        let i = pivots[j];
+        let expr = toFraction(matrix[i][n]);
+        let terms = [];
+        for (let k = 0; k < n; k++) {
+          if (k !== j && freeVars[k]) {
+            let coeff = math.multiply(matrix[i][k], -1);
+            if (math.equal(coeff, 0)) continue;
+            let term;
+            let paramLabel = numFreeVars === 1 ? 't_1' : `t_${params.indexOf(solution[k]) + 1}`;
+            if (math.equal(coeff, 1)) {
+              term = paramLabel;
+            } else if (math.equal(coeff, -1)) {
+              term = '-' + paramLabel;
+            } else {
+              term = `${toFraction(coeff)}${paramLabel}`;
+            }
+            terms.push(term);
+          }
+        }
+        let exprText = expr;
+        if (terms.length > 0) {
+          exprText = expr + terms.map(t => (t.startsWith('-') ? '' : '+') + t).join('');
+        }
+        solution[j] = exprText === '0' ? '0' : exprText;
+      }
+    }
+
+    let solutionText = solution.map((val, i) => `x_{${i + 1}} = ${val}`).join('\\\\');
+    let paramsText = params.length > 0 ? `\\text{(với } ${params.join(', ')} \\in \\mathbb{R})` : '';
+    statusDiv.innerHTML += '\\[ \\text{Hệ phương trình có vô số nghiệm: } \\begin{cases} ' + solutionText + ' \\end{cases} ' + paramsText + ' \\]';
+    MathJax.typeset();
+  }
+
+  randomMatrixBtn.addEventListener('click', () => {
+    m = parseInt(document.getElementById('rows').value);
+    n = parseInt(document.getElementById('cols').value);
+    generateInputMatrix(m, n + 1);
+    for (let i = 0; i < m; i++) {
+      for (let j = 0; j <= n; j++) {
+        document.getElementById(`cell-${i}-${j}`).value = Math.floor(Math.random() * 11 - 5);
+      }
+    }
+    startGaussBtn.disabled = false;
+    nextStepBtn.disabled = true;
+    resultDiv.innerHTML = '';
+    statusDiv.innerText = 'Đã tạo hệ phương trình ngẫu nhiên.';
+    rrefPhase = false;
+  });
+</script>
+
+</body>
+</html>
