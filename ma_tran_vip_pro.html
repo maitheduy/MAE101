@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Quiz</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Parisienne&family=Roboto:wght@400;500;700&family=UnifrakturMaguntia&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            background-color: #f0f2f5; /* Softer background */
+        }
+        #emailModal {
+            display: none;
+            z-index: 100; /* Ensure modal is on top */
+        }
+        #homeButton {
+            z-index: 40; /* Below modal */
+        }
+        .btn-option {
+            width: 100px;
+            background-color: #1E90FF;
+            color: white;
+            padding: 8px 12px; /* Slightly more padding */
+            border-radius: 6px; /* Softer radius */
+            margin-right: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+            font-weight: 500;
+        }
+        .btn-option:hover {
+            background-color: #1873CC;
+        }
+        .btn-correct {
+            background-color: #32CD32;
+        }
+        .btn-correct:hover {
+            background-color: #28A428;
+        }
+        .btn-incorrect {
+            background-color: #FF6347;
+        }
+        .btn-incorrect:hover {
+            background-color: #D94F3A;
+        }
+        .btn-option:disabled {
+            opacity: 1;
+            cursor: default;
+        }
+        .btn-action { /* Common class for action buttons */
+            color: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s ease-in-out;
+            border: none;
+            font-size: 16px;
+        }
+        .btn-start {
+            background-color: #28a745; /* Bootstrap success green */
+        }
+        .btn-start:hover {
+            background-color: #218838;
+        }
+        .btn-back {
+            background-color: #ffc107; /* Bootstrap warning yellow */
+            color: #212529; /* Darker text for yellow */
+        }
+        .btn-back:hover {
+            background-color: #e0a800;
+        }
+        .btn-next {
+            background-color: #007bff; /* Bootstrap primary blue */
+        }
+        .btn-next:hover {
+            background-color: #0056b3;
+        }
+        .btn-finish {
+            background-color: #dc3545; /* Bootstrap danger red */
+        }
+        .btn-finish:hover {
+            background-color: #c82333;
+        }
+        .btn-certificate {
+            background-color: #17a2b8; /* Bootstrap info teal */
+        }
+        .btn-certificate:hover {
+            background-color: #138496;
+        }
+        .btn-download {
+            background-color: #007bff;
+            margin-left: 10px;
+        }
+        .btn-download:hover {
+            background-color: #0056b3;
+        }
+        .btn-explain {
+            color: white;
+            padding: 6px 10px; /* Smaller explain button */
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            position: absolute;
+            font-size: 14px;
+        }
+        .btn-explain-correct {
+            background-color: #28a745;
+        }
+        .btn-explain-correct:hover {
+            background-color: #218838;
+        }
+        .btn-explain-incorrect {
+            background-color: #dc3545;
+        }
+        .btn-explain-incorrect:hover {
+            background-color: #c82333;
+        }
+        .feedback-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-top: 10px;
+            position: relative;
+        }
+        .explanation-box {
+            max-height: 200px;
+            width: 100%;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 10px;
+            background-color: #f9f9f9;
+            display: none; /* Initially hidden */
+            font-size: 0.9em;
+        }
+        #timer-box {
+            background-color: #32CD32;
+            color: white;
+            font-size: 18px; /* Slightly larger */
+            width: auto; /* Fit content */
+            min-width: 150px;
+            padding: 8px 15px;
+            height: auto;
+            display: inline-flex; /* For auto width */
+            justify-content: center;
+            align-items: center;
+            border-radius: 6px;
+            font-weight: bold;
+            /* margin: 0 auto 20px; Removed direct margin, parent div will handle */
+        }
+        .quiz-title {
+            font-size: 2.25rem; /* Larger title */
+            font-weight: 700;
+            text-align: center;
+            color: #c53030; /* Tailwind red-700 */
+            margin-bottom: 1.5rem;
+            font-family: 'Roboto', sans-serif; /* Ensure consistent font */
+        }
+
+        /* CERTIFICATE STYLES */
+        .certificate-wrapper {
+            width: 800px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #e0e0e0;
+        }
+        .certificate-main-content {
+            border: 1px solid #d4af37;
+            padding: 40px;
+            height: 100%;
+            position: relative;
+            background-image: repeating-linear-gradient(-45deg, rgba(230, 230, 230, 0.5), rgba(230, 230, 230, 0.5) 1px, transparent 1px, transparent 10px);
+            background-color: #fff;
+        }
+        .certificate-main-content::before, .certificate-main-content::after {
+            content: '';
+            position: absolute;
+            width: 250px; height: 180px;
+            background-color: #cc0000;
+            z-index: 1;
+        }
+        .certificate-main-content::before { top: -1px; right: -1px; border-bottom-left-radius: 100%; }
+        .certificate-main-content::after { bottom: -1px; left: -1px; border-top-right-radius: 100%; }
+        .gold-trim-top-right, .gold-trim-bottom-left {
+            content: '';
+            position: absolute;
+            width: 265px; height: 195px;
+            background-color: #d4af37;
+            z-index: 0;
+        }
+        .gold-trim-top-right { top: -10px; right: -10px; border-bottom-left-radius: 100%; }
+        .gold-trim-bottom-left { bottom: -10px; left: -10px; border-top-right-radius: 100%; }
+        .certificate-seal-placeholder {
+            position: absolute; top: 30px; left: 40px; width: 100px; height: 100px;
+            background-color: #333; border-radius: 50%; border: 5px solid #d4af37;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: #d4af37; font-size: 10px; text-align: center; line-height: 1.2; font-weight: bold; z-index: 2;
+        }
+        .certificate-seal-placeholder .stars { font-size: 16px; margin-bottom: 2px; }
+        .certificate-header { text-align: center; margin-bottom: 30px; position: relative; z-index: 2; }
+        .certificate-title { font-family: 'UnifrakturMaguntia', cursive; font-size: 4.5rem; color: #000000; margin: 0; line-height: 1; }
+        .certificate-subtitle { font-family: 'Roboto', sans-serif; font-size: 1.25rem; color: #000000; text-transform: uppercase; letter-spacing: 2px; margin-top: 5px; font-weight: 700; }
+        .certificate-presented-to { font-family: 'Roboto', sans-serif; font-size: 0.875rem; color: #555555; text-transform: uppercase; letter-spacing: 1px; margin-top: 40px; margin-bottom: 10px; text-align: center; position: relative; z-index: 2; }
+        .certificate-recipient-name { font-family: 'Parisienne', cursive; font-size: 3rem; color: #000000; text-align: center; margin-bottom: 10px; position: relative; z-index: 2; }
+        .certificate-line { width: 60%; margin: 0 auto 20px auto; border: 0; border-top: 1px solid #cccccc; position: relative; z-index: 2; }
+        .certificate-company { font-family: 'Roboto', sans-serif; font-size: 0.875rem; color: #555555; text-transform: uppercase; letter-spacing: 1px; text-align: center; margin-bottom: 10px; position: relative; z-index: 2; }
+        .certificate-description { font-family: 'Roboto', sans-serif; font-size: 0.8rem; color: #666666; text-align: center; margin: 0 auto 30px auto; max-width: 80%; line-height: 1.4; position: relative; z-index: 2; }
+        .certificate-footer { display: flex; justify-content: space-around; margin-top: 50px; padding: 0 10%; position: relative; z-index: 2; }
+        .certificate-footer-item { font-family: 'Roboto', sans-serif; font-size: 0.875rem; color: #555555; text-transform: uppercase; text-align: center; }
+        .certificate-footer-line { width: 100%; border: 0; border-top: 1px solid #cccccc; margin-bottom: 5px; }
+        #studentName, #studentId {
+            border: 1px solid #cbd5e0; padding: 0.75rem; border-radius: 0.375rem;
+        }
+        #studentName:focus, #studentId:focus {
+            outline: none; border-color: #4299e1; box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5);
+        }
+        #emailModal > div {
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+            max-width: 880px;
+        }
+        /* Theory Panel specific styles */
+        #theoryPanel {
+            max-height: calc(100vh - 120px); /* Adjusted for top margin and potential padding */
+            line-height: 1.7; /* Improve readability */
+        }
+        #theoryPanel h2 {
+            font-size: 1.5rem; /* Tailwind text-2xl */
+            font-weight: 700; /* Tailwind font-bold */
+            color: #1a202c; /* Tailwind gray-900 */
+            margin-bottom: 1rem; /* Tailwind mb-4 */
+            border-bottom: 2px solid #e2e8f0; /* Tailwind border-gray-300 */
+            padding-bottom: 0.5rem; /* Tailwind pb-2 */
+        }
+        #theoryPanel h3 {
+            font-size: 1.25rem; /* Tailwind text-xl */
+            font-weight: 600; /* Tailwind font-semibold */
+            color: #2d3748; /* Tailwind gray-800 */
+            margin-top: 1.5rem; /* Tailwind mt-6 */
+            margin-bottom: 0.75rem; /* Tailwind mb-3 */
+        }
+        #theoryPanel p {
+            margin-bottom: 0.75rem; /* Tailwind mb-3 */
+            color: #4a5568; /* Tailwind gray-700 */
+        }
+        #theoryPanel ul, #theoryPanel ol {
+            margin-left: 1.5rem; /* Tailwind ml-6 */
+            margin-bottom: 0.75rem; /* Tailwind mb-3 */
+            color: #4a5568; /* Tailwind gray-700 */
+        }
+        #theoryPanel li {
+            margin-bottom: 0.25rem; /* Tailwind mb-1 */
+        }
+        #theoryPanel strong {
+            font-weight: 600; /* Tailwind font-semibold */
+            color: #2c5282; /* Tailwind blue-800 for emphasis */
+        }
+        #theoryPanel .math-block { /* For block-level MathJax */
+            display: block;
+            text-align: center;
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        #theoryPanel .math-inline { /* For inline MathJax */
+            /* Default MathJax styling is usually fine */
+        }
+
+
+        #homeButton:hover svg {
+             transform: scale(1.1);
+        }
+        #quizScreenTopControls {
+            /* Styles already applied by Tailwind: flex justify-between items-center mb-4 */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex flex-col items-center min-h-screen p-4">
+    <button id="homeButton" onclick="window.location.reload()" class="fixed top-4 left-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md shadow-md flex items-center transition-transform duration-150 ease-in-out">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-2 transition-transform duration-150 ease-in-out" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+        </svg>
+        Home
+    </button>
+
+    <div id="mainContentWrapper" class="flex w-full max-w-7xl mt-20 justify-center">
+        <div id="theoryPanel" class="hidden bg-white p-6 rounded-lg shadow-lg overflow-y-auto">
+            <!-- Theory content will be injected here by JS -->
+        </div>
+
+        <div id="quizContainer" class="bg-white p-6 md:p-8 rounded-lg shadow-xl w-full max-w-2xl">
+            <h1 class="quiz-title">Đề thi trắc nghiệm về ma trận</h1>
+            <div id="introScreen" class="space-y-4">
+                <p class="text-center text-gray-700">Vui lòng nhập thông tin sinh viên để bắt đầu:</p>
+                <input id="studentName" type="text" placeholder="Họ tên" class="w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500">
+                <input id="studentId" type="text" placeholder="MSSV" class="w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500">
+                <button id="startQuizButton" class="w-full btn-action btn-start">Bắt đầu bài thi</button>
+            </div>
+
+            <div id="quizScreen" class="hidden">
+                <div id="quizScreenTopControls" class="flex justify-between items-center mb-4">
+                    <div id="theoryToggleContainer">
+                        <!-- Theory Toggle button will be inserted here by JS -->
+                    </div>
+                    <button id="finishQuizTopButton" onclick="finishQuiz()" class="btn-action btn-finish">Finish</button>
+                </div>
+                <div class="text-center mb-6"> <!-- Timer box container -->
+                     <div id="timer-box">0</div>
+                </div>
+                <div id="questionText" class="mb-6 text-lg text-gray-800 leading-relaxed"></div>
+                <div id="options" class="space-y-3"></div>
+                <div id="feedback" class="mt-6"></div>
+                <div id="navigation" class="mt-6 flex justify-between">
+                    <button onclick="goBack()" class="btn-action btn-back">Back</button>
+                    <button onclick="goNext()" class="btn-action btn-next">Next</button>
+                    <!-- Finish button moved to quizScreenTopControls -->
+                </div>
+            </div>
+
+            <div id="resultScreen" class="hidden text-center">
+                <h2 id="resultSummary" class="text-2xl font-bold text-gray-800 mb-3"></h2>
+                <div id="resultDetails" class="mt-4 text-gray-700 space-y-2 text-lg"></div>
+                <button onclick="showEmailContent()" class="mt-6 btn-action btn-certificate">Xem Chứng Nhận</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="emailModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center p-4">
+        <div class="bg-white p-4 sm:p-6 rounded-lg shadow-xl w-full">
+            <div id="emailContent" class="overflow-x-auto">
+                <!-- Certificate will be injected here -->
+            </div>
+            <div class="mt-6 text-right space-x-3">
+                <button onclick="closeEmailModal()" class="btn-action bg-gray-500 hover:bg-gray-600">Close</button>
+                <button onclick="downloadImage()" class="btn-action btn-download">Download Image</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        if (window.location.protocol === 'file:') {
+            console.warn('Chạy ở chế độ file://. Các liên kết bên ngoài có thể không hoạt động do hạn chế bảo mật trình duyệt. Vui lòng chạy trên server cục bộ (ví dụ: http://localhost) bằng `http-server`.');
+        }
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let studentName = '';
+        let studentId = '';
+        let seconds = 0;
+        let timerInterval = null;
+        let timerRunning = false;
+        let userAnswers = {};
+        let theoryPanelVisible = false;
+
+        const questions = [
+             {
+                text: "\\text{Câu 1. Cho ma trận } A = \\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\end{pmatrix}. \\text{ Tính } A^T.",
+                correct_answer: "A",
+                options: ['A', 'B', 'C', 'D'],
+                formulas: [
+                    "\\begin{pmatrix} 1 & 3 \\\\ 2 & 4 \\end{pmatrix}",
+                    "\\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\end{pmatrix}",
+                    "\\begin{pmatrix} 2 & 4 \\\\ 1 & 3 \\end{pmatrix}",
+                    "\\begin{pmatrix} 4 & 3 \\\\ 2 & 1 \\end{pmatrix}"
+                ],
+                explanation_correct: "\\text{Đúng! Ma trận chuyển vị } A^T \\text{ được tạo bằng cách đổi hàng thành cột và cột thành hàng của } A: \\\\ A = \\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\end{pmatrix} \\implies A^T = \\begin{pmatrix} 1 & 3 \\\\ 2 & 4 \\end{pmatrix} \\\\ \\text{Đáp án đúng là A) } \\begin{pmatrix} 1 & 3 \\\\ 2 & 4 \\end{pmatrix}.",
+                explanation_incorrect: "\\text{Sai! Ma trận chuyển vị } A^T \\text{ của } A = \\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\end{pmatrix} \\text{ là:} \\\\ A^T = \\begin{pmatrix} 1 & 3 \\\\ 2 & 4 \\end{pmatrix} \\\\ - \\text{Đáp án B): Sai vì đây là ma trận } A, \\text{ không phải } A^T. \\\\ - \\text{Đáp án C), D): Sai vì không đúng cách chuyển vị.} \\\\ \\text{Đáp án đúng là A) } \\begin{pmatrix} 1 & 3 \\\\ 2 & 4 \\end{pmatrix}."
+            },
+            {
+                text: "\\text{Câu 2. Cho ma trận } A = \\begin{pmatrix} 1 & 2 & 3 \\\\ 4 & 5 & 6 \\end{pmatrix}. \\text{ Tính } A^T.",
+                correct_answer: "C",
+                options: ['A', 'B', 'C', 'D'],
+                formulas: [
+                    "\\begin{pmatrix} 1 & 4 \\\\ 2 & 5 \\end{pmatrix}",
+                    "\\begin{pmatrix} 1 & 2 & 3 \\\\ 4 & 5 & 6 \\end{pmatrix}",
+                    "\\begin{pmatrix} 1 & 4 \\\\ 2 & 5 \\\\ 3 & 6 \\end{pmatrix}",
+                    "\\begin{pmatrix} 4 & 5 & 6 \\\\ 1 & 2 & 3 \\end{pmatrix}"
+                ],
+                explanation_correct: "\\text{Đúng! Ma trận } A \\text{ có kích thước } 2 \\times 3, \\text{ nên } A^T \\text{ có kích thước } 3 \\times 2: \\\\ A = \\begin{pmatrix} 1 & 2 & 3 \\\\ 4 & 5 & 6 \\end{pmatrix} \\implies A^T = \\begin{pmatrix} 1 & 4 \\\\ 2 & 5 \\\\ 3 & 6 \\end{pmatrix} \\\\ \\text{Đáp án đúng là C) } \\begin{pmatrix} 1 & 4 \\\\ 2 & 5 \\\\ 3 & 6 \\end{pmatrix}.",
+                explanation_incorrect: "\\text{Sai! Ma trận } A^T: \\\\ A^T = \\begin{pmatrix} 1 & 4 \\\\ 2 & 5 \\\\ 3 & 6 \\end{pmatrix} \\\\ - \\text{Đáp án A): Sai vì thiếu hàng.} \\\\ - \\text{Đáp án B): Sai vì đây là ma trận } A. \\\\ - \\text{Đáp án D): Sai vì không đúng cách chuyển vị.} \\\\ \\text{Đáp án đúng là C) } \\begin{pmatrix} 1 & 4 \\\\ 2 & 5 \\\\ 3 & 6 \\end{pmatrix}."
+            },
+            {
+                text: "\\text{Câu 3. Cho ma trận } A = \\begin{pmatrix} 1 \\\\ 2 \\\\ 3 \\end{pmatrix}. \\text{ Tính } A^T.",
+                correct_answer: "B",
+                options: ['A', 'B', 'C', 'D'],
+                formulas: [
+                    "\\begin{pmatrix} 1 \\\\ 2 \\\\ 3 \\end{pmatrix}",
+                    "\\begin{pmatrix} 1 & 2 & 3 \\end{pmatrix}",
+                    "\\begin{pmatrix} 3 & 2 & 1 \\end{pmatrix}",
+                    "\\begin{pmatrix} 1 & 2 \\\\ 3 & 0 \\end{pmatrix}"
+                ],
+                explanation_correct: "\\text{Đúng! Ma trận } A \\text{ là vector cột } 3 \\times 1, \\text{ nên } A^T \\text{ là vector hàng } 1 \\times 3: \\\\ A = \\begin{pmatrix} 1 \\\\ 2 \\\\ 3 \\end{pmatrix} \\implies A^T = \\begin{pmatrix} 1 & 2 & 3 \\end{pmatrix} \\\\ \\text{Đáp án đúng là B) } \\begin{pmatrix} 1 & 2 & 3 \\end{pmatrix}.",
+                explanation_incorrect: "\\text{Sai! Ma trận } A^T: \\\\ A^T = \\begin{pmatrix} 1 & 2 & 3 \\end{pmatrix} \\\\ - \\text{Đáp án A): Sai vì đây là ma trận } A. \\\\ - \\text{Đáp án C): Sai vì đảo ngược thứ tự.} \\\\ - \\text{Đáp án D): Sai vì kích thước không đúng.} \\\\ \\text{Đáp án đúng là B) } \\begin{pmatrix} 1 & 2 & 3 \\end{pmatrix}."
+            },
+            {
+                text: "\\text{Câu 4. Cho ma trận } A = \\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\\\ 5 & 6 \\end{pmatrix}. \\text{ Tính } (A^T)^T.",
+                correct_answer: "D",
+                options: ['A', 'B', 'C', 'D'],
+                formulas: [
+                    "\\begin{pmatrix} 1 & 3 & 5 \\\\ 2 & 4 & 6 \\end{pmatrix}",
+                    "\\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\end{pmatrix}",
+                    "\\begin{pmatrix} 2 & 4 & 6 \\\\ 1 & 3 & 5 \\end{pmatrix}",
+                    "\\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\\\ 5 & 6 \\end{pmatrix}"
+                ],
+                explanation_correct: "\\text{Đúng! Ta có } (A^T)^T = A: \\\\ A = \\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\\\ 5 & 6 \\end{pmatrix} \\implies A^T = \\begin{pmatrix} 1 & 3 & 5 \\\\ 2 & 4 & 6 \\end{pmatrix} \\implies (A^T)^T = A = \\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\\\ 5 & 6 \\end{pmatrix} \\\\ \\text{Đáp án đúng là D) } \\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\\\ 5 & 6 \\end{pmatrix}.",
+                explanation_incorrect: "\\text{Sai! } (A^T)^T = A, \\text{ nên:} \\\\ (A^T)^T = \\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\\\ 5 & 6 \\end{pmatrix} \\\\ - \\text{Đáp án A): Sai vì đây là } A^T. \\\\ - \\text{Đáp án B): Sai vì kích thước không đúng.} \\\\ - \\text{Đáp án C): Sai vì không phải } A. \\\\ \\text{Đáp án đúng là D) } \\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\\\ 5 & 6 \\end{pmatrix}."
+            },
+            {
+                text: "\\text{Câu 5. Cho } A = \\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\end{pmatrix} \\text{ và } B = \\begin{pmatrix} 2 & 1 \\\\ 0 & 1 \\end{pmatrix}. \\text{ Tính } A + B.",
+                correct_answer: "A",
+                options: ['A', 'B', 'C', 'D'],
+                formulas: [
+                    "\\begin{pmatrix} 3 & 3 \\\\ 3 & 5 \\end{pmatrix}",
+                    "\\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\end{pmatrix}",
+                    "\\begin{pmatrix} 2 & 1 \\\\ 0 & 1 \\end{pmatrix}",
+                    "\\begin{pmatrix} 0 & 1 \\\\ 3 & 3 \\end{pmatrix}"
+                ],
+                explanation_correct: "\\text{Đúng! Cộng ma trận bằng cách cộng từng phần tử tương ứng:} \\\\ A + B = \\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\end{pmatrix} + \\begin{pmatrix} 2 & 1 \\\\ 0 & 1 \\end{pmatrix} = \\begin{pmatrix} 1+2 & 2+1 \\\\ 3+0 & 4+1 \\end{pmatrix} = \\begin{pmatrix} 3 & 3 \\\\ 3 & 5 \\end{pmatrix} \\\\ \\text{Đáp án đúng là A) } \\begin{pmatrix} 3 & 3 \\\\ 3 & 5 \\end{pmatrix}.",
+                explanation_incorrect: "\\text{Sai! Ta tính:} \\\\ A + B = \\begin{pmatrix} 3 & 3 \\\\ 3 & 5 \\end{pmatrix} \\\\ - \\text{Đáp án B): Sai vì đây là } A. \\\\ - \\text{Đáp án C): Sai vì đây là } B. \\\\ - \\text{Đáp án D): Sai vì không đúng kết quả.} \\\\ \\text{Đáp án đúng là A) } \\begin{pmatrix} 3 & 3 \\\\ 3 & 5 \\end{pmatrix}."
+            },
+            {
+                text: "\\text{Câu 6. Cho } A = \\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix} \\text{ và } B = \\begin{pmatrix} -1 & 0 \\\\ 0 & -1 \\end{pmatrix}. \\text{ Tính } A + B.",
+                correct_answer: "B",
+                options: ['A', 'B', 'C', 'D'],
+                formulas: [
+                    "\\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix}",
+                    "\\begin{pmatrix} 0 & 0 \\\\ 0 & 0 \\end{pmatrix}",
+                    "\\begin{pmatrix} -1 & 0 \\\\ 0 & -1 \\end{pmatrix}",
+                    "\\begin{pmatrix} 2 & 0 \\\\ 0 & 2 \\end{pmatrix}"
+                ],
+                explanation_correct: "\\text{Đúng! Cộng ma trận:} \\\\ A + B = \\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix} + \\begin{pmatrix} -1 & 0 \\\\ 0 & -1 \\end{pmatrix} = \\begin{pmatrix} 1-1 & 0+0 \\\\ 0+0 & 1-1 \\end{pmatrix} = \\begin{pmatrix} 0 & 0 \\\\ 0 & 0 \\end{pmatrix} \\\\ \\text{Đáp án đúng là B) } \\begin{pmatrix} 0 & 0 \\\\ 0 & 0 \\end{pmatrix}.",
+                explanation_incorrect: "\\text{Sai! Ta tính:} \\\\ A + B = \\begin{pmatrix} 0 & 0 \\\\ 0 & 0 \\end{pmatrix} \\\\ - \\text{Đáp án A): Sai vì đây là } A. \\\\ - \\text{Đáp án C): Sai vì đây là } B. \\\\ - \\text{Đáp án D): Sai vì không đúng kết quả.} \\\\ \\text{Đáp án đúng là B) } \\begin{pmatrix} 0 & 0 \\\\ 0 & 0 \\end{pmatrix}."
+            },
+            {
+                text: "\\text{Câu 7. Cho } A = \\begin{pmatrix} 2 & 3 \\\\ 4 & 1 \\end{pmatrix} \\text{ và } B = \\begin{pmatrix} 0 & -1 \\\\ 2 & 0 \\end{pmatrix}. \\text{ Tính } A + B.",
+                correct_answer: "C",
+                options: ['A', 'B', 'C', 'D'],
+                formulas: [
+                    "\\begin{pmatrix} 2 & 3 \\\\ 4 & 1 \\end{pmatrix}",
+                    "\\begin{pmatrix} 0 & -1 \\\\ 2 & 0 \\end{pmatrix}",
+                    "\\begin{pmatrix} 2 & 2 \\\\ 6 & 1 \\end{pmatrix}",
+                    "\\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\end{pmatrix}"
+                ],
+                explanation_correct: "\\text{Đúng! Cộng ma trận:} \\\\ A + B = \\begin{pmatrix} 2 & 3 \\\\ 4 & 1 \\end{pmatrix} + \\begin{pmatrix} 0 & -1 \\\\ 2 & 0 \\end{pmatrix} = \\begin{pmatrix} 2+0 & 3-1 \\\\ 4+2 & 1+0 \\end{pmatrix} = \\begin{pmatrix} 2 & 2 \\\\ 6 & 1 \\end{pmatrix} \\\\ \\text{Đáp án đúng là C) } \\begin{pmatrix} 2 & 2 \\\\ 6 & 1 \\end{pmatrix}.",
+                explanation_incorrect: "\\text{Sai! Ta tính:} \\\\ A + B = \\begin{pmatrix} 2 & 2 \\\\ 6 & 1 \\end{pmatrix} \\\\ - \\text{Đáp án A): Sai vì đây là } A. \\\\ - \\text{Đáp án B): Sai vì đây là } B. \\\\ - \\text{Đáp án D): Sai vì không đúng kết quả.} \\\\ \\text{Đáp án đúng là C) } \\begin{pmatrix} 2 & 2 \\\\ 6 & 1 \\end{pmatrix}."
+            },
+            {
+                text: "\\text{Câu 8. Cho } A = \\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\end{pmatrix} \\text{ và } B = \\begin{pmatrix} 0 & 1 \\\\ 1 & 0 \\end{pmatrix}. \\text{ Tính } A \\cdot B.",
+                correct_answer: "A",
+                options: ['A', 'B', 'C', 'D'],
+                formulas: [
+                    "\\begin{pmatrix} 2 & 1 \\\\ 4 & 3 \\end{pmatrix}",
+                    "\\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\end{pmatrix}",
+                    "\\begin{pmatrix} 0 & 1 \\\\ 1 & 0 \\end{pmatrix}",
+                    "\\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix}"
+                ],
+                explanation_correct: "\\text{Đúng! Nhân ma trận:} \\\\ A \\cdot B = \\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\end{pmatrix} \\cdot \\begin{pmatrix} 0 & 1 \\\\ 1 & 0 \\end{pmatrix} = \\begin{pmatrix} 1 \\cdot 0 + 2 \\cdot 1 & 1 \\cdot 1 + 2 \\cdot 0 \\\\ 3 \\cdot 0 + 4 \\cdot 1 & 3 \\cdot 1 + 4 \\cdot 0 \\end{pmatrix} = \\begin{pmatrix} 2 & 1 \\\\ 4 & 3 \\end{pmatrix} \\\\ \\text{Đáp án đúng là A) } \\begin{pmatrix} 2 & 1 \\\\ 4 & 3 \\end{pmatrix}.",
+                explanation_incorrect: "\\text{Sai! Ta tính:} \\\\ A \\cdot B = \\begin{pmatrix} 2 & 1 \\\\ 4 & 3 \\end{pmatrix} \\\\ - \\text{Đáp án B): Sai vì đây là } A. \\\\ - \\text{Đáp án C): Sai vì đây là } B. \\\\ - \\text{Đáp án D): Sai vì không đúng kết quả.} \\\\ \\text{Đáp án đúng là A) } \\begin{pmatrix} 2 & 1 \\\\ 4 & 3 \\end{pmatrix}."
+            },
+            {
+                text: "\\text{Câu 9. Cho } A = \\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix} \\text{ và } B = \\begin{pmatrix} 2 & 3 \\\\ 4 & 5 \\end{pmatrix}. \\text{ Tính } A \\cdot B.",
+                correct_answer: "B",
+                options: ['A', 'B', 'C', 'D'],
+                formulas: [
+                    "\\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix}",
+                    "\\begin{pmatrix} 2 & 3 \\\\ 4 & 5 \\end{pmatrix}",
+                    "\\begin{pmatrix} 0 & 0 \\\\ 0 & 0 \\end{pmatrix}",
+                    "\\begin{pmatrix} 1 & 1 \\\\ 1 & 1 \\end{pmatrix}"
+                ],
+                explanation_correct: "\\text{Đúng! Ma trận } A \\text{ là ma trận đơn vị, nên } A \\cdot B = B: \\\\ A \\cdot B = \\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix} \\cdot \\begin{pmatrix} 2 & 3 \\\\ 4 & 5 \\end{pmatrix} = \\begin{pmatrix} 2 & 3 \\\\ 4 & 5 \\end{pmatrix} \\\\ \\text{Đáp án đúng là B) } \\begin{pmatrix} 2 & 3 \\\\ 4 & 5 \\end{pmatrix}.",
+                explanation_incorrect: "\\text{Sai! Ta tính:} \\\\ A \\cdot B = \\begin{pmatrix} 2 & 3 \\\\ 4 & 5 \\end{pmatrix} \\\\ - \\text{Đáp án A): Sai vì đây là } A. \\\\ - \\text{Đáp án C): Sai vì không đúng kết quả.} \\\\ - \\text{Đáp án D): Sai vì không đúng kết quả.} \\\\ \\text{Đáp án đúng là B) } \\begin{pmatrix} 2 & 3 \\\\ 4 & 5 \\end{pmatrix}."
+            },
+            {
+                text: "\\text{Câu 10. Cho } A = \\begin{pmatrix} 1 & 2 \\\\ 0 & 1 \\end{pmatrix} \\text{ và } B = \\begin{pmatrix} 2 \\\\ 3 \\end{pmatrix}. \\text{ Tính } A \\cdot B.",
+                correct_answer: "C",
+                options: ['A', 'B', 'C', 'D'],
+                formulas: [
+                    "\\begin{pmatrix} 1 \\\\ 2 \\end{pmatrix}",
+                    "\\begin{pmatrix} 2 \\\\ 3 \\end{pmatrix}",
+                    "\\begin{pmatrix} 8 \\\\ 3 \\end{pmatrix}",
+                    "\\begin{pmatrix} 0 \\\\ 0 \\end{pmatrix}"
+                ],
+                explanation_correct: "\\text{Đúng! Nhân ma trận:} \\\\ A \\cdot B = \\begin{pmatrix} 1 & 2 \\\\ 0 & 1 \\end{pmatrix} \\cdot \\begin{pmatrix} 2 \\\\ 3 \\end{pmatrix} = \\begin{pmatrix} 1 \\cdot 2 + 2 \\cdot 3 \\\\ 0 \\cdot 2 + 1 \\cdot 3 \\end{pmatrix} = \\begin{pmatrix} 8 \\\\ 3 \\end{pmatrix} \\\\ \\text{Đáp án đúng là C) } \\begin{pmatrix} 8 \\\\ 3 \\end{pmatrix}.",
+                explanation_incorrect: "\\text{Sai! Ta tính:} \\\\ A \\cdot B = \\begin{pmatrix} 8 \\\\ 3 \\end{pmatrix} \\\\ - \\text{Đáp án A): Sai vì không đúng kết quả.} \\\\ - \\text{Đáp án B): Sai vì đây là } B. \\\\ - \\text{Đáp án D): Sai vì không đúng kết quả.} \\\\ \\text{Đáp án đúng là C) } \\begin{pmatrix} 8 \\\\ 3 \\end{pmatrix}."
+            },
+            {
+                text: "\\text{Câu 11. Cho ma trận } A \\text{ thỏa mãn:} \\\\ A^T - \\begin{bmatrix} 0 & -11 & 7 \\\\ -1 & -7 & 18 \\\\ 1 & -6 & 13 \\end{bmatrix} = \\begin{bmatrix} 2 & 3 & -1 \\\\ 1 & 1 & -2 \\\\ -1 & 2 & 1 \\end{bmatrix} \\text{Tìm phần tử } (2,3) \\text{ của ma trận } A.",
+                correct_answer: "B",
+                options: ['A', 'B', 'C', 'D'],
+                formulas: [
+                    "-1",
+                    "-4",
+                    "-18",
+                    "6"
+                ],
+                explanation_correct: "\\text{Đúng! Ta có:} \\\\ A^T = \\begin{bmatrix} 0 & -11 & 7 \\\\ -1 & -7 & 18 \\\\ 1 & -6 & 13 \\end{bmatrix} + \\begin{bmatrix} 2 & 3 & -1 \\\\ 1 & 1 & -2 \\\\ -1 & 2 & 1 \\end{bmatrix} = \\begin{bmatrix} 2 & -8 & 6 \\\\ 0 & -6 & 16 \\\\ 0 & -4 & 14 \\end{bmatrix} \\\\ \\text{Suy ra:} \\\\ A = (A^T)^T = \\begin{bmatrix} 2 & 0 & 0 \\\\ -8 & -6 & -4 \\\\ 6 & 16 & 14 \\end{bmatrix} \\\\ \\text{Phần tử hàng 2, cột 3 của } A \\text{ là:} \\\\ A_{2,3} = -4 \\\\ \\text{→ Đáp án đúng là B. } -4.",
+                explanation_incorrect: "\\text{Sai! Ta tính:} \\\\ A^T = \\begin{bmatrix} 0 & -11 & 7 \\\\ -1 & -7 & 18 \\\\ 1 & -6 & 13 \\end{bmatrix} + \\begin{bmatrix} 2 & 3 & -1 \\\\ 1 & 1 & -2 \\\\ -1 & 2 & 1 \\end{bmatrix} = \\begin{bmatrix} 2 & -8 & 6 \\\\ 0 & -6 & 16 \\\\ 0 & -4 & 14 \\end{bmatrix} \\\\ \\text{Suy ra:} \\\\ A = (A^T)^T = \\begin{bmatrix} 2 & 0 & 0 \\\\ -8 & -6 & -4 \\\\ 6 & 16 & 14 \\end{bmatrix} \\\\ \\text{Phần tử } (2,3) \\text{ của } A \\text{ là } A_{2,3} = -4. \\\\ - \\text{Đáp án A) } -1: \\text{Sai vì không đúng giá trị.} \\\\ - \\text{Đáp án C) } -18: \\text{Sai vì không đúng giá trị.} \\\\ - \\text{Đáp án D) } 6: \\text{Sai vì không đúng giá trị.} \\\\ \\text{Đáp án đúng là B) } -4."
+            }
+        ];
+        const totalQuestions = questions.length;
+        
+        const theoryPanelElement = document.getElementById('theoryPanel');
+        const quizContainer = document.getElementById('quizContainer');
+        const mainContentWrapper = document.getElementById('mainContentWrapper');
+        const theoryToggleContainer = document.getElementById('theoryToggleContainer');
+        const finishQuizTopButton = document.getElementById('finishQuizTopButton');
+
+
+        function goBack() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                displayQuestion();
+            }
+        }
+
+        function goNext() {
+            if (currentQuestionIndex < totalQuestions - 1) {
+                currentQuestionIndex++;
+                displayQuestion();
+            }
+        }
+
+        function finishQuiz() {
+            if (timerRunning) {
+                clearInterval(timerInterval);
+                timerRunning = false;
+                document.getElementById('timer-box').textContent = `Hoàn thành: ${seconds}s`;
+            }
+            const percentage = totalQuestions > 0 ? ((score / totalQuestions) * 100).toFixed(1) : 0;
+            const grade = totalQuestions > 0 ? ((score / totalQuestions) * 10).toFixed(1) : 0;
+
+            document.getElementById('quizScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.remove('hidden');
+            document.getElementById('resultSummary').textContent = `Hoàn thành! Điểm của bạn: ${score}/${totalQuestions}`;
+            let resultDetailsHTML = `<p>Tỷ lệ đúng: <span class="font-bold text-green-600">${percentage}%</span></p>`;
+            resultDetailsHTML += `<p>Điểm (thang 10): <span class="font-bold text-blue-600">${grade}/10</span></p>`;
+            resultDetailsHTML += `<p>Thời gian làm bài: <span class="font-bold text-purple-600">${seconds} giây</span></p>`;
+            document.getElementById('resultDetails').innerHTML = resultDetailsHTML;
+
+            if (theoryPanelVisible) {
+                toggleTheoryPanel(); 
+            }
+            const toggleButton = document.getElementById('toggleTheoryButton');
+            if (toggleButton) {
+                toggleButton.classList.add('hidden');
+            }
+            // finishQuizTopButton is part of quizScreen, so it's hidden with it.
+        }
+
+        function startQuiz() {
+            studentName = document.getElementById('studentName').value.trim();
+            studentId = document.getElementById('studentId').value.trim();
+            if (!studentName || !studentId) {
+                alert('Vui lòng nhập đầy đủ Họ tên và Mã số sinh viên!');
+                return;
+            }
+            score = 0;
+            currentQuestionIndex = 0;
+            userAnswers = {};
+
+            if (theoryPanelVisible) {
+                toggleTheoryPanel(); 
+            } else {
+                theoryPanelElement.classList.add('hidden');
+                theoryPanelElement.classList.remove('w-full', 'md:w-4/12', 'flex-none', 'md:pr-4', 'mb-4', 'md:mb-0');
+                quizContainer.classList.remove('w-full', 'md:w-8/12', 'flex-grow');
+                quizContainer.classList.add('max-w-2xl', 'w-full');
+                mainContentWrapper.classList.remove('justify-start', 'flex-col', 'md:flex-row');
+                mainContentWrapper.classList.add('justify-center');
+            }
+
+            document.getElementById('introScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.add('hidden');
+            document.getElementById('quizScreen').classList.remove('hidden');
+            
+            theoryToggleContainer.innerHTML = ''; // Clear previous button if any
+            let toggleButton = document.getElementById('toggleTheoryButton');
+            if (!toggleButton) {
+                toggleButton = document.createElement('button');
+                toggleButton.id = 'toggleTheoryButton';
+                toggleButton.className = 'btn-action bg-purple-600 hover:bg-purple-700'; // Removed mb-4 as parent div handles margin
+                toggleButton.onclick = toggleTheoryPanel;
+                theoryToggleContainer.appendChild(toggleButton);
+            }
+            toggleButton.textContent = 'Hiện Lý Thuyết';
+            toggleButton.classList.remove('hidden');
+            finishQuizTopButton.classList.remove('hidden');
+
+
+            seconds = 0;
+            document.getElementById('timer-box').textContent = `${seconds}s`;
+            if (timerInterval) clearInterval(timerInterval);
+            timerRunning = true;
+            timerInterval = setInterval(() => {
+                if (timerRunning) {
+                    seconds++;
+                    document.getElementById('timer-box').textContent = `${seconds}s`;
+                }
+            }, 1000);
+            displayQuestion();
+        }
+
+        function displayQuestion() {
+            const question = questions[currentQuestionIndex];
+            document.getElementById('questionText').innerHTML = `\\(${question.text}\\)`;
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const optionContainer = document.createElement('div');
+                optionContainer.className = 'flex items-center mb-2';
+
+                const button = document.createElement('button');
+                button.className = 'btn-option';
+                button.textContent = option;
+                
+                const formulaDiv = document.createElement('div');
+                formulaDiv.className = 'ml-4 text-gray-700';
+                formulaDiv.innerHTML = `\\(\\hspace{0mm}${question.formulas[index]}\\)`;
+
+                optionContainer.appendChild(button);
+                optionContainer.appendChild(formulaDiv);
+                optionsDiv.appendChild(optionContainer);
+
+                if (userAnswers[currentQuestionIndex] && userAnswers[currentQuestionIndex].selected === option) {
+                    checkAnswer(option, button, true);
+                } else if (userAnswers[currentQuestionIndex]) {
+                    button.disabled = true;
+                     if (option === question.correct_answer) {
+                        button.classList.add('btn-correct');
+                    }
+                }
+                 button.onclick = () => checkAnswer(option, button, false);
+            });
+            
+            document.getElementById('feedback').innerHTML = '';
+            if (userAnswers[currentQuestionIndex]) {
+                 showFeedback(userAnswers[currentQuestionIndex].selected, userAnswers[currentQuestionIndex].isCorrect);
+            }
+
+            MathJax.typesetPromise().catch(err => console.error("MathJax typesetting error:", err));
+        }
+
+        function showFeedback(selectedOption, isCorrect) {
+            const question = questions[currentQuestionIndex];
+            const feedbackDiv = document.getElementById('feedback');
+            feedbackDiv.innerHTML = '';
+
+            const feedbackMessage = isCorrect
+                ? `Chính xác! Bạn đã chọn ${selectedOption}.`
+                : `Sai rồi. Bạn chọn ${selectedOption}, đáp án đúng là ${question.correct_answer}.`;
+
+            const feedbackContainer = document.createElement('div');
+            feedbackContainer.className = 'feedback-container';
+
+            const messageSpan = document.createElement('span');
+            messageSpan.textContent = feedbackMessage;
+            messageSpan.className = isCorrect ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold';
+            feedbackContainer.appendChild(messageSpan);
+
+            const explainButton = document.createElement('a');
+            explainButton.href = 'javascript:void(0)';
+            explainButton.className = isCorrect ? 'btn-explain btn-explain-correct' : 'btn-explain btn-explain-incorrect';
+            explainButton.textContent = 'Giải thích';
+            
+            explainButton.style.right = '0px'; 
+            explainButton.style.top = '0px';
+
+            const explanationBox = document.createElement('div');
+            explanationBox.className = 'explanation-box';
+            
+            explainButton.onclick = (e) => {
+                e.preventDefault();
+                const explanation = isCorrect ? question.explanation_correct : question.explanation_incorrect;
+                explanationBox.innerHTML = `\\(${explanation}\\)`;
+                explanationBox.style.display = explanationBox.style.display === 'block' ? 'none' : 'block';
+                if (explanationBox.style.display === 'block') {
+                    MathJax.typesetPromise([explanationBox]).catch(err => console.error("MathJax error in explanation:", err));
+                }
+            };
+            feedbackContainer.appendChild(explainButton);
+            feedbackContainer.appendChild(explanationBox);
+
+            feedbackDiv.appendChild(feedbackContainer);
+            if (explanationBox.innerHTML && explanationBox.style.display === 'block') {
+                 MathJax.typesetPromise([explanationBox]).catch(err => console.error("MathJax error on feedback display:", err));
+            }
+        }
+
+        function checkAnswer(selectedOption, button, isRedraw = false) {
+            const question = questions[currentQuestionIndex];
+            const correct = selectedOption === question.correct_answer;
+
+            if (!isRedraw && !userAnswers[currentQuestionIndex]) {
+                if (correct) score++;
+                userAnswers[currentQuestionIndex] = { selected: selectedOption, isCorrect: correct };
+            }
+            
+            showFeedback(selectedOption, correct);
+
+            const optionButtons = document.querySelectorAll('#options .btn-option');
+            optionButtons.forEach(btn => {
+                const btnOptionText = btn.textContent;
+                if (btnOptionText === question.correct_answer) {
+                    btn.classList.remove('btn-incorrect');
+                    btn.classList.add('btn-correct');
+                } else if (btnOptionText === selectedOption && !correct) {
+                    btn.classList.remove('btn-correct');
+                    btn.classList.add('btn-incorrect');
+                } else if (btnOptionText !== selectedOption && btnOptionText !== question.correct_answer) {
+                    btn.classList.remove('btn-correct', 'btn-incorrect');
+                }
+                btn.disabled = true;
+            });
+        }
+
+        function showEmailContent() {
+            const percentage = totalQuestions > 0 ? ((score / totalQuestions) * 100).toFixed(1) : "N/A";
+            const grade = totalQuestions > 0 ? ((score / totalQuestions) * 10).toFixed(1) : "N/A";
+            const today = new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+            const emailContentHTML = `
+                <div class="certificate-wrapper" id="certificateToDownload">
+                    <div class="certificate-main-content">
+                        <div class="gold-trim-top-right"></div> <div class="gold-trim-bottom-left"></div>
+                        <div class="certificate-seal-placeholder">
+                            <div class="stars">★★★★</div> Best<br>BRAND<br>AWARD <div class="stars">★★★</div>
+                        </div>
+                        <div class="certificate-header">
+                            <h1 class="certificate-title">Certificate</h1> <h2 class="certificate-subtitle">OF ACHIEVEMENT</h2>
+                        </div>
+                        <p class="certificate-presented-to">This certificate is proudly presented to</p>
+                        <p class="certificate-recipient-name">${studentName || "Name Surname"}</p> <hr class="certificate-line">
+                        <p class="certificate-company">${studentId || "ID / INSTITUTION"}</p>
+                        <p class="certificate-description">
+                            Has successfully completed the Math Quiz on Matrices with a score of ${grade}/10 (${percentage}%).
+                            This demonstrates a commendable understanding of matrix operations and concepts.
+                            Time taken: ${seconds} seconds.
+                        </p>
+                        <div class="certificate-footer">
+                            <div class="certificate-footer-item">
+                                <hr class="certificate-footer-line"> DATE
+                                <div style="margin-top: 5px; text-transform:none; color: #333;">${today}</div>
+                            </div>
+                            <div class="certificate-footer-item">
+                                <hr class="certificate-footer-line"> SIGNATURE
+                                <div style="font-family: 'Parisienne', cursive; margin-top: -5px; font-size: 24px; color: #333; text-transform:none;">Quiz Master</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('emailContent').innerHTML = emailContentHTML;
+            document.getElementById('emailModal').style.display = 'flex';
+        }
+
+        function downloadImage() {
+            const element = document.getElementById('certificateToDownload');
+            if (!element) {
+                console.error('Certificate element not found for download.');
+                alert('Không thể tìm thấy nội dung chứng nhận để tải xuống.'); return;
+            }
+            html2canvas(element, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: true })
+            .then(canvas => {
+                const dataURL = canvas.toDataURL('image/jpeg', 0.95);
+                const link = document.createElement('a');
+                link.href = dataURL;
+                link.download = `Certificate-${studentName.replace(/\s+/g, '_') || 'MathQuiz'}.jpg`;
+                document.body.appendChild(link); link.click(); document.body.removeChild(link);
+            }).catch(error => {
+                console.error('Error generating image with html2canvas:', error);
+                alert('Không thể tạo hình ảnh chứng nhận. Vui lòng thử lại hoặc kiểm tra console lỗi.');
+            });
+        }
+
+        function closeEmailModal() {
+            document.getElementById('emailModal').style.display = 'none';
+        }
+
+        function toggleTheoryPanel() {
+            theoryPanelVisible = !theoryPanelVisible;
+            const toggleButton = document.getElementById('toggleTheoryButton');
+
+            if (theoryPanelVisible) {
+                theoryPanelElement.classList.remove('hidden');
+                theoryPanelElement.classList.add('w-full', 'md:w-4/12', 'lg:w-5/12', 'flex-none', 'md:pr-4', 'mb-4', 'md:mb-0'); // Adjusted width for larger screens too
+                quizContainer.classList.remove('max-w-2xl'); 
+                quizContainer.classList.add('w-full', 'md:w-8/12', 'lg:w-7/12', 'flex-grow'); // Adjusted width
+                mainContentWrapper.classList.remove('justify-center', 'flex-col', 'md:flex-row');
+                mainContentWrapper.classList.add('justify-start', 'flex-col', 'md:flex-row');
+
+                if (toggleButton) toggleButton.textContent = 'Ẩn Lý Thuyết';
+                loadTheoryContent();
+            } else {
+                theoryPanelElement.classList.add('hidden');
+                theoryPanelElement.classList.remove('w-full', 'md:w-4/12', 'lg:w-5/12', 'flex-none', 'md:pr-4', 'mb-4', 'md:mb-0');
+                quizContainer.classList.remove('w-full', 'md:w-8/12', 'lg:w-7/12', 'flex-grow');
+                quizContainer.classList.add('max-w-2xl', 'w-full');
+                mainContentWrapper.classList.remove('justify-start', 'flex-col', 'md:flex-row');
+                mainContentWrapper.classList.add('justify-center');
+
+                if (toggleButton) toggleButton.textContent = 'Hiện Lý Thuyết';
+            }
+        }
+        
+        function loadTheoryContent() {
+            // Only load if content is not already there or if you want to refresh it
+            if (theoryPanelElement.innerHTML.trim() === "" || theoryPanelElement.dataset.loaded !== "true") { 
+                theoryPanelElement.innerHTML = `
+                    <h2>Lý thuyết chi tiết về ma trận</h2>
+                    
+                    <h3>1. Khái niệm ma trận</h3>
+                    <p><strong>Ma trận</strong> là một bảng chữ nhật gồm các phần tử số, được xếp thành hàng và cột.</p>
+                    <p>Ký hiệu: <span class="math-inline">\\[A = [a_{ij}]_{m \\times n}\\]</span> với \\(m\\) là số hàng, \\(n\\) là số cột, và \\(a_{ij}\\) là phần tử tại hàng \\(i\\), cột \\(j\\).</p>
+                    <p><strong>Kích thước</strong> (shape) của ma trận \\(A\\) được ghi \\(m \\times n\\).</p>
+                    <p><strong>Ví dụ</strong>: <span class="math-block">\\[A = \\begin{pmatrix} 1 & 2 & 3\\\\ 4 & 5 & 6 \\end{pmatrix}\\]</span> là ma trận \\(2\\times3\\).</p>
+                    
+                    <h3>2. Phép chuyển vị (Transpose)</h3>
+                    <p>Với ma trận \\(A = [a_{ij}]_{m\\times n}\\), ma trận chuyển vị \\(A^T\\) là ma trận \\(n\\times m\\) thỏa: <span class="math-block">\\[(A^T)_{ij} = a_{ji}.\\]</span></p>
+                    <p><strong>Tính chất quan trọng</strong>:</p>
+                    <ul class="list-disc">
+                        <li>\\((A^T)^T = A\\).</li>
+                        <li>\\((A + B)^T = A^T + B^T\\) (nếu \\(A, B\\) cùng kích thước).</li>
+                        <li>\\((k \cdot A)^T = k \cdot A^T\\) với \\(k\\) số vô hướng.</li>
+                        <li>\\((A \cdot B)^T = B^T \cdot A^T\\) (chú ý đổi thứ tự).</li>
+                    </ul>
+                    <p><strong>Ví dụ</strong>: <span class="math-block">\\[A = \\begin{pmatrix} 1 & 2\\\\ 3 & 4\\\\ 5 & 6 \\end{pmatrix} \\implies A^T = \\begin{pmatrix} 1 & 3 & 5\\\\ 2 & 4 & 6 \\end{pmatrix}.\\]</span></p>
+                    
+                    <h3>3. Phép cộng ma trận và nhân số vô hướng</h3>
+                    <h4>3.1. Phép cộng</h4>
+                    <p>Hai ma trận \\(A,B\\) cùng kích thước \\(m\\times n\\) thì tổng \\(A+B\\) cũng là ma trận \\(m\\times n\\) với <span class="math-block">\\[(A + B)_{ij} = a_{ij} + b_{ij}.\\]</span></p>
+                    <p><strong>Tính chất</strong>:</p>
+                    <ul class="list-disc">
+                        <li>Giao hoán: \\(A+B = B+A\\).</li>
+                        <li>Kết hợp: \\((A+B)+C = A+(B+C)\\).</li>
+                        <li>Tồn tại ma trận không (zero) \\(0\\) sao cho \\(A+0 = A\\).</li>
+                    </ul>
+                    <p><strong>Ví dụ</strong>: <span class="math-block">\\[A = \\begin{pmatrix}1&2\\\\3&4\\end{pmatrix},\\quad B = \\begin{pmatrix}2&1\\\\0&1\\end{pmatrix} \\implies A+B = \\begin{pmatrix}3&3\\\\3&5\\end{pmatrix}.\\]</span></p>
+                    
+                    <h4>3.2. Nhân ma trận với số vô hướng</h4>
+                    <p>Với số \\(k\\) và ma trận \\(A=[a_{ij}]\\), <span class="math-block">\\[kA = [k \\cdot a_{ij}].\\]</span></p>
+                    <p><strong>Tính chất</strong>:</p>
+                    <ul class="list-disc">
+                        <li>\\(k(A+B) = kA + kB\\).</li>
+                        <li>\\((k_1 k_2)A = k_1(k_2 A)\\).</li>
+                    </ul>
+                    <p><strong>Ví dụ</strong>: <span class="math-block">\\[2\\begin{pmatrix}1&2\\\\3&4\\end{pmatrix} = \\begin{pmatrix}2&4\\\\6&8\\end{pmatrix}.\\]</span></p>
+                    
+                    <h3>4. Phép nhân ma trận</h3>
+                    <p>Cho \\(A\\) kích thước \\(m\\times p\\) và \\(B\\) kích thước \\(p\\times n\\). Khi đó tích \\(C = A\\cdot B\\) là ma trận \\(m\\times n\\) với <span class="math-block">\\[c_{ij} = \sum_{k=1}^{p} a_{ik} \\cdot b_{kj}.\\]</span></p>
+                    <p><strong>Điều kiện xác định</strong>: số cột của \\(A\\) phải bằng số hàng của \\(B\\).</p>
+                    <p><strong>Tính chất</strong>:</p>
+                    <ol class="list-decimal">
+                        <li>Kết hợp: \\((A \\cdot B) \\cdot C = A \\cdot (B \\cdot C)\\) nếu kích thước phù hợp.</li>
+                        <li>Phân phối: \\(A \\cdot (B+C) = A \\cdot B + A \\cdot C\\), \\((A+B) \\cdot C = A \\cdot C + B \\cdot C\\).</li>
+                        <li>Không giao hoán nói chung: \\(A \\cdot B \\neq B \\cdot A\\).</li>
+                        <li>Ma trận đơn vị \\(I_n\\) sao cho \\(I_n A = A = A I_m\\) (nếu kích thước phù hợp).</li>
+                    </ol>
+                    <p><strong>Ví dụ</strong>:</p>
+                    <p>1. <strong>Nhân hai ma trận vuông</strong></p>
+                    <p><span class="math-block">\\[A = \\begin{pmatrix}1&2\\\\3&4\\end{pmatrix},\\quad B = \\begin{pmatrix}0&1\\\\1&0\\end{pmatrix}\\]</span></p>
+                    <p><span class="math-block">\\[A\\cdot B = \\begin{pmatrix} 1\\cdot0 + 2\\cdot1 & 1\\cdot1 + 2\\cdot0\\\\ 3\\cdot0 + 4\\cdot1 & 3\\cdot1 + 4\\cdot0 \\end{pmatrix} = \\begin{pmatrix}2&1\\\\4&3\\end{pmatrix}.\\]</span></p>
+                    <p>2. <strong>Nhân ma trận với vector</strong></p>
+                    <p><span class="math-block">\\[A = \\begin{pmatrix}1&2\\\\0&1\\end{pmatrix},\\quad v = \\begin{pmatrix}2\\\\3\\end{pmatrix}\\]</span></p>
+                    <p><span class="math-block">\\[A \\cdot v = \\begin{pmatrix}1\\cdot2 + 2\\cdot3 \\\\ 0\\cdot2 + 1\\cdot3\\end{pmatrix} = \\begin{pmatrix}8\\\\3\\end{pmatrix}.\\]</span></p>
+                    
+                    <h3>5. Ma trận đặc biệt và các tính chất liên quan</h3>
+                    <ul class="list-disc">
+                        <li><strong>Ma trận không (Zero)</strong> \\(0_{m\\times n}\\): tất cả phần tử đều bằng 0.</li>
+                        <li><strong>Ma trận đơn vị (Identity)</strong> \\(I_n\\): ma trận vuông \\(n\\times n\\) với đường chéo chính là 1, các phần tử khác là 0. Thỏa \\(I_n A = A\\) và \\(A I_n = A\\).</li>
+                        <li><strong>Tính chất của chuyển vị với sản phẩm</strong>: <span class="math-inline">\\[(A\\,B)^T = B^T\\,A^T.\\]</span></li>
+                    </ul>
+                    
+                    <h3>6. Phương pháp áp dụng khi giải trắc nghiệm</h3>
+                    <ol class="list-decimal">
+                        <li><strong>Xác định yêu cầu</strong>: xem câu hỏi cần tính gì—chuyển vị, cộng hay nhân.</li>
+                        <li><strong>Kiểm tra kích thước</strong>:
+                            <ul class="list-disc list-inside">
+                                <li>Với phép cộng: cả hai ma trận phải cùng kích thước.</li>
+                                <li>Với nhân: số cột ma trận đầu phải bằng số hàng ma trận sau.</li>
+                            </ul>
+                        </li>
+                        <li><strong>Thực hiện phép toán phần tử</strong>:
+                            <ul class="list-disc list-inside">
+                                <li>Cộng từng phần tử tương ứng.</li>
+                                <li>Nhân theo công thức dot product.</li>
+                            </ul>
+                        </li>
+                        <li><strong>Kiểm tra lại tính chất</strong>: như \\((A^T)^T = A\\), \\(A+0 = A\\), \\(A \\cdot I = A\\).</li>
+                        <li><strong>So sánh với đáp án trắc nghiệm</strong>: chọn đáp án khớp kết quả tính được.</li>
+                    </ol>
+                    <p><strong>Lời khuyên:</strong></p>
+                    <ul class="list-disc">
+                        <li>Luôn ghi rõ kích thước ma trận trước khi tính.</li>
+                        <li>Viết ra công thức tổng quát cho từng phần tử để tránh nhầm lẫn.</li>
+                        <li>Thực hành với các ví dụ nhỏ để nhớ nhanh quy tắc.</li>
+                    </ul>
+                    <p>Chúc bạn ôn tập hiệu quả và hoàn thành tốt các câu hỏi về ma trận!</p>
+                `;
+                theoryPanelElement.dataset.loaded = "true"; // Mark as loaded
+                if (typeof MathJax !== 'undefined' && MathJax.typesetPromise) {
+                    MathJax.typesetPromise([theoryPanelElement]).catch(err => console.error("MathJax typesetting error in theory panel:", err));
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('startQuizButton').addEventListener('click', startQuiz);
+        });
+    </script>
+</body>
+</html>
