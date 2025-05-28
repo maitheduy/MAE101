@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Quiz</title>
+    <link href="./styles.css" rel="stylesheet">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #emailModal {
+            display: none;
+        }
+        .btn-option {
+            width: 100px;
+            background-color: #1E90FF;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            margin-right: 8px;
+            cursor: pointer;
+        }
+        .btn-option:hover {
+            background-color: #1873CC;
+        }
+        .btn-correct {
+            background-color: #32CD32;
+        }
+        .btn-correct:hover {
+            background-color: #28A428;
+        }
+        .btn-incorrect {
+            background-color: #FF6347;
+        }
+        .btn-incorrect:hover {
+            background-color: #D94F3A;
+        }
+        .btn-option:disabled {
+            opacity: 1;
+            cursor: default;
+        }
+        .btn-start {
+            background-color: #32CD32;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-start:hover {
+            background-color: #28A428;
+        }
+        .btn-back {
+            background-color: #FFC107;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-back:hover {
+            background-color: #D9A007;
+        }
+        .btn-next {
+            background-color: #1E90FF;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-next:hover {
+            background-color: #1873CC;
+        }
+        .btn-finish {
+            background-color: #FF6347;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: none;
+            font-size: 16px;
+        }
+        .btn-finish:hover {
+            background-color: #D94F3A;
+        }
+        .btn-certificate {
+            background-color: #1E90FF;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-certificate:hover {
+            background-color: #1873CC;
+        }
+        .btn-download {
+            background-color: #1E90FF;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .btn-download:hover {
+            background-color: #1873CC;
+        }
+        .btn-explain {
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            position: absolute;
+        }
+        .btn-explain-correct {
+            background-color: #32CD32;
+        }
+        .btn-explain-correct:hover {
+            background-color: #28A428;
+        }
+        .btn-explain-incorrect {
+            background-color: #FF6347;
+        }
+        .btn-explain-incorrect:hover {
+            background-color: #D94F3A;
+        }
+        .feedback-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-top: 10px;
+            position: relative;
+        }
+        .explanation-box {
+            max-height: 200px;
+            width: 100%;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 10px;
+            background-color: #f9f9f9;
+            display: none; /* Initially hidden */
+        }
+        .certificate-container {
+            background-color: #ffffff;
+            border: 4px double #4CAF50;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            width: 600px;
+        }
+        .certificate-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border: 10px solid #f1f8e9;
+            pointer-events: none;
+        }
+        #timer-box {
+            background-color: #32CD32;
+            color: white;
+            font-size: 17px;
+            width: 300px;
+            height: 33px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 4px;
+            font-weight: bold;
+            margin: 0 auto 20px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div id="quizContainer" class="bg-white p-6 rounded-lg shadow-lg w-full max-w-2xl">
+        <h1 class="text-2xl font-bold text-center text-red-700 mb-4">Đề thi trắc nghiệm về tính chất của định thức</h1>
+        <div id="introScreen" class="space-y-4">
+            <p class="text-center">Vui lòng nhập thông tin sinh viên để bắt đầu:</p>
+            <input id="studentName" type="text" placeholder="Họ tên" class="w-full p-2 border rounded">
+            <input id="studentId" type="text" placeholder="MSSV" class="w-full p-2 border rounded">
+            <button id="startQuizButton" class="w-full btn-start">Bắt đầu bài thi</button>
+        </div>
+        <div id="quizScreen" class="hidden">
+            <div id="timer-box">0</div>
+            <div id="questionText" class="mb-4"></div>
+            <div id="options" class="space-y-4"></div>
+            <div id="feedback" class="mt-4"></div>
+            <div id="navigation" class="mt-4 flex justify-between">
+                <button onclick="goBack()" class="btn-back">Back</button>
+                <button onclick="goNext()" class="btn-next">Next</button>
+                <button onclick="finishQuiz()" class="btn-finish">Finish</button>
+            </div>
+        </div>
+        <div id="resultScreen" class="hidden">
+            <h2 id="resultSummary" class="text-xl font-bold"></h2>
+            <div id="resultDetails" class="mt-4"></div>
+            <button onclick="showEmailContent()" class="mt-4 btn-certificate">Chứng nhận</button>
+        </div>
+    </div>
+    <div id="emailModal" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
+        <div class="bg-white p-6 rounded-lg max-w-2xl w-full">
+            <div id="emailContent"></div>
+            <button onclick="closeEmailModal()" class="mt-4 bg-gray-500 text-white p-2 rounded hover:bg-gray-600">Close</button>
+            <button onclick="downloadImage()" class="mt-4 btn-download">Download Image</button>
+        </div>
+    </div>
+    <script>
+        // Check for file:// context
+        if (window.location.protocol === 'file:') {
+            console.warn('Chạy ở chế độ file://. Các liên kết bên ngoài có thể không hoạt động do hạn chế bảo mật trình duyệt. Vui lòng chạy trên server cục bộ (ví dụ: http://localhost) bằng `http-server`.');
+        }
+
+        // State variables
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let studentName = '';
+        let studentId = '';
+        let seconds = 0;
+        let timerInterval = null;
+        let timerRunning = false;
+
+        // Define the questions array with 11 determinant-related questions
+        const questions = [
+            {
+                text: "\\text{Câu 1. Cho ma trận } A = \\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\end{pmatrix}. \\text{ Tính } \\det(A^T).",
+                correct_answer: "A",
+                options: ['A', 'B', 'C', 'D'],
+                formulas: ["-2", "2", "0", "4"],
+                explanation_correct: `
+                    \\begin{align*}
+                    &\\text{Đúng! Theo tính chất của định thức: } \\det(A^T) = \\det(A). \\\\
+                    &\\text{Định thức của } A = \\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\end{pmatrix} \\text{ là:} \\\\
+                    &\\det(A) = 1 \\times 4 - 2 \\times 3 = 4 - 6 = -2. \\\\
+                    &\\Rightarrow \\det(A^T) = -2. \\\\
+                    &\\text{Đáp án đúng là A) } -2.
+                    \\end{align*}
+                `,
+                explanation_incorrect: `
+                    \\begin{align*}
+                    &\\text{Sai! Theo tính chất: } \\det(A^T) = \\det(A). \\\\
+                    &\\text{Định thức của } A = \\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\end{pmatrix} \\text{ là:} \\\\
+                    &\\det(A) = 1 \\times 4 - 2 \\times 3 = 4 - 6 = -2. \\\\
+                    &\\Rightarrow \\det(A^T) = -2. \\\\
+                    &\\text{Các đáp án khác:} \\\\
+                    &- \\text{B) } 2: \\text{ Sai vì } \\det(A^T) \\neq 2. \\\\
+                    &- \\text{C) } 0: \\text{ Sai vì } \\det(A^T) \\neq 0. \\\\
+                    &- \\text{D) } 4: \\text{ Sai vì } \\det(A^T) \\neq 4. \\\\
+                    &\\text{Đáp án đúng là A) } -2.
+                    \\end{align*}
+                `
+            },
+            {
+                text: "\\text{Câu 2. Cho ma trận } A = \\begin{pmatrix} 2 & 3 \\\\ 4 & 6 \\end{pmatrix}. \\text{ Tính định thức } \\det(A).",
+                correct_answer: "C",
+                options: ['A', 'B', 'C', 'D'],
+                formulas: ["12", "6", "0", "-6"],
+                explanation_correct: `
+                    \\begin{align*}
+                    &\\text{Đúng! Định thức của ma trận } A \\text{ là:} \\\\
+                    &\\det(A) = 2 \\times 6 - 3 \\times 4 = 12 - 12 = 0. \\\\
+                    &\\text{Đáp án đúng là C) } 0.
+                    \\end{align*}
+                `,
+                explanation_incorrect: `
+                    \\begin{align*}
+                    &\\text{Sai! Định thức của } A \\text{ là:} \\\\
+                    &\\det(A) = 2 \\times 6 - 3 \\times 4 = 12 - 12 = 0. \\\\
+                    &\\text{Các đáp án khác:} \\\\
+                    &- \\text{A) } 12: \\text{ Sai vì } 2 \\times 6 - 3 \\times 4 \\neq 12. \\\\
+                    &- \\text{B) } 6: \\text{ Sai vì } 2 \\times 6 - 3 \\times 4 \\neq 6. \\\\
+                    &- \\text{D) } -6: \\text{ Sai vì } 2 \\times 6 - 3 \\times 4 \\neq -6. \\\\
+                    &\\text{Đáp án đúng là C) } 0.
+                    \\end{align*}
+                `
+            },
+            {
+                text: "\\text{Câu 3. Cho ma trận } A = \\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\end{pmatrix}. \\text{ Tính } \\det(3A).",
+                correct_answer: "B",
+                options: ['A', 'B', 'C', 'D'],
+                formulas: ["-6", "-18", "9", "18"],
+                explanation_correct: `
+                    \\begin{align*}
+                    &\\text{Đúng! Theo tính chất: } \\det(kA) = k^n \\cdot \\det(A), \\text{ với } n \\text{ là cấp ma trận.} \\\\
+                    &\\text{Ma trận } A \\text{ có cấp } 2, \\text{ nên } \\det(3A) = 3^2 \\cdot \\det(A) = 9 \\cdot \\det(A). \\\\
+                    &\\text{Định thức của } A = \\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\end{pmatrix} \\text{ là:} \\\\
+                    &\\det(A) = 1 \\times 4 - 2 \\times 3 = 4 - 6 = -2. \\\\
+                    &\\Rightarrow \\det(3A) = 9 \\times (-2) = -18. \\\\
+                    &\\text{Đáp án đúng là B) } -18.
+                    \\end{align*}
+                `,
+                explanation_incorrect: `
+                    \\begin{align*}
+                    &\\text{Sai! Theo tính chất: } \\det(3A) = 3^2 \\cdot \\det(A). \\\\
+                    &\\text{Định thức của } A \\text{ là:} \\\\
+                    &\\det(A) = 1 \\times 4 - 2 \\times 3 = -2. \\\\
+                    &\\Rightarrow \\det(3A) = 9 \\times (-2) = -18. \\\\
+                    &\\text{Các đáp án khác:} \\\\
+                    &- \\text{A) } -6: \\text{ Sai vì } \\det(3A) \\neq -6. \\\\
+                    &- \\text{C) } 9: \\text{ Sai vì } \\det(3A) \\neq 9. \\\\
+                    &- \\text{D) } 18: \\text{ Sai vì } \\det(3A) \\neq 18. \\\\
+                    &\\text{Đáp án đúng là B) } -18.
+                    \\end{align*}
+                `
+            },
+            {
+                text: "\\text{Câu 4. Cho ma trận } A = \\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\end{pmatrix} \\text{ với } \\det(A) = -2. \\text{ Tính } \\det(A^{-1}).",
+                correct_answer: "D",
+                options: ['A', 'B', 'C', 'D'],
+                formulas: ["2", "-2", "1", "-\\frac{1}{2}"],
+                explanation_correct: `
+                    \\begin{align*}
+                    &\\text{Đúng! Theo tính chất: } \\det(A^{-1}) = \\frac{1}{\\det(A)}. \\\\
+                    &\\text{Định thức của } A \\text{ là } \\det(A) = -2. \\\\
+                    &\\Rightarrow \\det(A^{-1}) = \\frac{1}{-2} = -\\frac{1}{2}. \\\\
+                    &\\text{Đáp án đúng là D) } -\\frac{1}{2}.
+                    \\end{align*}
+                `,
+                explanation_incorrect: `
+                    \\begin{align*}
+                    &\\text{Sai! Theo tính chất: } \\det(A^{-1}) = \\frac{1}{\\det(A)}. \\\\
+                    &\\text{Với } \\det(A) = -2, \\text{ ta có:} \\\\
+                    &\\det(A^{-1}) = \\frac{1}{-2} = -\\frac{1}{2}. \\\\
+                    &\\text{Các đáp án khác:} \\\\
+                    &- \\text{A) } 2: \\text{ Sai vì } \\det(A^{-1}) \\neq 2. \\\\
+                    &- \\text{B) } -2: \\text{ Sai vì } \\det(A^{-1}) \\neq -2. \\\\
+                    &- \\text{C) } 1: \\text{ Sai vì } \\det(A^{-1}) \\neq 1. \\\\
+                    &\\text{Đáp án đúng là D) } -\\frac{1}{2}.
+                    \\end{align*}
+                `
+            },
+            {
+                text: "\\text{Câu 5. Cho hai ma trận } A \\text{ và } B \\text{ cấp } 2 \\times 2 \\text{ với } \\det(A) = 3 \\text{ và } \\det(B) = -2. \\text{ Tính } \\det(AB).",
+                correct_answer: "A",
+                options: ['A', 'B', 'C', 'D'],
+                formulas: ["-6", "6", "1", "-1"],
+                explanation_correct: `
+                    \\begin{align*}
+                    &\\text{Đúng! Theo tính chất: } \\det(AB) = \\det(A) \\cdot \\det(B). \\\\
+                    &\\text{Với } \\det(A) = 3 \\text{ và } \\det(B) = -2, \\text{ ta có:} \\\\
+                    &\\det(AB) = 3 \\times (-2) = -6. \\\\
+                    &\\text{Đáp án đúng là A) } -6.
+                    \\end{align*}
+                `,
+                explanation_incorrect: `
+                    \\begin{align*}
+                    &\\text{Sai! Theo tính chất: } \\det(AB) = \\det(A) \\cdot \\det(B). \\\\
+                    &\\text{Với } \\det(A) = 3 \\text{ và } \\det(B) = -2, \\text{ ta có:} \\\\
+                    &\\det(AB) = 3 \\times (-2) = -6. \\\\
+                    &\\text{Các đáp án khác:} \\\\
+                    &- \\text{B) } 6: \\text{ Sai vì } \\det(AB) \\neq 6. \\\\
+                    &- \\text{C) } 1: \\text{ Sai vì } \\det(AB) \\neq 1. \\\\
+                    &- \\text{D) } -1: \\text{ Sai vì } \\det(AB) \\neq -1. \\\\
+                    &\\text{Đáp án đúng là A) } -6.
+                    \\end{align*}
+                `
+            },
+            {
+                text: "\\text{Câu 6. Cho ma trận } A = \\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\end{pmatrix}. \\text{ Nếu hoán đổi hai hàng của ma trận } A \\text{ để được ma trận } B, \\text{ tính } \\det(B).",
+                correct_answer: "B",
+                options: ['A', 'B', 'C', 'D'],
+                formulas: ["2", "2", "0", "-4"],
+                explanation_correct: `
+                    \\begin{align*}
+                    &\\text{Đúng! Theo tính chất: Nếu hoán đổi hai hàng, định thức đổi dấu.} \\\\
+                    &\\text{Định thức của } A = \\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\end{pmatrix} \\text{ là:} \\\\
+                    &\\det(A) = 1 \\times 4 - 2 \\times 3 = 4 - 6 = -2. \\\\
+                    &\\text{Ma trận } B \\text{ sau khi hoán đổi là } \\begin{pmatrix} 3 & 4 \\\\ 1 & 2 \\end{pmatrix}. \\\\
+                    &\\Rightarrow \\det(B) = -\\det(A) = -(-2) = 2. \\\\
+                    &\\text{Đáp án đúng là B) } 2.
+                    \\end{align*}
+                `,
+                explanation_incorrect: `
+                    \\begin{align*}
+                    &\\text{Sai! Định thức của } A \\text{ là:} \\\\
+                    &\\det(A) = 1 \\times 4 - 2 \\times 3 = 4 - 6 = -2. \\\\
+                    &\\text{Sau khi hoán đổi hai hàng, } \\det(B) = -\\det(A) = -(-2) = 2. \\\\
+                    &\\text{Các đáp án khác:} \\\\
+                    &- \\text{A) } 2: \\text{ Cũng đúng, nhưng kiểm tra lại.} \\\\
+                    &- \\text{C) } 0: \\text{ Sai vì } \\det(B) \\neq 0. \\\\
+                    &- \\text{D) } -4: \\text{ Sai vì } \\det(B) \\neq -4. \\\\
+                    &\\text{Đáp án đúng là B) } 2.
+                    \\end{align*}
+                `
+            },
+            {
+                text: "\\text{Câu 7. Cho ma trận } A = \\begin{pmatrix} 1 & 2 & 3 \\\\ 0 & 4 & 5 \\\\ 0 & 0 & 6 \\end{pmatrix}. \\text{ Tính định thức } \\det(A).",
+                correct_answer: "C",
+                options: ['A', 'B', 'C', 'D'],
+                formulas: ["15", "18", "24", "30"],
+                explanation_correct: `
+                    \\begin{align*}
+                    &\\text{Đúng! Ma trận tam giác trên có định thức bằng tích các phần tử đường chéo:} \\\\
+                    &\\det(A) = 1 \\times 4 \\times 6 = 24. \\\\
+                    &\\text{Đáp án đúng là C) } 24.
+                    \\end{align*}
+                `,
+                explanation_incorrect: `
+                    \\begin{align*}
+                    &\\text{Sai! Với ma trận tam giác trên:} \\\\
+                    &\\det(A) = 1 \\times 4 \\times 6 = 24. \\\\
+                    &\\text{Các đáp án khác:} \\\\
+                    &- \\text{A) } 15: \\text{ Sai vì không phải tích đường chéo.} \\\\
+                    &- \\text{B) } 18: \\text{ Sai vì không phải tích đường chéo.} \\\\
+                    &- \\text{D) } 30: \\text{ Sai vì không phải tích đường chéo.} \\\\
+                    &\\text{Đáp án đúng là C) } 24.
+                    \\end{align*}
+                `
+            },
+            {
+                text: "\\text{Câu 8. Cho ma trận } A = \\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\end{pmatrix}. \\text{ Nếu nhân hàng 1 của } A \\text{ với } 2 \\text{ để được ma trận } B, \\text{ tính } \\det(B).",
+                correct_answer: "A",
+                options: ['A', 'B', 'C', 'D'],
+                formulas: ["-4", "-2", "0", "4"],
+                explanation_correct: `
+                    \\begin{align*}
+                    &\\text{Đúng! Theo tính chất: Nếu nhân một hàng với } k, \\text{ định thức nhân với } k. \\\\
+                    &\\text{Định thức của } A = \\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\end{pmatrix} \\text{ là:} \\\\
+                    &\\det(A) = 1 \\times 4 - 2 \\times 3 = 4 - 6 = -2. \\\\
+                    &\\text{Ma trận } B \\text{ sau khi nhân hàng 1 với } 2 \\text{ là } \\begin{pmatrix} 2 & 4 \\\\ 3 & 4 \\end{pmatrix}. \\\\
+                    &\\Rightarrow \\det(B) = 2 \\times \\det(A) = 2 \\times (-2) = -4. \\\\
+                    &\\text{Đáp án đúng là A) } -4.
+                    \\end{align*}
+                `,
+                explanation_incorrect: `
+                    \\begin{align*}
+                    &\\text{Sai! Định thức của } A \\text{ là:} \\\\
+                    &\\det(A) = 1 \\times 4 - 2 \\times 3 = -2. \\\\
+                    &\\text{Sau khi nhân hàng 1 với 2, } \\det(B) = 2 \\times \\det(A) = 2 \\times (-2) = -4. \\\\
+                    &\\text{Các đáp án khác:} \\\\
+                    &- \\text{B) } -2: \\text{ Sai vì } \\det(B) \\neq -2. \\\\
+                    &- \\text{C) } 0: \\text{ Sai vì } \\det(B) \\neq 0. \\\\
+                    &- \\text{D) } 4: \\text{ Sai vì } \\det(B) \\neq 4. \\\\
+                    &\\text{Đáp án đúng là A) } -4.
+                    \\end{align*}
+                `
+            },
+            {
+                text: "\\text{Câu 9. Cho ma trận } A = \\begin{pmatrix} 1 & 2 & 3 \\\\ 4 & 5 & 6 \\\\ 7 & 8 & 9 \\end{pmatrix}. \\text{ Tính định thức } \\det(A).",
+                correct_answer: "B",
+                options: ['A', 'B', 'C', 'D'],
+                formulas: ["-6", "0", "6", "9"],
+                explanation_correct: `
+                    \\begin{align*}
+                    &\\text{Đúng! Định thức của ma trận } 3 \\times 3 \\text{ được tính theo công thức:} \\\\
+                    &\\det(A) = 1 \\times (5 \\times 9 - 6 \\times 8) - 2 \\times (4 \\times 9 - 6 \\times 7) + 3 \\times (4 \\times 8 - 5 \\times 7). \\\\
+                    &\\text{Tính từng phần:} \\\\
+                    &5 \\times 9 - 6 \\times 8 = 45 - 48 = -3, \\\\
+                    &4 \\times 9 - 6 \\times 7 = 36 - 42 = -6, \\\\
+                    &4 \\times 8 - 5 \\times 7 = 32 - 35 = -3. \\\\
+                    &\\Rightarrow \\det(A) = 1 \\times (-3) - 2 \\times (-6) + 3 \\times (-3) = -3 + 12 - 9 = 0. \\\\
+                    &\\text{Đáp án đúng là B) } 0.
+                    \\end{align*}
+                `,
+                explanation_incorrect: `
+                    \\begin{align*}
+                    &\\text{Sai! Định thức của } A \\text{ là:} \\\\
+                    &\\det(A) = 1 \\times (5 \\times 9 - 6 \\times 8) - 2 \\times (4 \\times 9 - 6 \\times 7) + 3 \\times (4 \\times 8 - 5 \\times 7). \\\\
+                    &\\text{Tính từng phần:} \\\\
+                    &5 \\times 9 - 6 \\times 8 = -3, \\quad 4 \\times 9 - 6 \\times 7 = -6, \\quad 4 \\times 8 - 5 \\times 7 = -3. \\\\
+                    &\\Rightarrow \\det(A) = 1 \\times (-3) - 2 \\times (-6) + 3 \\times (-3) = 0. \\\\
+                    &\\text{Các đáp án khác:} \\\\
+                    &- \\text{A) } -6: \\text{ Sai vì } \\det(A) \\neq -6. \\\\
+                    &- \\text{C) } 6: \\text{ Sai vì } \\det(A) \\neq 6. \\\\
+                    &- \\text{D) } 9: \\text{ Sai vì } \\det(A) \\neq 9. \\\\
+                    &\\text{Đáp án đúng là B) } 0.
+                    \\end{align*}
+                `
+            },
+            {
+                text: "\\text{Câu 10. Cho ma trận } A = \\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\end{pmatrix}. \\text{ Nếu cộng hàng 1 của } A \\text{ với hàng 2 để được ma trận } B, \\text{ tính } \\det(B).",
+                correct_answer: "C",
+                options: ['A', 'B', 'C', 'D'],
+                formulas: ["-4", "0", "-2", "2"],
+                explanation_correct: `
+                    \\begin{align*}
+                    &\\text{Đúng! Theo tính chất: Cộng một hàng với hàng khác không làm đổi định thức.} \\\\
+                    &\\text{Định thức của } A = \\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\end{pmatrix} \\text{ là:} \\\\
+                    &\\det(A) = 1 \\times 4 - 2 \\times 3 = 4 - 6 = -2. \\\\
+                    &\\text{Ma trận } B \\text{ sau khi cộng hàng 1 với hàng 2 là } \\begin{pmatrix} 1 & 2 \\\\ 4 & 6 \\end{pmatrix}. \\\\
+                    &\\Rightarrow \\det(B) = \\det(A) = -2. \\\\
+                    &\\text{Đáp án đúng là C) } -2.
+                    \\end{align*}
+                `,
+                explanation_incorrect: `
+                    \\begin{align*}
+                    &\\text{Sai! Định thức của } A \\text{ là:} \\\\
+                    &\\det(A) = 1 \\times 4 - 2 \\times 3 = -2. \\\\
+                    &\\text{Sau khi cộng hàng 1 với hàng 2, định thức không đổi: } \\det(B) = \\det(A) = -2. \\\\
+                    &\\text{Các đáp án khác:} \\\\
+                    &- \\text{A) } -4: \\text{ Sai vì } \\det(B) \\neq -4. \\\\
+                    &- \\text{B) } 0: \\text{ Sai vì } \\det(B) \\neq 0. \\\\
+                    &- \\text{D) } 2: \\text{ Sai vì } \\det(B) \\neq 2. \\\\
+                    &\\text{Đáp án đúng là C) } -2.
+                    \\end{align*}
+                `
+            },
+            {
+                text: "\\text{Câu 11. Cho ma trận } A = \\begin{pmatrix} 1 & 2 & 3 \\\\ 0 & 0 & 0 \\\\ 4 & 5 & 6 \\end{pmatrix}. \\text{ Tính định thức } \\det(A).",
+                correct_answer: "A",
+                options: ['A', 'B', 'C', 'D'],
+                formulas: ["0", "6", "12", "-6"],
+                explanation_correct: `
+                    \\begin{align*}
+                    &\\text{Đúng! Ma trận có một hàng toàn số 0, nên định thức bằng 0.} \\\\
+                    &\\text{Ma trận } A = \\begin{pmatrix} 1 & 2 & 3 \\\\ 0 & 0 & 0 \\\\ 4 & 5 & 6 \\end{pmatrix} \\text{ có hàng 2 toàn 0.} \\\\
+                    &\\Rightarrow \\det(A) = 0. \\\\
+                    &\\text{Đáp án đúng là A) } 0.
+                    \\end{align*}
+                `,
+                explanation_incorrect: `
+                    \\begin{align*}
+                    &\\text{Sai! Ma trận có hàng 2 toàn số 0, nên:} \\\\
+                    &\\det(A) = 0. \\\\
+                    &\\text{Các đáp án khác:} \\\\
+                    &- \\text{B) } 6: \\text{ Sai vì } \\det(A) \\neq 6. \\\\
+                    &- \\text{C) } 12: \\text{ Sai vì } \\det(A) \\neq 12. \\\\
+                    &- \\text{D) } -6: \\text{ Sai vì } \\det(A) \\neq -6. \\\\
+                    &\\text{Đáp án đúng là A) } 0.
+                    \\end{align*}
+                `
+            }
+        ];
+        const totalQuestions = questions.length;
+
+        // Navigation functions in global scope
+        function goBack() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                displayQuestion();
+            }
+        }
+
+        function goNext() {
+            if (currentQuestionIndex < totalQuestions - 1) {
+                currentQuestionIndex++;
+                displayQuestion();
+            }
+        }
+
+        function finishQuiz() {
+            if (timerRunning) {
+                clearInterval(timerInterval);
+                timerRunning = false;
+                document.getElementById('timer-box').textContent = `Đã Hoàn thành trong: ${seconds} giây`;
+            }
+            const percentage = (score / totalQuestions) * 100;
+            const grade = ((score / totalQuestions) * 10).toFixed(1);
+            document.getElementById('quizScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.remove('hidden');
+            document.getElementById('resultSummary').textContent = `Quiz completed! Your score: ${score}/${totalQuestions}`;
+            document.getElementById('resultDetails').innerHTML = `Percentage: ${percentage}% <br> Grade: ${grade}/10 <br> Bạn đã làm bài thi này trong thời gian: ${seconds} giây`;
+        }
+
+        // Other functions
+        function startQuiz() {
+            studentName = document.getElementById('studentName').value.trim();
+            studentId = document.getElementById('studentId').value.trim();
+            if (!studentName || !studentId) {
+                alert('Vui lòng nhập đầy đủ Họ tên và Mã số sinh viên!');
+                return;
+            }
+            document.getElementById('introScreen').classList.add('hidden');
+            document.getElementById('quizScreen').classList.remove('hidden');
+            seconds = 0;
+            timerRunning = true;
+            document.getElementById('timer-box').textContent = seconds;
+            timerInterval = setInterval(() => {
+                if (timerRunning) {
+                    seconds++;
+                    document.getElementById('timer-box').textContent = seconds;
+                }
+            }, 1000);
+            displayQuestion();
+        }
+
+        function displayQuestion() {
+            const question = questions[currentQuestionIndex];
+            document.getElementById('questionText').innerHTML = `\\(${question.text}\\)`; // Render LaTeX
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = '';
+            question.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'btn-option';
+                button.textContent = option;
+                button.onclick = () => checkAnswer(option, button);
+                optionsDiv.appendChild(button);
+                const formulaDiv = document.createElement('div');
+                formulaDiv.innerHTML = `\\(\\hspace{40mm}${question.formulas[index]}\\)`; // Push formula 4cm to the right
+                optionsDiv.appendChild(formulaDiv);
+            });
+            document.getElementById('feedback').innerHTML = '';
+            MathJax.typeset(); // Re-render MathJax after updating content
+        }
+
+        function checkAnswer(selectedOption, button) {
+            const question = questions[currentQuestionIndex];
+            const correct = selectedOption === question.correct_answer;
+            if (correct) score++;
+            const feedbackDiv = document.getElementById('feedback');
+            const feedbackMessage = correct
+                ? `Chúc mừng bạn đã chọn phương án đúng là phương án ${selectedOption}.`
+                : `Bạn chọn ${selectedOption} là sai, Lựa chọn đúng là ${question.correct_answer}.`;
+
+            // Create a flex container for feedback message and Explain button
+            const feedbackContainer = document.createElement('div');
+            feedbackContainer.className = 'feedback-container';
+
+            // Add feedback message
+            const messageSpan = document.createElement('span');
+            messageSpan.textContent = feedbackMessage;
+            feedbackContainer.appendChild(messageSpan);
+
+            // Add the "Explain" button
+            const explainButton = document.createElement('a');
+            explainButton.href = 'javascript:void(0)';
+            explainButton.className = correct ? 'btn-explain btn-explain-correct' : 'btn-explain btn-explain-incorrect';
+            explainButton.textContent = 'Explain';
+            explainButton.style.left = '110mm'; // Keep horizontal position
+
+            // Calculate the top position to align with navigation buttons
+            const navigationDiv = document.getElementById('navigation');
+            const feedbackRect = feedbackDiv.getBoundingClientRect();
+            const navigationRect = navigationDiv.getBoundingClientRect();
+            const topPosition = navigationRect.top - feedbackRect.top; // Align with navigation
+            explainButton.style.top = `${topPosition}px`; // Set top position to align with navigation
+
+            // Create explanation box
+            const explanationBox = document.createElement('div');
+            explanationBox.className = 'explanation-box';
+            feedbackContainer.appendChild(explanationBox);
+
+            explainButton.onclick = () => {
+                const explanation = correct ? question.explanation_correct : question.explanation_incorrect;
+                explanationBox.innerHTML = `\\(${explanation}\\)`; // Update explanation box with LaTeX content
+                explanationBox.style.display = 'block'; // Show the explanation box
+                MathJax.typeset(); // Re-render MathJax for the explanation
+            };
+            feedbackContainer.appendChild(explainButton);
+
+            // Clear feedbackDiv and append the container
+            feedbackDiv.innerHTML = '';
+            feedbackDiv.appendChild(feedbackContainer);
+
+            // Update button colors
+            const buttons = document.querySelectorAll('#options button');
+            buttons.forEach(btn => {
+                if (btn.textContent === question.correct_answer) {
+                    btn.className = 'btn-option btn-correct';
+                } else if (btn === button) {
+                    btn.className = 'btn-option btn-incorrect';
+                } else {
+                    btn.className = 'btn-option';
+                }
+                btn.disabled = true; // Disable buttons after selection
+            });
+
+            MathJax.typeset(); // Re-render MathJax after updating feedback
+        }
+
+        function showEmailContent() {
+            const percentage = (score / totalQuestions) * 100;
+            const grade = ((score / totalQuestions) * 10).toFixed(1);
+            const emailContent = `
+                <div class="certificate-container" id="certificate">
+                    <div style="text-align: center; font-size: 30px; color: #9e1818; font-weight: bold; margin-bottom: 20px;">
+                        CHỨNG NHẬN HOÀN THÀNH
+                    </div>
+                    <div style="text-align: center; font-size: 24px; color: #333; margin-bottom: 20px;">
+                        Đề thi trắc nghiệm về tính chất của định thức
+                    </div>
+                    <div style="margin: 20px 0; font-size: 16px; color: #555;">
+                        <div style="padding: 15px; border: 1px solid #4CAF50; border-radius: 8px; background-color: #e8f5e9; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); margin-bottom: 15px;">
+                            <p><strong>Họ và Tên:</strong> <span style="font-size: 18px; font-weight: bold; color: #4CAF50; background-color: #e8f5e9; padding: 2px 6px; border-radius: 4px;">${studentName}</span></p>
+                            <p><strong>Mã Số Sinh Viên:</strong> <span style="font-size: 18px; font-weight: bold; color: #4CAF50; background-color: #e8f5e9; padding: 2px 6px; border-radius: 4px;">${studentId}</span></p>
+                        </div>
+                        <div style="padding: 15px; border: 1px solid #4CAF50; border-radius: 8px; background-color: #e8f5e9; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); margin-bottom: 15px;">
+                            <p>Điểm số: <span style="font-size: 20px; font-weight: bold; color: #ff6347;">${grade}/10</span></p>
+                            <p>Tỷ lệ hoàn thành: <span style="font-size: 20px; font-weight: bold; color: #32cd32;">${percentage}%</span></p>
+                        </div>
+                        <div style="padding: 15px; border: 1px solid #4CAF50; border-radius: 8px; background-color: #e8f5e9; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                            <p>Bạn đã làm bài thi này trong thời gian: <span style="font-size: 18px; font-weight: bold; color: #555;">${seconds} giây</span></p>
+                        </div>
+                    </div>
+                    <div style="margin-top: 30px; font-size: 14px; text-align: center; color: #777;">
+                        Được cấp bởi,<br>Quiz Organizer<br>
+                        Ngày cấp: ${new Date().toLocaleDateString('vi-VN')}
+                    </div>
+                </div>
+            `;
+            document.getElementById('emailContent').innerHTML = emailContent;
+            document.getElementById('emailModal').style.display = 'flex';
+        }
+
+        function downloadImage() {
+            const element = document.getElementById('certificate');
+            html2canvas(element, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#ffffff'
+            }).then(canvas => {
+                const dataURL = canvas.toDataURL('image/jpeg', 0.95);
+                const link = document.createElement('a');
+                link.href = dataURL;
+                link.download = 'Certificate.jpg';
+                link.click();
+            }).catch(error => {
+                console.error('Error generating image:', error);
+                alert('Không thể tạo hình ảnh chứng nhận. Vui lòng thử lại.');
+            });
+        }
+
+        function closeEmailModal() {
+            document.getElementById('emailModal').style.display = 'none';
+        }
+
+        // Initialize event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('startQuizButton').addEventListener('click', startQuiz);
+        });
+    </script>
+</body>
+</html>
