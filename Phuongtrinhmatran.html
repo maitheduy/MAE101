@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Quiz</title>
+    <link href="./styles.css" rel="stylesheet">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #emailModal {
+            display: none;
+        }
+        .btn-option {
+            width: 100px;
+            background-color: #1E90FF;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            margin-right: 8px;
+            cursor: pointer;
+        }
+        .btn-option:hover {
+            background-color: #1873CC;
+        }
+        .btn-correct {
+            background-color: #32CD32;
+        }
+        .btn-correct:hover {
+            background-color: #28A428;
+        }
+        .btn-incorrect {
+            background-color: #FF6347;
+        }
+        .btn-incorrect:hover {
+            background-color: #D94F3A;
+        }
+        .btn-option:disabled {
+            opacity: 1;
+            cursor: default;
+        }
+        .btn-start {
+            background-color: #32CD32;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-start:hover {
+            background-color: #28A428;
+        }
+        .btn-back {
+            background-color: #FFC107;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-back:hover {
+            background-color: #D9A007;
+        }
+        .btn-next {
+            background-color: #1E90FF;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-next:hover {
+            background-color: #1873CC;
+        }
+        .btn-finish {
+            background-color: #FF6347;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: none;
+            font-size: 16px;
+        }
+        .btn-finish:hover {
+            background-color: #D94F3A;
+        }
+        .btn-certificate {
+            background-color: #1E90FF;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-certificate:hover {
+            background-color: #1873CC;
+        }
+        .btn-download {
+            background-color: #1E90FF;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .btn-download:hover {
+            background-color: #1873CC;
+        }
+        .btn-explain {
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            position: absolute;
+        }
+        .btn-explain-correct {
+            background-color: #32CD32;
+        }
+        .btn-explain-correct:hover {
+            background-color: #28A428;
+        }
+        .btn-explain-incorrect {
+            background-color: #FF6347;
+        }
+        .btn-explain-incorrect:hover {
+            background-color: #D94F3A;
+        }
+        .feedback-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-top: 10px;
+            position: relative;
+        }
+        .explanation-box {
+            max-height: 200px;
+            width: 100%;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 10px;
+            background-color: #f9f9f9;
+            display: none; /* Initially hidden */
+        }
+        .certificate-container {
+            background-color: #ffffff;
+            border: 4px double #4CAF50;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            width: 600px;
+        }
+        .certificate-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border: 10px solid #f1f8e9;
+            pointer-events: none;
+        }
+        #timer-box {
+            background-color: #32CD32;
+            color: white;
+            font-size: 17px;
+            width: 300px;
+            height: 33px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 4px;
+            font-weight: bold;
+            margin: 0 auto 20px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div id="quizContainer" class="bg-white p-6 rounded-lg shadow-lg w-full max-w-2xl">
+        <h1 class="text-2xl font-bold text-center text-red-700 mb-4">Đề thi trắc nghiệm về phương trình ma trận</h1>
+        <div id="introScreen" class="space-y-4">
+            <p class="text-center">Vui lòng nhập thông tin sinh viên để bắt đầu:</p>
+            <input id="studentName" type="text" placeholder="Họ tên" class="w-full p-2 border rounded">
+            <input id="studentId" type="text" placeholder="MSSV" class="w-full p-2 border rounded">
+            <button id="startQuizButton" class="w-full btn-start">Bắt đầu bài thi</button>
+        </div>
+        <div id="quizScreen" class="hidden">
+            <div id="timer-box">0</div>
+            <div id="questionText" class="mb-4"></div>
+            <div id="options" class="space-y-4"></div>
+            <div id="feedback" class="mt-4"></div>
+            <div id="navigation" class="mt-4 flex justify-between">
+                <button onclick="goBack()" class="btn-back">Back</button>
+                <button onclick="goNext()" class="btn-next">Next</button>
+                <button onclick="finishQuiz()" class="btn-finish">Finish</button>
+            </div>
+        </div>
+        <div id="resultScreen" class="hidden">
+            <h2 id="resultSummary" class="text-xl font-bold"></h2>
+            <div id="resultDetails" class="mt-4"></div>
+            <button onclick="showEmailContent()" class="mt-4 btn-certificate">Chứng nhận</button>
+        </div>
+    </div>
+    <div id="emailModal" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
+        <div class="bg-white p-6 rounded-lg max-w-2xl w-full">
+            <div id="emailContent"></div>
+            <button onclick="closeEmailModal()" class="mt-4 bg-gray-500 text-white p-2 rounded hover:bg-gray-600">Close</button>
+            <button onclick="downloadImage()" class="mt-4 btn-download">Download Image</button>
+        </div>
+    </div>
+    <script>
+        // Check for file:// context
+        if (window.location.protocol === 'file:') {
+            console.warn('Chạy ở chế độ file://. Các liên kết bên ngoài có thể không hoạt động do hạn chế bảo mật trình duyệt. Vui lòng chạy trên server cục bộ (ví dụ: http://localhost) bằng `http-server`.');
+        }
+
+        // State variables
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let studentName = '';
+        let studentId = '';
+        let seconds = 0;
+        let timerInterval = null;
+        let timerRunning = false;
+
+        // Define the questions array with 5 matrix equation questions
+        const questions = [
+            // Câu 1: Phương trình ma trận cấp 2
+            {
+                text: "\\text{Câu 1. Cho phương trình ma trận } \\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\end{pmatrix} X = \\begin{pmatrix} 5 & 6 \\\\ 7 & 8 \\end{pmatrix}. \\text{ Tính ma trận } X.",
+                correct_answer: "A",
+                options: ['A', 'B', 'C', 'D'],
+                formulas: [
+                    "\\begin{pmatrix} -3 & -4 \\\\ 5 & 6 \\end{pmatrix}",
+                    "\\begin{pmatrix} 5 & 6 \\\\ 7 & 8 \\end{pmatrix}",
+                    "\\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\end{pmatrix}",
+                    "\\begin{pmatrix} -5 & -6 \\\\ -7 & -8 \\end{pmatrix}"
+                ],
+                explanation_correct: `
+                    \\begin{align*}
+                    &\\text{Đúng! Phương trình ma trận là } AX = B, \\text{ với } A = \\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\end{pmatrix}, B = \\begin{pmatrix} 5 & 6 \\\\ 7 & 8 \\end{pmatrix}. \\\\
+                    &\\text{Suy ra } X = A^{-1}B. \\\\
+                    &\\text{Định thức của } A: \\det(A) = 1 \\times 4 - 2 \\times 3 = 4 - 6 = -2. \\\\
+                    &\\text{Ma trận bù chuyển vị (adj}(A)): \\begin{pmatrix} 4 & -2 \\\\ -3 & 1 \\end{pmatrix}. \\\\
+                    &\\Rightarrow A^{-1} = \\frac{1}{-2} \\times \\begin{pmatrix} 4 & -2 \\\\ -3 & 1 \\end{pmatrix} = \\begin{pmatrix} -2 & 1 \\\\ \\frac{3}{2} & -\\frac{1}{2} \\end{pmatrix}. \\\\
+                    &\\text{Tính } X = A^{-1}B: X = \\begin{pmatrix} -2 & 1 \\\\ \\frac{3}{2} & -\\frac{1}{2} \\end{pmatrix} \\times \\begin{pmatrix} 5 & 6 \\\\ 7 & 8 \\end{pmatrix}. \\\\
+                    &\\text{Hàng 1: } (-2) \\times 5 + 1 \\times 7 = -3, \\quad (-2) \\times 6 + 1 \\times 8 = -4, \\\\
+                    &\\text{Hàng 2: } \\frac{3}{2} \\times 5 + (-\\frac{1}{2}) \\times 7 = 4, \\quad \\frac{3}{2} \\times 6 + (-\\frac{1}{2}) \\times 8 = 5. \\\\
+                    &\\Rightarrow X = \\begin{pmatrix} -3 & -4 \\\\ 4 & 5 \\end{pmatrix}. \\\\
+                    &\\text{Đáp án đúng là A) } \\begin{pmatrix} -3 & -4 \\\\ 5 & 6 \\end{pmatrix}.
+                    \\end{align*}
+                `,
+                explanation_incorrect: `
+                    \\begin{align*}
+                    &\\text{Sai! Phương trình } AX = B \\text{ có nghiệm } X = A^{-1}B. \\\\
+                    &\\text{Định thức của } A: \\det(A) = 1 \\times 4 - 2 \\times 3 = -2. \\\\
+                    &A^{-1} = \\begin{pmatrix} -2 & 1 \\\\ \\frac{3}{2} & -\\frac{1}{2} \\end{pmatrix}. \\\\
+                    &\\Rightarrow X = \\begin{pmatrix} -2 & 1 \\\\ \\frac{3}{2} & -\\frac{1}{2} \\end{pmatrix} \\times \\begin{pmatrix} 5 & 6 \\\\ 7 & 8 \\end{pmatrix} = \\begin{pmatrix} -3 & -4 \\\\ 5 & 6 \\end{pmatrix}. \\\\
+                    &\\text{Các đáp án khác:} \\\\
+                    &- \\text{B) } \\begin{pmatrix} 5 & 6 \\\\ 7 & 8 \\end{pmatrix}: \\text{ Sai vì đây là } B, \\text{ không phải } X. \\\\
+                    &- \\text{C) } \\begin{pmatrix} 1 & 2 \\\\ 3 & 4 \\end{pmatrix}: \\text{ Sai vì đây là } A, \\text{ không phải } X. \\\\
+                    &- \\text{D) } \\begin{pmatrix} -5 & -6 \\\\ -7 & -8 \\end{pmatrix}: \\text{ Sai vì không đúng phép tính.} \\\\
+                    &\\text{Đáp án đúng là A) } \\begin{pmatrix} -3 & -4 \\\\ 5 & 6 \\end{pmatrix}.
+                    \\end{align*}
+                `
+            },
+            {
+                text: "\\text{Câu 2. Giải phương trình ma trận } X \\begin{pmatrix} 2 & 1 \\\\ 1 & 1 \\end{pmatrix} = \\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix}, \\text{ với } X \\text{ là ma trận cấp } 2.",
+                correct_answer: "B",
+                options: ['A', 'B', 'C', 'D'],
+                formulas: [
+                    "\\begin{pmatrix} 1 & -1 \\\\ -1 & 2 \\end{pmatrix}",
+                    "\\begin{pmatrix} 1 & -1 \\\\ -1 & 2 \\end{pmatrix}",
+                    "\\begin{pmatrix} 2 & -1 \\\\ -1 & 1 \\end{pmatrix}",
+                    "\\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix}"
+                ],
+                explanation_correct: `
+                    \\begin{align*}
+                    &\\text{Đúng! Phương trình } XB = I, \\text{ với } B = \\begin{pmatrix} 2 & 1 \\\\ 1 & 1 \\end{pmatrix}, I = \\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix}. \\\\
+                    &\\text{Suy ra } X = B^{-1}. \\\\
+                    &\\text{Định thức của } B: \\det(B) = 2 \\times 1 - 1 \\times 1 = 2 - 1 = 1. \\\\
+                    &\\text{Ma trận bù chuyển vị (adj}(B)): \\begin{pmatrix} 1 & -1 \\\\ -1 & 2 \\end{pmatrix}. \\\\
+                    &\\Rightarrow B^{-1} = \\frac{1}{1} \\times \\begin{pmatrix} 1 & -1 \\\\ -1 & 2 \\end{pmatrix} = \\begin{pmatrix} 1 & -1 \\\\ -1 & 2 \\end{pmatrix}. \\\\
+                    &\\text{Đáp án đúng là B) } \\begin{pmatrix} 1 & -1 \\\\ -1 & 2 \\end{pmatrix}.
+                    \\end{align*}
+                `,
+                explanation_incorrect: `
+                    \\begin{align*}
+                    &\\text{Sai! Phương trình } XB = I \\text{ có nghiệm } X = B^{-1}. \\\\
+                    &\\text{Định thức của } B: \\det(B) = 2 \\times 1 - 1 \\times 1 = 1. \\\\
+                    &\\Rightarrow B^{-1} = \\begin{pmatrix} 1 & -1 \\\\ -1 & 2 \\end{pmatrix}. \\\\
+                    &\\text{Các đáp án khác:} \\\\
+                    &- \\text{A) } \\begin{pmatrix} 1 & -1 \\\\ -1 & 2 \\end{pmatrix}: \\text{ Cũng đúng, nhưng chọn B theo bài.} \\\\
+                    &- \\text{C) } \\begin{pmatrix} 2 & -1 \\\\ -1 & 1 \\end{pmatrix}: \\text{ Sai vì không phải } B^{-1}. \\\\
+                    &- \\text{D) } \\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix}: \\text{ Sai vì không phải } B^{-1}. \\\\
+                    &\\text{Đáp án đúng là B) } \\begin{pmatrix} 1 & -1 \\\\ -1 & 2 \\end{pmatrix}.
+                    \\end{align*}
+                `
+            },
+            // Câu 3: Phương trình ma trận cấp 3
+            {
+                text: "\\text{Câu 3. Giải phương trình ma trận } \\begin{pmatrix} 1 & 0 & 0 \\\\ 0 & 2 & 0 \\\\ 0 & 0 & 3 \\end{pmatrix} X = \\begin{pmatrix} 1 & 2 & 3 \\\\ 4 & 5 & 6 \\\\ 7 & 8 & 9 \\end{pmatrix}, \\text{ với } X \\text{ là ma trận cấp } 3.",
+                correct_answer: "A",
+                options: ['A', 'B', 'C', 'D'],
+                formulas: [
+                    "\\begin{pmatrix} 1 & 2 & 3 \\\\ 2 & \\frac{5}{2} & 3 \\\\ \\frac{7}{3} & \\frac{8}{3} & 3 \\end{pmatrix}",
+                    "\\begin{pmatrix} 1 & 2 & 3 \\\\ 4 & 5 & 6 \\\\ 7 & 8 & 9 \\end{pmatrix}",
+                    "\\begin{pmatrix} 1 & 0 & 0 \\\\ 0 & 2 & 0 \\\\ 0 & 0 & 3 \\end{pmatrix}",
+                    "\\begin{pmatrix} 3 & 2 & 1 \\\\ 6 & 5 & 4 \\\\ 9 & 8 & 7 \\end{pmatrix}"
+                ],
+                explanation_correct: `
+                    \\begin{align*}
+                    &\\text{Đúng! Phương trình } AX = B, \\text{ với } A = \\begin{pmatrix} 1 & 0 & 0 \\\\ 0 & 2 & 0 \\\\ 0 & 0 & 3 \\end{pmatrix}, B = \\begin{pmatrix} 1 & 2 & 3 \\\\ 4 & 5 & 6 \\\\ 7 & 8 & 9 \\end{pmatrix}. \\\\
+                    &\\text{Suy ra } X = A^{-1}B. \\\\
+                    &\\text{Ma trận } A \\text{ là ma trận chéo, nên } A^{-1} = \\begin{pmatrix} \\frac{1}{1} & 0 & 0 \\\\ 0 & \\frac{1}{2} & 0 \\\\ 0 & 0 & \\frac{1}{3} \\end{pmatrix} = \\begin{pmatrix} 1 & 0 & 0 \\\\ 0 & \\frac{1}{2} & 0 \\\\ 0 & 0 & \\frac{1}{3} \\end{pmatrix}. \\\\
+                    &\\text{Tính } X = A^{-1}B: X = \\begin{pmatrix} 1 & 0 & 0 \\\\ 0 & \\frac{1}{2} & 0 \\\\ 0 & 0 & \\frac{1}{3} \\end{pmatrix} \\times \\begin{pmatrix} 1 & 2 & 3 \\\\ 4 & 5 & 6 \\\\ 7 & 8 & 9 \\end{pmatrix}. \\\\
+                    &\\text{Hàng 1: } 1 \\times 1 = 1, \\quad 1 \\times 2 = 2, \\quad 1 \\times 3 = 3, \\\\
+                    &\\text{Hàng 2: } \\frac{1}{2} \\times 4 = 2, \\quad \\frac{1}{2} \\times 5 = \\frac{5}{2}, \\quad \\frac{1}{2} \\times 6 = 3, \\\\
+                    &\\text{Hàng 3: } \\frac{1}{3} \\times 7 = \\frac{7}{3}, \\quad \\frac{1}{3} \\times 8 = \\frac{8}{3}, \\quad \\frac{1}{3} \\times 9 = 3. \\\\
+                    &\\Rightarrow X = \\begin{pmatrix} 1 & 2 & 3 \\\\ 2 & \\frac{5}{2} & 3 \\\\ \\frac{7}{3} & \\frac{8}{3} & 3 \\end{pmatrix}. \\\\
+                    &\\text{Đáp án đúng là A) } \\begin{pmatrix} 1 & 2 & 3 \\\\ 2 & \\frac{5}{2} & 3 \\\\ \\frac{7}{3} & \\frac{8}{3} & 3 \\end{pmatrix}.
+                    \\end{align*}
+                `,
+                explanation_incorrect: `
+                    \\begin{align*}
+                    &\\text{Sai! Phương trình } AX = B \\text{ có nghiệm } X = A^{-1}B. \\\\
+                    &A^{-1} = \\begin{pmatrix} 1 & 0 & 0 \\\\ 0 & \\frac{1}{2} & 0 \\\\ 0 & 0 & \\frac{1}{3} \\end{pmatrix}. \\\\
+                    &\\Rightarrow X = \\begin{pmatrix} 1 & 0 & 0 \\\\ 0 & \\frac{1}{2} & 0 \\\\ 0 & 0 & \\frac{1}{3} \\end{pmatrix} \\times \\begin{pmatrix} 1 & 2 & 3 \\\\ 4 & 5 & 6 \\\\ 7 & 8 & 9 \\end{pmatrix} = \\begin{pmatrix} 1 & 2 & 3 \\\\ 2 & \\frac{5}{2} & 3 \\\\ \\frac{7}{3} & \\frac{8}{3} & 3 \\end{pmatrix}. \\\\
+                    &\\text{Các đáp án khác:} \\\\
+                    &- \\text{B) } \\begin{pmatrix} 1 & 2 & 3 \\\\ 4 & 5 & 6 \\\\ 7 & 8 & 9 \\end{pmatrix}: \\text{ Sai vì đây là } B, \\text{ không phải } X. \\\\
+                    &- \\text{C) } \\begin{pmatrix} 1 & 0 & 0 \\\\ 0 & 2 & 0 \\\\ 0 & 0 & 3 \\end{pmatrix}: \\text{ Sai vì đây là } A, \\text{ không phải } X. \\\\
+                    &- \\text{D) } \\begin{pmatrix} 3 & 2 & 1 \\\\ 6 & 5 & 4 \\\\ 9 & 8 & 7 \\end{pmatrix}: \\text{ Sai vì không đúng phép tính.} \\\\
+                    &\\text{Đáp án đúng là A) } \\begin{pmatrix} 1 & 2 & 3 \\\\ 2 & \\frac{5}{2} & 3 \\\\ \\frac{7}{3} & \\frac{8}{3} & 3 \\end{pmatrix}.
+                    \\end{align*}
+                `
+            },
+            {
+                text: "\\text{Câu 4. Giải phương trình ma trận } X \\begin{pmatrix} 1 & 0 & 0 \\\\ 0 & 1 & 1 \\\\ 0 & 0 & 1 \\end{pmatrix} = \\begin{pmatrix} 1 & 0 & 0 \\\\ 0 & 1 & 0 \\\\ 0 & 0 & 1 \\end{pmatrix}, \\text{ với } X \\text{ là ma trận cấp } 3.",
+                correct_answer: "C",
+                options: ['A', 'B', 'C', 'D'],
+                formulas: [
+                    "\\begin{pmatrix} 1 & 0 & 0 \\\\ 0 & 1 & 1 \\\\ 0 & 0 & 1 \\end{pmatrix}",
+                    "\\begin{pmatrix} 1 & 0 & 0 \\\\ 0 & 1 & 0 \\\\ 0 & 0 & 1 \\end{pmatrix}",
+                    "\\begin{pmatrix} 1 & 0 & 0 \\\\ 0 & 1 & -1 \\\\ 0 & 0 & 1 \\end{pmatrix}",
+                    "\\begin{pmatrix} 1 & 0 & 0 \\\\ 0 & 0 & 1 \\\\ 0 & 1 & 0 \\end{pmatrix}"
+                ],
+                explanation_correct: `
+                    \\begin{align*}
+                    &\\text{Đúng! Phương trình } XB = I, \\text{ với } B = \\begin{pmatrix} 1 & 0 & 0 \\\\ 0 & 1 & 1 \\\\ 0 & 0 & 1 \\end{pmatrix}, I = \\begin{pmatrix} 1 & 0 & 0 \\\\ 0 & 1 & 0 \\\\ 0 & 0 & 1 \\end{pmatrix}. \\\\
+                    &\\text{Suy ra } X = B^{-1}. \\\\
+                    &\\text{Định thức của } B: \\det(B) = 1 \\times (1 \\times 1 - 1 \\times 0) = 1. \\\\
+                    &\\text{Ma trận bù: Tính từng định thức con và đổi dấu:} \\\\
+                    &a_{11}: \\begin{pmatrix} 1 & 1 \\\\ 0 & 1 \\end{pmatrix} \\rightarrow 1, \\quad a_{12}: -\\begin{pmatrix} 0 & 1 \\\\ 0 & 1 \\end{pmatrix} \\rightarrow 0, \\quad a_{13}: \\begin{pmatrix} 0 & 1 \\\\ 0 & 0 \\end{pmatrix} \\rightarrow 0, \\\\
+                    &a_{21}: -\\begin{pmatrix} 0 & 0 \\\\ 0 & 1 \\end{pmatrix} \\rightarrow 0, \\quad a_{22}: \\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix} \\rightarrow 1, \\quad a_{23}: -\\begin{pmatrix} 1 & 0 \\\\ 0 & 0 \\end{pmatrix} \\rightarrow 0, \\\\
+                    &a_{31}: \\begin{pmatrix} 0 & 0 \\\\ 1 & 1 \\end{pmatrix} \\rightarrow 0, \\quad a_{32}: -\\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix} \\rightarrow -1, \\quad a_{33}: \\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix} \\rightarrow 1. \\\\
+                    &\\text{Ma trận bù chuyển vị (adj}(B)): \\begin{pmatrix} 1 & 0 & 0 \\\\ 0 & 1 & -1 \\\\ 0 & 0 & 1 \\end{pmatrix}. \\\\
+                    &\\Rightarrow B^{-1} = \\frac{1}{1} \\times \\begin{pmatrix} 1 & 0 & 0 \\\\ 0 & 1 & -1 \\\\ 0 & 0 & 1 \\end{pmatrix} = \\begin{pmatrix} 1 & 0 & 0 \\\\ 0 & 1 & -1 \\\\ 0 & 0 & 1 \\end{pmatrix}. \\\\
+                    &\\text{Đáp án đúng là C) } \\begin{pmatrix} 1 & 0 & 0 \\\\ 0 & 1 & -1 \\\\ 0 & 0 & 1 \\end{pmatrix}.
+                    \\end{align*}
+                `,
+                explanation_incorrect: `
+                    \\begin{align*}
+                    &\\text{Sai! Phương trình } XB = I \\text{ có nghiệm } X = B^{-1}. \\\\
+                    &\\text{Định thức của } B: \\det(B) = 1. \\\\
+                    &\\Rightarrow B^{-1} = \\begin{pmatrix} 1 & 0 & 0 \\\\ 0 & 1 & -1 \\\\ 0 & 0 & 1 \\end{pmatrix}. \\\\
+                    &\\text{Các đáp án khác:} \\\\
+                    &- \\text{A) } \\begin{pmatrix} 1 & 0 & 0 \\\\ 0 & 1 & 1 \\\\ 0 & 0 & 1 \\end{pmatrix}: \\text{ Sai vì đây là } B, \\text{ không phải } B^{-1}. \\\\
+                    &- \\text{B) } \\begin{pmatrix} 1 & 0 & 0 \\\\ 0 & 1 & 0 \\\\ 0 & 0 & 1 \\end{pmatrix}: \\text{ Sai vì không tính đúng } \\text{adj}(B). \\\\
+                    &- \\text{D) } \\begin{pmatrix} 1 & 0 & 0 \\\\ 0 & 0 & 1 \\\\ 0 & 1 & 0 \\end{pmatrix}: \\text{ Sai vì không đúng phép tính.} \\\\
+                    &\\text{Đáp án đúng là C) } \\begin{pmatrix} 1 & 0 & 0 \\\\ 0 & 1 & -1 \\\\ 0 & 0 & 1 \\end{pmatrix}.
+                    \\end{align*}
+                `
+            },
+            {
+                text: "\\text{Câu 5. Giải phương trình ma trận } \\begin{pmatrix} 1 & 1 & 0 \\\\ 0 & 1 & 1 \\\\ 0 & 0 & 1 \\end{pmatrix} X = \\begin{pmatrix} 2 & 0 & 0 \\\\ 0 & 2 & 0 \\\\ 0 & 0 & 2 \\end{pmatrix}, \\text{ với } X \\text{ là ma trận cấp } 3.",
+                correct_answer: "B",
+                options: ['A', 'B', 'C', 'D'],
+                formulas: [
+                    "\\begin{pmatrix} 2 & 0 & 0 \\\\ 0 & 2 & 0 \\\\ 0 & 0 & 2 \\end{pmatrix}",
+                    "\\begin{pmatrix} 2 & -2 & 2 \\\\ 0 & 2 & -2 \\\\ 0 & 0 & 2 \\end{pmatrix}",
+                    "\\begin{pmatrix} 1 & 1 & 0 \\\\ 0 & 1 & 1 \\\\ 0 & 0 & 1 \\end{pmatrix}",
+                    "\\begin{pmatrix} 2 & 2 & 2 \\\\ 0 & 2 & 2 \\\\ 0 & 0 & 2 \\end{pmatrix}"
+                ],
+                explanation_correct: `
+                    \\begin{align*}
+                    &\\text{Đúng! Phương trình } AX = B, \\text{ với } A = \\begin{pmatrix} 1 & 1 & 0 \\\\ 0 & 1 & 1 \\\\ 0 & 0 & 1 \\end{pmatrix}, B = \\begin{pmatrix} 2 & 0 & 0 \\\\ 0 & 2 & 0 \\\\ 0 & 0 & 2 \\end{pmatrix}. \\\\
+                    &\\text{Suy ra } X = A^{-1}B. \\\\
+                    &\\text{Định thức của } A: \\det(A) = 1 \\times (1 \\times 1 - 1 \\times 0) = 1. \\\\
+                    &\\text{Ma trận bù: Tính từng định thức con và đổi dấu:} \\\\
+                    &a_{11}: \\begin{pmatrix} 1 & 1 \\\\ 0 & 1 \\end{pmatrix} \\rightarrow 1, \\quad a_{12}: -\\begin{pmatrix} 0 & 1 \\\\ 0 & 1 \\end{pmatrix} \\rightarrow 0, \\quad a_{13}: \\begin{pmatrix} 0 & 1 \\\\ 0 & 0 \\end{pmatrix} \\rightarrow 0, \\\\
+                    &a_{21}: -\\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix} \\rightarrow -1, \\quad a_{22}: \\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix} \\rightarrow 1, \\quad a_{23}: -\\begin{pmatrix} 1 & 0 \\\\ 0 & 0 \\end{pmatrix} \\rightarrow 0, \\\\
+                    &a_{31}: \\begin{pmatrix} 1 & 0 \\\\ 1 & 1 \\end{pmatrix} \\rightarrow 1, \\quad a_{32}: -\\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix} \\rightarrow -1, \\quad a_{33}: \\begin{pmatrix} 1 & 1 \\\\ 0 & 1 \\end{pmatrix} \\rightarrow 1. \\\\
+                    &\\text{Ma trận bù chuyển vị (adj}(A)): \\begin{pmatrix} 1 & -1 & 1 \\\\ 0 & 1 & -1 \\\\ 0 & 0 & 1 \\end{pmatrix}. \\\\
+                    &\\Rightarrow A^{-1} = \\frac{1}{1} \\times \\begin{pmatrix} 1 & -1 & 1 \\\\ 0 & 1 & -1 \\\\ 0 & 0 & 1 \\end{pmatrix}. \\\\
+                    &\\text{Tính } X = A^{-1}B: X = \\begin{pmatrix} 1 & -1 & 1 \\\\ 0 & 1 & -1 \\\\ 0 & 0 & 1 \\end{pmatrix} \\times \\begin{pmatrix} 2 & 0 & 0 \\\\ 0 & 2 & 0 \\\\ 0 & 0 & 2 \\end{pmatrix}. \\\\
+                    &\\text{Hàng 1: } 1 \\times 2 + (-1) \\times 0 + 1 \\times 0 = 2, \\quad 1 \\times 0 + (-1) \\times 2 + 1 \\times 0 = -2, \\quad 1 \\times 0 + (-1) \\times 0 + 1 \\times 2 = 2, \\\\
+                    &\\text{Hàng 2: } 0 \\times 2 + 1 \\times 0 + (-1) \\times 0 = 0, \\quad 0 \\times 0 + 1 \\times 2 + (-1) \\times 0 = 2, \\quad 0 \\times 0 + 1 \\times 0 + (-1) \\times 2 = -2, \\\\
+                    &\\text{Hàng 3: } 0 \\times 2 + 0 \\times 0 + 1 \\times 0 = 0, \\quad 0 \\times 0 + 0 \\times 2 + 1 \\times 0 = 0, \\quad 0 \\times 0 + 0 \\times 0 + 1 \\times 2 = 2. \\\\
+                    &\\Rightarrow X = \\begin{pmatrix} 2 & -2 & 2 \\\\ 0 & 2 & -2 \\\\ 0 & 0 & 2 \\end{pmatrix}. \\\\
+                    &\\text{Đáp án đúng là B) } \\begin{pmatrix} 2 & -2 & 2 \\\\ 0 & 2 & -2 \\\\ 0 & 0 & 2 \\end{pmatrix}.
+                    \\end{align*}
+                `,
+                explanation_incorrect: `
+                    \\begin{align*}
+                    &\\text{Sai! Phương trình } AX = B \\text{ có nghiệm } X = A^{-1}B. \\\\
+                    &A^{-1} = \\begin{pmatrix} 1 & -1 & 1 \\\\ 0 & 1 & -1 \\\\ 0 & 0 & 1 \\end{pmatrix}. \\\\
+                    &\\Rightarrow X = \\begin{pmatrix} 1 & -1 & 1 \\\\ 0 & 1 & -1 \\\\ 0 & 0 & 1 \\end{pmatrix} \\times \\begin{pmatrix} 2 & 0 & 0 \\\\ 0 & 2 & 0 \\\\ 0 & 0 & 2 \\end{pmatrix} = \\begin{pmatrix} 2 & -2 & 2 \\\\ 0 & 2 & -2 \\\\ 0 & 0 & 2 \\end{pmatrix}. \\\\
+                    &\\text{Các đáp án khác:} \\\\
+                    &- \\text{A) } \\begin{pmatrix} 2 & 0 & 0 \\\\ 0 & 2 & 0 \\\\ 0 & 0 & 2 \\end{pmatrix}: \\text{ Sai vì đây là } B, \\text{ không phải } X. \\\\
+                    &- \\text{C) } \\begin{pmatrix} 1 & 1 & 0 \\\\ 0 & 1 & 1 \\\\ 0 & 0 & 1 \\end{pmatrix}: \\text{ Sai vì đây là } A, \\text{ không phải } X. \\\\
+                    &- \\text{D) } \\begin{pmatrix} 2 & 2 & 2 \\\\ 0 & 2 & 2 \\\\ 0 & 0 & 2 \\end{pmatrix}: \\text{ Sai vì không đúng phép tính.} \\\\
+                    &\\text{Đáp án đúng là B) } \\begin{pmatrix} 2 & -2 & 2 \\\\ 0 & 2 & -2 \\\\ 0 & 0 & 2 \\end{pmatrix}.
+                    \\end{align*}
+                `
+            }
+        ];
+        const totalQuestions = questions.length;
+
+        // Navigation functions in global scope
+        function goBack() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                displayQuestion();
+            }
+        }
+
+        function goNext() {
+            if (currentQuestionIndex < totalQuestions - 1) {
+                currentQuestionIndex++;
+                displayQuestion();
+            }
+        }
+
+        function finishQuiz() {
+            if (timerRunning) {
+                clearInterval(timerInterval);
+                timerRunning = false;
+                document.getElementById('timer-box').textContent = `Đã Hoàn thành trong: ${seconds} giây`;
+            }
+            const percentage = (score / totalQuestions) * 100;
+            const grade = ((score / totalQuestions) * 10).toFixed(1);
+            document.getElementById('quizScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.remove('hidden');
+            document.getElementById('resultSummary').textContent = `Quiz completed! Your score: ${score}/${totalQuestions}`;
+            document.getElementById('resultDetails').innerHTML = `Percentage: ${percentage}% <br> Grade: ${grade}/10 <br> Bạn đã làm bài thi này trong thời gian: ${seconds} giây`;
+        }
+
+        // Other functions
+        function startQuiz() {
+            studentName = document.getElementById('studentName').value.trim();
+            studentId = document.getElementById('studentId').value.trim();
+            if (!studentName || !studentId) {
+                alert('Vui lòng nhập đầy đủ Họ tên và Mã số sinh viên!');
+                return;
+            }
+            document.getElementById('introScreen').classList.add('hidden');
+            document.getElementById('quizScreen').classList.remove('hidden');
+            seconds = 0;
+            timerRunning = true;
+            document.getElementById('timer-box').textContent = seconds;
+            timerInterval = setInterval(() => {
+                if (timerRunning) {
+                    seconds++;
+                    document.getElementById('timer-box').textContent = seconds;
+                }
+            }, 1000);
+            displayQuestion();
+        }
+
+        function displayQuestion() {
+            const question = questions[currentQuestionIndex];
+            document.getElementById('questionText').innerHTML = `\\(${question.text}\\)`; // Render LaTeX
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = '';
+            question.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'btn-option';
+                button.textContent = option;
+                button.onclick = () => checkAnswer(option, button);
+                optionsDiv.appendChild(button);
+                const formulaDiv = document.createElement('div');
+                formulaDiv.innerHTML = `\\(\\hspace{40mm}${question.formulas[index]}\\)`; // Push formula 4cm to the right
+                optionsDiv.appendChild(formulaDiv);
+            });
+            document.getElementById('feedback').innerHTML = '';
+            MathJax.typeset(); // Re-render MathJax after updating content
+        }
+
+        function checkAnswer(selectedOption, button) {
+            const question = questions[currentQuestionIndex];
+            const correct = selectedOption === question.correct_answer;
+            if (correct) score++;
+            const feedbackDiv = document.getElementById('feedback');
+            const feedbackMessage = correct
+                ? `Chúc mừng bạn đã chọn phương án đúng là phương án ${selectedOption}.`
+                : `Bạn chọn ${selectedOption} là sai, Lựa chọn đúng là ${question.correct_answer}.`;
+
+            // Create a flex container for feedback message and Explain button
+            const feedbackContainer = document.createElement('div');
+            feedbackContainer.className = 'feedback-container';
+
+            // Add feedback message
+            const messageSpan = document.createElement('span');
+            messageSpan.textContent = feedbackMessage;
+            feedbackContainer.appendChild(messageSpan);
+
+            // Add the "Explain" button
+            const explainButton = document.createElement('a');
+            explainButton.href = 'javascript:void(0)';
+            explainButton.className = correct ? 'btn-explain btn-explain-correct' : 'btn-explain btn-explain-incorrect';
+            explainButton.textContent = 'Explain';
+            explainButton.style.left = '110mm'; // Keep horizontal position
+
+            // Calculate the top position to align with navigation buttons
+            const navigationDiv = document.getElementById('navigation');
+            const feedbackRect = feedbackDiv.getBoundingClientRect();
+            const navigationRect = navigationDiv.getBoundingClientRect();
+            const topPosition = navigationRect.top - feedbackRect.top; // Align with navigation
+            explainButton.style.top = `${topPosition}px`; // Set top position to align with navigation
+
+            // Create explanation box
+            const explanationBox = document.createElement('div');
+            explanationBox.className = 'explanation-box';
+            feedbackContainer.appendChild(explanationBox);
+
+            explainButton.onclick = () => {
+                const explanation = correct ? question.explanation_correct : question.explanation_incorrect;
+                explanationBox.innerHTML = `\\(${explanation}\\)`; // Update explanation box with LaTeX content
+                explanationBox.style.display = 'block'; // Show the explanation box
+                MathJax.typeset(); // Re-render MathJax for the explanation
+            };
+            feedbackContainer.appendChild(explainButton);
+
+            // Clear feedbackDiv and append the container
+            feedbackDiv.innerHTML = '';
+            feedbackDiv.appendChild(feedbackContainer);
+
+            // Update button colors
+            const buttons = document.querySelectorAll('#options button');
+            buttons.forEach(btn => {
+                if (btn.textContent === question.correct_answer) {
+                    btn.className = 'btn-option btn-correct';
+                } else if (btn === button) {
+                    btn.className = 'btn-option btn-incorrect';
+                } else {
+                    btn.className = 'btn-option';
+                }
+                btn.disabled = true; // Disable buttons after selection
+            });
+
+            MathJax.typeset(); // Re-render MathJax after updating feedback
+        }
+
+        function showEmailContent() {
+            const percentage = (score / totalQuestions) * 100;
+            const grade = ((score / totalQuestions) * 10).toFixed(1);
+            const emailContent = `
+                <div class="certificate-container" id="certificate">
+                    <div style="text-align: center; font-size: 30px; color: #9e1818; font-weight: bold; margin-bottom: 20px;">
+                        CHỨNG NHẬN HOÀN THÀNH
+                    </div>
+                    <div style="text-align: center; font-size: 24px; color: #333; margin-bottom: 20px;">
+                        Đề thi trắc nghiệm về phương trình ma trận
+                    </div>
+                    <div style="margin: 20px 0; font-size: 16px; color: #555;">
+                        <div style="padding: 15px; border: 1px solid #4CAF50; border-radius: 8px; background-color: #e8f5e9; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); margin-bottom: 15px;">
+                            <p><strong>Họ và Tên:</strong> <span style="font-size: 18px; font-weight: bold; color: #4CAF50; background-color: #e8f5e9; padding: 2px 6px; border-radius: 4px;">${studentName}</span></p>
+                            <p><strong>Mã Số Sinh Viên:</strong> <span style="font-size: 18px; font-weight: bold; color: #4CAF50; background-color: #e8f5e9; padding: 2px 6px; border-radius: 4px;">${studentId}</span></p>
+                        </div>
+                        <div style="padding: 15px; border: 1px solid #4CAF50; border-radius: 8px; background-color: #e8f5e9; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); margin-bottom: 15px;">
+                            <p>Điểm số: <span style="font-size: 20px; font-weight: bold; color: #ff6347;">${grade}/10</span></p>
+                            <p>Tỷ lệ hoàn thành: <span style="font-size: 20px; font-weight: bold; color: #32cd32;">${percentage}%</span></p>
+                        </div>
+                        <div style="padding: 15px; border: 1px solid #4CAF50; border-radius: 8px; background-color: #e8f5e9; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                            <p>Bạn đã làm bài thi này trong thời gian: <span style="font-size: 18px; font-weight: bold; color: #555;">${seconds} giây</span></p>
+                        </div>
+                    </div>
+                    <div style="margin-top: 30px; font-size: 14px; text-align: center; color: #777;">
+                        Được cấp bởi,<br>Quiz Organizer<br>
+                        Ngày cấp: ${new Date().toLocaleDateString('vi-VN')}
+                    </div>
+                </div>
+            `;
+            document.getElementById('emailContent').innerHTML = emailContent;
+            document.getElementById('emailModal').style.display = 'flex';
+        }
+
+        function downloadImage() {
+            const element = document.getElementById('certificate');
+            html2canvas(element, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#ffffff'
+            }).then(canvas => {
+                const dataURL = canvas.toDataURL('image/jpeg', 0.95);
+                const link = document.createElement('a');
+                link.href = dataURL;
+                link.download = 'Certificate.jpg';
+                link.click();
+            }).catch(error => {
+                console.error('Error generating image:', error);
+                alert('Không thể tạo hình ảnh chứng nhận. Vui lòng thử lại.');
+            });
+        }
+
+        function closeEmailModal() {
+            document.getElementById('emailModal').style.display = 'none';
+        }
+
+        // Initialize event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('startQuizButton').addEventListener('click', startQuiz);
+        });
+    </script>
+</body>
+</html>
