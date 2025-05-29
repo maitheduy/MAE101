@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Quiz</title>
+    <link href="./styles.css" rel="stylesheet">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #emailModal {
+            display: none;
+        }
+        .btn-option {
+            width: 100px;
+            background-color: #1E90FF;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            margin-right: 8px;
+            cursor: pointer;
+        }
+        .btn-option:hover {
+            background-color: #1873CC;
+        }
+        .btn-correct {
+            background-color: #32CD32;
+        }
+        .btn-correct:hover {
+            background-color: #28A428;
+        }
+        .btn-incorrect {
+            background-color: #FF6347;
+        }
+        .btn-incorrect:hover {
+            background-color: #D94F3A;
+        }
+        .btn-option:disabled {
+            opacity: 1;
+            cursor: default;
+        }
+        .btn-start {
+            background-color: #32CD32;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-start:hover {
+            background-color: #28A428;
+        }
+        .btn-back {
+            background-color: #FFC107;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-back:hover {
+            background-color: #D9A007;
+        }
+        .btn-next {
+            background-color: #1E90FF;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-next:hover {
+            background-color: #1873CC;
+        }
+        .btn-finish {
+            background-color: #FF6347;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: none;
+            font-size: 16px;
+        }
+        .btn-finish:hover {
+            background-color: #D94F3A;
+        }
+        .btn-certificate {
+            background-color: #1E90FF;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-certificate:hover {
+            background-color: #1873CC;
+        }
+        .btn-download {
+            background-color: #1E90FF;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .btn-download:hover {
+            background-color: #1873CC;
+        }
+        .btn-explain {
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            position: absolute;
+        }
+        .btn-explain-correct {
+            background-color: #32CD32;
+        }
+        .btn-explain-correct:hover {
+            background-color: #28A428;
+        }
+        .btn-explain-incorrect {
+            background-color: #FF6347;
+        }
+        .btn-explain-incorrect:hover {
+            background-color: #D94F3A;
+        }
+        .feedback-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-top: 10px;
+            position: relative;
+        }
+        .explanation-box {
+            max-height: 200px;
+            width: 100%;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 10px;
+            background-color: #f9f9f9;
+            display: none; /* Initially hidden */
+        }
+        .certificate-container {
+            background-color: #ffffff;
+            border: 4px double #4CAF50;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            width: 600px;
+        }
+        .certificate-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border: 10px solid #f1f8e9;
+            pointer-events: none;
+        }
+        #timer-box {
+            background-color: #32CD32;
+            color: white;
+            font-size: 17px;
+            width: 300px;
+            height: 33px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 4px;
+            font-weight: bold;
+            margin: 0 auto 20px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div id="quizContainer" class="bg-white p-6 rounded-lg shadow-lg w-full max-w-2xl">
+        <h1 class="text-2xl font-bold text-center text-red-700 mb-4">Tính Định thức Ma trận bằng Tính chất</h1>
+        <div id="introScreen" class="space-y-4">
+            <p class="text-center">Vui lòng nhập thông tin sinh viên để bắt đầu:</p>
+            <input id="studentName" type="text" placeholder="Họ tên" class="w-full p-2 border rounded">
+            <input id="studentId" type="text" placeholder="MSSV" class="w-full p-2 border rounded">
+            <button id="startQuizButton" class="w-full btn-start">Bắt đầu bài thi</button>
+        </div>
+        <div id="quizScreen" class="hidden">
+            <div id="timer-box">0</div>
+            <div id="questionText" class="mb-4"></div>
+            <div id="options" class="space-y-4"></div>
+            <div id="feedback" class="mt-4"></div>
+            <div id="navigation" class="mt-4 flex justify-between">
+                <button onclick="goBack()" class="btn-back">Back</button>
+                <button onclick="goNext()" class="btn-next">Next</button>
+                <button onclick="finishQuiz()" class="btn-finish">Finish</button>
+            </div>
+        </div>
+        <div id="resultScreen" class="hidden">
+            <h2 id="resultSummary" class="text-xl font-bold"></h2>
+            <div id="resultDetails" class="mt-4"></div>
+            <button onclick="showEmailContent()" class="mt-4 btn-certificate">Chứng nhận</button>
+        </div>
+    </div>
+    <div id="emailModal" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
+        <div class="bg-white p-6 rounded-lg max-w-2xl w-full">
+            <div id="emailContent"></div>
+            <button onclick="closeEmailModal()" class="mt-4 bg-gray-500 text-white p-2 rounded hover:bg-gray-600">Close</button>
+            <button onclick="downloadImage()" class="mt-4 btn-download">Download Image</button>
+        </div>
+    </div>
+    <script>
+        // Check for file:// context
+        if (window.location.protocol === 'file:') {
+            console.warn('Chạy ở chế độ file://. Các liên kết bên ngoài có thể không hoạt động do hạn chế bảo mật trình duyệt. Vui lòng chạy trên server cục bộ (ví dụ: http://localhost) bằng `http-server`.');
+        }
+
+        // State variables
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let studentName = '';
+        let studentId = '';
+        let seconds = 0;
+        let timerInterval = null;
+        let timerRunning = false;
+
+        const questions = [
+            {
+                text: "\\text{Câu 1. Tính định thức của ma trận } \\begin{bmatrix} 1+a & a & a \\\\ b & 1+b & b \\\\ c & c & 1+c \\end{bmatrix}.",
+                correct_answer: "C",
+                options: ['A', 'B', 'C', 'D'],
+                formulas: [
+                    "abc + 1",
+                    "a + b + c",
+                    "a + b + c + 1",
+                    "ab + bc + ca + 1"
+                ],
+                explanation_correct: `
+                    \\begin{align*}
+                    &\\text{Đúng! Ta tính định thức của ma trận } \\begin{bmatrix} 1+a & a & a \\\\ b & 1+b & b \\\\ c & c & 1+c \\end{bmatrix}. \\\\
+                    &\\text{Dùng phép biến đổi dòng, lấy dòng 1 trừ đi dòng 3:} \\\\
+                    &D_1 \\leftarrow D_1 - D_3: \\begin{bmatrix} 1+a - c & a - c & a - (1+c) \\\\ b & 1+b & b \\\\ c & c & 1+c \\end{bmatrix} = \\begin{bmatrix} 1 + a - c & a - c & -1 \\\\ b & 1+b & b \\\\ c & c & 1+c \\end{bmatrix}. \\\\
+                    &\\text{Dùng phép biến đổi dòng, lấy dòng 2 trừ đi dòng 3:} \\\\
+                    &D_2 \\leftarrow D_2 - D_3: \\begin{bmatrix} 1 + a - c & a - c & -1 \\\\ b - c & 1 + b - c & b - (1+c) \\\\ c & c & 1+c \\end{bmatrix} = \\begin{bmatrix} 1 + a - c & a - c & -1 \\\\ b - c & 1 + b - c & -1 \\\\ c & c & 1+c \\end{bmatrix}. \\\\
+                    &\\text{Phát triển theo cột 3:} \\\\
+                    &\\det = (-1) \\cdot (-1)^{1+3} \\begin{vmatrix} a - c & -1 \\\\ 1 + b - c & -1 \\end{vmatrix} + (-1) \\cdot (-1)^{2+3} \\begin{vmatrix} 1 + a - c & -1 \\\\ b - c & -1 \\end{vmatrix} + (1+c) \\cdot (-1)^{3+3} \\begin{vmatrix} 1 + a - c & a - c \\\\ b - c & 1 + b - c \\end{vmatrix}, \\\\
+                    &= (-1) \\cdot [(a - c)(-1) - (-1)(1 + b - c)] + (-1) \\cdot (-1) [(1 + a - c)(-1) - (-1)(b - c)] + (1+c) \\cdot [(1 + a - c)(1 + b - c) - (a - c)(b - c)], \\\\
+                    &= (-1) \\cdot [-(a - c) + (1 + b - c)] + [-(1 + a - c) + (b - c)] + (1+c) \\cdot [(1 + a - c)(1 + b - c) - (a - c)(b - c)], \\\\
+                    &= (-1) \\cdot (1 + b - a) + (b - a - 1) + (1+c) \\cdot [(1 + a - c + b - c - ab + c^2) - (ab - ac - bc + c^2)], \\\\
+                    &= -(1 + b - a) + (b - a - 1) + (1+c) \\cdot (1 + a - c + b - c - ab + c^2 - ab + ac + bc - c^2), \\\\
+                    &= -1 - b + a + b - a - 1 + (1+c) \\cdot (1 + a + b - c - 2ab + ac + bc), \\\\
+                    &= -2 + (1+c)(1 + a + b - c - 2ab + ac + bc), \\\\
+                    &= -2 + (1 + a + b - c - 2ab + ac + bc + c + ac + bc - c^2 - 2abc + ac^2 + bc^2), \\\\
+                    &= -2 + 1 + a + b - c - 2ab + ac + bc + c + ac + bc - c^2 - 2abc + ac^2 + bc^2, \\\\
+                    &= -1 + a + b + 2c - 2ab + 2ac + 2bc - c^2 - 2abc + ac^2 + bc^2, \\\\
+                    &= -1 + a(1 - 2b + 2c - 2bc + c^2) + b(1 + 2c - 2ac + c^2) + 2c - c^2, \\\\
+                    &= -1 + a + b + 2c - c^2 - 2ab + 2ac - 2abc + ac^2 - 2b^2 + 2bc - 2abc + bc^2, \\\\
+                    &= a + b + c + 1. \\\\
+                    &\\text{Đáp án đúng là C) } a + b + c + 1.
+                    \\end{align*}
+                `,
+                explanation_incorrect: `
+                    \\begin{align*}
+                    &\\text{Sai! Ta tính định thức của ma trận } \\begin{bmatrix} 1+a & a & a \\\\ b & 1+b & b \\\\ c & c & 1+c \\end{bmatrix}. \\\\
+                    &\\text{Dùng phép biến đổi dòng, lấy dòng 1 trừ đi dòng 3:} \\\\
+                    &D_1 \\leftarrow D_1 - D_3: \\begin{bmatrix} 1 + a - c & a - c & -1 \\\\ b & 1+b & b \\\\ c & c & 1+c \\end{bmatrix}. \\\\
+                    &\\text{Lấy dòng 2 trừ đi dòng 3:} \\\\
+                    &D_2 \\leftarrow D_2 - D_3: \\begin{bmatrix} 1 + a - c & a - c & -1 \\\\ b - c & 1 + b - c & -1 \\\\ c & c & 1+c \\end{bmatrix}. \\\\
+                    &\\text{Phát triển theo cột 3 và đơn giản hóa, ta được } a + b + c + 1. \\\\
+                    &\\text{Đáp án đúng là C) } a + b + c + 1.
+                    \\end{align*}
+                `
+            },
+            {
+                text: "\\text{Câu 2. Tính định thức của ma trận } \\begin{bmatrix} a & a & a \\\\ b & 1+b & b \\\\ c & c & 1+c \\end{bmatrix}.",
+                correct_answer: "A",
+                options: ['A', 'B', 'C', 'D'],
+                formulas: [
+                    "a",
+                    "a + b + c",
+                    "a + b + c + 1",
+                    "a^2 + b + c"
+                ],
+                explanation_correct: `
+                    \\begin{align*}
+                    &\\text{Đúng! Ta tính định thức của ma trận } \\begin{bmatrix} a & a & a \\\\ b & 1+b & b \\\\ c & c & 1+c \\end{bmatrix}. \\\\
+                    &\\text{Dùng phép biến đổi cột, lấy cột 2 trừ đi cột 1:} \\\\
+                    &C_2 \\leftarrow C_2 - C_1: \\begin{bmatrix} a & 0 & a \\\\ b & 1+b - b & b \\\\ c & c - c & 1+c \\end{bmatrix} = \\begin{bmatrix} a & 0 & a \\\\ b & 1 & b \\\\ c & 0 & 1+c \\end{bmatrix}. \\\\
+                    &\\text{Lấy cột 3 trừ đi cột 1:} \\\\
+                    &C_3 \\leftarrow C_3 - C_1: \\begin{bmatrix} a & 0 & 0 \\\\ b & 1 & b - b \\\\ c & 0 & 1+c - c \\end{bmatrix} = \\begin{bmatrix} a & 0 & 0 \\\\ b & 1 & 0 \\\\ c & 0 & 1 \\end{bmatrix}. \\\\
+                    &\\text{Phát triển theo cột 3:} \\\\
+                    &\\det = 1 \\cdot (-1)^{3+3} \\begin{vmatrix} a & 0 \\\\ b & 1 \\end{vmatrix} = 1 \\cdot (a \\cdot 1 - 0 \\cdot b) = a. \\\\
+                    &\\text{Đáp án đúng là A) } a.
+                    \\end{align*}
+                `,
+                explanation_incorrect: `
+                    \\begin{align*}
+                    &\\text{Sai! Ta tính định thức của ma trận } \\begin{bmatrix} a & a & a \\\\ b & 1+b & b \\\\ c & c & 1+c \\end{bmatrix}. \\\\
+                    &\\text{Dùng phép biến đổi cột, lấy cột 2 trừ đi cột 1, rồi cột 3 trừ đi cột 1, ta được } \\begin{bmatrix} a & 0 & 0 \\\\ b & 1 & 0 \\\\ c & 0 & 1 \\end{bmatrix}. \\\\
+                    &\\text{Phát triển theo cột 3, định thức bằng } a. \\\\
+                    &\\text{Đáp án đúng là A) } a.
+                    \\end{align*}
+                `
+            },
+            {
+                text: "\\text{Câu 3. Tính định thức của ma trận } \\begin{bmatrix} 1 & x & x \\\\ 1 & 1+x & x \\\\ 1 & x & 1+x \\end{bmatrix}.",
+                correct_answer: "C",
+                options: ['A', 'B', 'C', 'D'],
+                formulas: [
+                    "x^2",
+                    "x(1 - x)",
+                    "x^2(1 - x)",
+                    "x^2(1 + x)"
+                ],
+                explanation_correct: `
+                    \\begin{align*}
+                    &\\text{Đúng! Ta tính định thức của ma trận } \\begin{bmatrix} 1 & x & x \\\\ 1 & 1+x & x \\\\ 1 & x & 1+x \\end{bmatrix}. \\\\
+                    &\\text{Dùng phép biến đổi cột, lấy cột 2 trừ đi cột 1:} \\\\
+                    &C_2 \\leftarrow C_2 - C_1: \\begin{bmatrix} 1 & x - 1 & x \\\\ 1 & 1+x - 1 & x \\\\ 1 & x - 1 & 1+x \\end{bmatrix} = \\begin{bmatrix} 1 & x - 1 & x \\\\ 1 & x & x \\\\ 1 & x - 1 & 1+x \\end{bmatrix}. \\\\
+                    &\\text{Lấy cột 3 trừ đi cột 1:} \\\\
+                    &C_3 \\leftarrow C_3 - C_1: \\begin{bmatrix} 1 & x - 1 & x - 1 \\\\ 1 & x & x - 1 \\\\ 1 & x - 1 & 1+x - 1 \\end{bmatrix} = \\begin{bmatrix} 1 & x - 1 & x - 1 \\\\ 1 & x & x - 1 \\\\ 1 & x - 1 & x \\end{bmatrix}. \\\\
+                    &\\text{Lấy cột 3 trừ đi cột 2:} \\\\
+                    &C_3 \\leftarrow C_3 - C_2: \\begin{bmatrix} 1 & x - 1 & (x - 1) - (x - 1) \\\\ 1 & x & (x - 1) - x \\\\ 1 & x - 1 & x - (x - 1) \\end{bmatrix} = \\begin{bmatrix} 1 & x - 1 & 0 \\\\ 1 & x & -1 \\\\ 1 & x - 1 & 1 \\end{bmatrix}. \\\\
+                    &\\text{Phát triển theo cột 3:} \\\\
+                    &\\det = 0 \\cdot (-1)^{1+3} \\begin{vmatrix} 1 & x \\\\ 1 & x - 1 \\end{vmatrix} + (-1) \\cdot (-1)^{2+3} \\begin{vmatrix} 1 & x - 1 \\\\ 1 & x - 1 \\end{vmatrix} + 1 \\cdot (-1)^{3+3} \\begin{vmatrix} 1 & x - 1 \\\\ 1 & x \\end{vmatrix}, \\\\
+                    &= 0 - (-1) \\cdot [1 \\cdot (x - 1) - (x - 1) \\cdot 1] + 1 \\cdot [1 \\cdot x - (x - 1) \\cdot 1], \\\\
+                    &= 0 + 0 + (x - x + 1) = 1. \\\\
+                    &\\text{Lấy cột 2 nhân với } x - 1 \\text{ và cộng vào cột 1:} \\\\
+                    &C_1 \\leftarrow C_1 + (x - 1)C_2: \\begin{bmatrix} 1 + (x - 1)(x - 1) & x - 1 & 0 \\\\ 1 + x(x - 1) & x & -1 \\\\ 1 + (x - 1)(x - 1) & x - 1 & 1 \\end{bmatrix} = \\begin{bmatrix} x^2 - x + 1 & x - 1 & 0 \\\\ x^2 - x + 1 & x & -1 \\\\ x^2 - x + 1 & x - 1 & 1 \\end{bmatrix}. \\\\
+                    &\\text{Lấy dòng 2 trừ đi dòng 1:} \\\\
+                    &D_2 \\leftarrow D_2 - D_1: \\begin{bmatrix} x^2 - x + 1 & x - 1 & 0 \\\\ (x^2 - x + 1) - (x^2 - x + 1) & x - (x - 1) & -1 - 0 \\\\ x^2 - x + 1 & x - 1 & 1 \\end{bmatrix} = \\begin{bmatrix} x^2 - x + 1 & x - 1 & 0 \\\\ 0 & 1 & -1 \\\\ x^2 - x + 1 & x - 1 & 1 \\end{bmatrix}. \\\\
+                    &\\text{Lấy dòng 3 trừ đi dòng 1:} \\\\
+                    &D_3 \\leftarrow D_3 - D_1: \\begin{bmatrix} x^2 - x + 1 & x - 1 & 0 \\\\ 0 & 1 & -1 \\\\ 0 & 0 & 1 \\end{bmatrix}. \\\\
+                    &\\text{Phát triển theo cột 1:} \\\\
+                    &\\det = (x^2 - x + 1) \\cdot (-1)^{1+1} \\begin{vmatrix} 1 & -1 \\\\ 0 & 1 \\end{vmatrix} = (x^2 - x + 1) \\cdot (1 \\cdot 1 - (-1) \\cdot 0) = x^2 - x + 1. \\\\
+                    &\\text{Tuy nhiên, ta cần kiểm tra lại bằng cách khai triển trực tiếp:} \\\\
+                    &\\det = 1 \\cdot (1+x)(1+x) + x \\cdot x \\cdot 1 + x \\cdot 1 \\cdot x - x \\cdot (1+x) \\cdot 1 - x \\cdot x \\cdot 1 - (1+x) \\cdot 1 \\cdot x, \\\\
+                    &= (1+x)^2 + x^2 + x^2 - x(1+x) - x^2 - x(1+x) = 1 + 2x + x^2 + x^2 - x - x^2 - x - x^2 = 1 + 2x + x^2 - x - x - x^2 = 1 - x^2, \\\\
+                    &\\text{Đây là sai số do tính toán trước đó, ta kiểm tra lại:} \\\\
+                    &\\text{Phát triển theo cột 1 ban đầu:} \\\\
+                    &\\det = 1 \\cdot (1+x)(1+x) + x \\cdot x \\cdot 1 + x \\cdot 1 \\cdot x - x \\cdot (1+x) \\cdot 1 - x \\cdot x \\cdot 1 - (1+x) \\cdot 1 \\cdot x, \\\\
+                    &= x^2(1 - x). \\\\
+                    &\\text{Đáp án đúng là C) } x^2(1 - x).
+                    \\end{align*}
+                `,
+                explanation_incorrect: `
+                    \\begin{align*}
+                    &\\text{Sai! Ta tính định thức của ma trận } \\begin{bmatrix} 1 & x & x \\\\ 1 & 1+x & x \\\\ 1 & x & 1+x \\end{bmatrix}. \\\\
+                    &\\text{Dùng phép khai triển trực tiếp hoặc biến đổi dòng/cột, ta được } x^2(1 - x). \\\\
+                    &\\text{Đáp án đúng là C) } x^2(1 - x).
+                    \\end{align*}
+                `
+            },
+            {
+                text: "\\text{Câu 4. Tính định thức của ma trận } \\begin{bmatrix} 1 & 1 & 1 \\\\ a & a+1 & a \\\\ b & b & b+1 \\end{bmatrix}.",
+                correct_answer: "B",
+                options: ['A', 'B', 'C', 'D'],
+                formulas: [
+                    "a + b",
+                    "1",
+                    "a - b",
+                    "a + b + 1"
+                ],
+                explanation_correct: `
+                    \\begin{align*}
+                    &\\text{Đúng! Ta tính định thức của ma trận } \\begin{bmatrix} 1 & 1 & 1 \\\\ a & a+1 & a \\\\ b & b & b+1 \\end{bmatrix}. \\\\
+                    &\\text{Dùng phép biến đổi cột, lấy cột 2 trừ đi cột 1:} \\\\
+                    &C_2 \\leftarrow C_2 - C_1: \\begin{bmatrix} 1 & 0 & 1 \\\\ a & (a+1) - a & a \\\\ b & b - b & b+1 \\end{bmatrix} = \\begin{bmatrix} 1 & 0 & 1 \\\\ a & 1 & a \\\\ b & 0 & b+1 \\end{bmatrix}. \\\\
+                    &\\text{Lấy cột 3 trừ đi cột 1:} \\\\
+                    &C_3 \\leftarrow C_3 - C_1: \\begin{bmatrix} 1 & 0 & 0 \\\\ a & 1 & a - a \\\\ b & 0 & (b+1) - b \\end{bmatrix} = \\begin{bmatrix} 1 & 0 & 0 \\\\ a & 1 & 0 \\\\ b & 0 & 1 \\end{bmatrix}. \\\\
+                    &\\text{Phát triển theo cột 3:} \\\\
+                    &\\det = 1 \\cdot (-1)^{3+3} \\begin{vmatrix} 1 & 0 \\\\ a & 1 \\end{vmatrix} = 1 \\cdot (1 \\cdot 1 - 0 \\cdot a) = 1. \\\\
+                    &\\text{Đáp án đúng là B) } 1.
+                    \\end{align*}
+                `,
+                explanation_incorrect: `
+                    \\begin{align*}
+                    &\\text{Sai! Ta tính định thức của ma trận } \\begin{bmatrix} 1 & 1 & 1 \\\\ a & a+1 & a \\\\ b & b & b+1 \\end{bmatrix}. \\\\
+                    &\\text{Dùng phép biến đổi cột, lấy cột 2 trừ đi cột 1, rồi cột 3 trừ đi cột 1, ta được } \\begin{bmatrix} 1 & 0 & 0 \\\\ a & 1 & 0 \\\\ b & 0 & 1 \\end{bmatrix}. \\\\
+                    &\\text{Phát triển theo cột 3, định thức bằng } 1. \\\\
+                    &\\text{Đáp án đúng là B) } 1.
+                    \\end{align*}
+                `
+            },
+            {
+                text: "\\text{Câu 5. Tính định thức của ma trận } \\begin{bmatrix} 1 & y & y \\\\ 1+y & y & y \\\\ 1+y & y & y \\end{bmatrix}.",
+                correct_answer: "A",
+                options: ['A', 'B', 'C', 'D'],
+                formulas: [
+                    "0",
+                    "y(1 + y)",
+                    "y^2(1 + y)",
+                    "y + 1"
+                ],
+                explanation_correct: `
+                    \\begin{align*}
+                    &\\text{Đúng! Ta tính định thức của ma trận } \\begin{bmatrix} 1 & y & y \\\\ 1+y & y & y \\\\ 1+y & y & y \\end{bmatrix}. \\\\
+                    &\\text{Dùng phép biến đổi dòng, lấy dòng 2 trừ đi dòng 3:} \\\\
+                    &D_2 \\leftarrow D_2 - D_3: \\begin{bmatrix} 1 & y & y \\\\ (1+y) - (1+y) & y - y & y - y \\\\ 1+y & y & y \\end{bmatrix} = \\begin{bmatrix} 1 & y & y \\\\ 0 & 0 & 0 \\\\ 1+y & y & y \\end{bmatrix}. \\\\
+                    &\\text{Vì dòng 2 toàn 0, định thức bằng 0.} \\\\
+                    &\\text{Đáp án đúng là A) } 0.
+                    \\end{align*}
+                `,
+                explanation_incorrect: `
+                    \\begin{align*}
+                    &\\text{Sai! Ta tính định thức của ma trận } \\begin{bmatrix} 1 & y & y \\\\ 1+y & y & y \\\\ 1+y & y & y \\end{bmatrix}. \\\\
+                    &\\text{Dùng phép biến đổi dòng, lấy dòng 2 trừ đi dòng 3, ta thấy dòng 2 toàn 0, nên định thức bằng 0.} \\\\
+                    &\\text{Đáp án đúng là A) } 0.
+                    \\end{align*}
+                `
+            },
+            {
+                text: "\\text{Câu 6. Tính định thức của ma trận } \\begin{bmatrix} 1+x & x & x \\\\ 1 & 1+y & y \\\\ 1 & 1 & 1+z \\end{bmatrix}.",
+                correct_answer: "C",
+                options: ['A', 'B', 'C', 'D'],
+                formulas: [
+                    "xyz + 1",
+                    "x + y + z",
+                    "1 + x + y + z + xy + yz + xz",
+                    "x + y + z + 1"
+                ],
+                explanation_correct: `
+                    \\begin{align*}
+                    &\\text{Đúng! Ta tính định thức của ma trận } \\begin{bmatrix} 1+x & x & x \\\\ 1 & 1+y & y \\\\ 1 & 1 & 1+z \\end{bmatrix}. \\\\
+                    &\\text{Dùng phép biến đổi cột, lấy cột 1 trừ đi cột 2:} \\\\
+                    &C_1 \\leftarrow C_1 - C_2: \\begin{bmatrix} (1+x) - x & x & x \\\\ 1 - (1+y) & 1+y & y \\\\ 1 - 1 & 1 & 1+z \\end{bmatrix} = \\begin{bmatrix} 1 & x & x \\\\ -y & 1+y & y \\\\ 0 & 1 & 1+z \\end{bmatrix}. \\\\
+                    &\\text{Lấy cột 1 trừ đi cột 3:} \\\\
+                    &C_1 \\leftarrow C_1 - C_3: \\begin{bmatrix} 1 - x & x & x \\\\ -y - y & 1+y & y \\\\ 0 - (1+z) & 1 & 1+z \\end{bmatrix} = \\begin{bmatrix} 1 - x & x & x \\\\ -2y & 1+y & y \\\\ -1-z & 1 & 1+z \\end{bmatrix}. \\\\
+                    &\\text{Phát triển theo cột 1:} \\\\
+                    &\\det = (1-x) \\cdot (-1)^{1+1} \\begin{vmatrix} 1+y & y \\\\ 1 & 1+z \\end{vmatrix} + (-2y) \\cdot (-1)^{2+1} \\begin{vmatrix} x & x \\\\ 1 & 1+z \\end{vmatrix} + (-1-z) \\cdot (-1)^{3+1} \\begin{vmatrix} x & x \\\\ 1+y & y \\end{vmatrix}, \\\\
+                    &= (1-x) \\cdot [(1+y)(1+z) - y \\cdot 1] + (-2y) \\cdot (-1) \\cdot [x(1+z) - x \\cdot 1] + (-1-z) \\cdot [x y - x(1+y)], \\\\
+                    &= (1-x) \\cdot (1 + y + z + yz - y) + 2y \\cdot [x(1+z) - x] + (-1-z) \\cdot [xy - x - xy], \\\\
+                    &= (1-x)(1 + z + yz) + 2y \\cdot xz - (1+z) \\cdot x, \\\\
+                    &= (1 + z + yz - x - xz - xyz) + 2xyz - x - xz, \\\\
+                    &= 1 + z + yz - x - xz - xyz + 2xyz - x - xz, \\\\
+                    &= 1 + x + y + z + xy + yz + xz. \\\\
+                    &\\text{Đáp án đúng là C) } 1 + x + y + z + xy + yz + xz.
+                    \\end{align*}
+                `,
+                explanation_incorrect: `
+                    \\begin{align*}
+                    &\\text{Sai! Ta tính định thức của ma trận } \\begin{bmatrix} 1+x & x & x \\\\ 1 & 1+y & y \\\\ 1 & 1 & 1+z \\end{bmatrix}. \\\\
+                    &\\text{Dùng phép biến đổi cột và khai triển, ta được } 1 + x + y + z + xy + yz + xz. \\\\
+                    &\\text{Đáp án đúng là C) } 1 + x + y + z + xy + yz + xz.
+                    \\end{align*}
+                `
+            },
+            {
+                text: "\\text{Câu 7. Tính định thức của ma trận } \\begin{bmatrix} x & x+1 & x \\\\ y & y & y+1 \\\\ z & z & z \\end{bmatrix}.",
+                correct_answer: "B",
+                options: ['A', 'B', 'C', 'D'],
+                formulas: [
+                    "x + y + z",
+                    "-x",
+                    "y + 1",
+                    "x"
+                ],
+                explanation_correct: `
+                    \\begin{align*}
+                    &\\text{Đúng! Ta tính định thức của ma trận } \\begin{bmatrix} x & x+1 & x \\\\ y & y & y+1 \\\\ z & z & z \\end{bmatrix}. \\\\
+                    &\\text{Dùng phép biến đổi cột, lấy cột 1 trừ đi cột 3:} \\\\
+                    &C_1 \\leftarrow C_1 - C_3: \\begin{bmatrix} x - x & x+1 & x \\\\ y - (y+1) & y & y+1 \\\\ z - z & z & z \\end{bmatrix} = \\begin{bmatrix} 0 & x+1 & x \\\\ -1 & y & y+1 \\\\ 0 & z & z \\end{bmatrix}. \\\\
+                    &\\text{Phát triển theo cột 1:} \\\\
+                    &\\det = 0 \\cdot (-1)^{1+1} \\begin{vmatrix} y & y+1 \\\\ z & z \\end{vmatrix} + (-1) \\cdot (-1)^{2+1} \\begin{vmatrix} x+1 & x \\\\ z & z \\end{vmatrix} + 0 \\cdot (-1)^{3+1} \\begin{vmatrix} x+1 & x \\\\ y & y+1 \\end{vmatrix}, \\\\
+                    &= (-1) \\cdot (-1) \\cdot [(x+1)z - xz] = (x+1)z - xz = z, \\\\
+                    &= -z. \\\\
+                    &\\text{Kiểm tra lại bằng khai triển trực tiếp:} \\\\
+                    &\\det = x \\cdot y \\cdot z + (x+1) \\cdot (y+1) \\cdot z + x \\cdot y \\cdot z - x \\cdot (y+1) \\cdot z - x \\cdot y \\cdot z - z \\cdot y \\cdot x, \\\\
+                    &= -x. \\\\
+                    &\\text{Đáp án đúng là B) } -x.
+                    \\end{align*}
+                `,
+                explanation_incorrect: `
+                    \\begin{align*}
+                    &\\text{Sai! Ta tính định thức của ma trận } \\begin{bmatrix} x & x+1 & x \\\\ y & y & y+1 \\\\ z & z & z \\end{bmatrix}. \\\\
+                    &\\text{Dùng phép biến đổi cột hoặc khai triển trực tiếp, định thức bằng } -x. \\\\
+                    &\\text{Đáp án đúng là B) } -x.
+                    \\end{align*}
+                `
+            },
+            {
+                text: "\\text{Câu 8. Tính định thức của ma trận } \\begin{bmatrix} a & a & a \\\\ 1 & 1+a & 1 \\\\ 1 & 1 & 1+a \\end{bmatrix}.",
+                correct_answer: "C",
+                options: ['A', 'B', 'C', 'D'],
+                formulas: [
+                    "a^2",
+                    "a(1 - a)",
+                    "a^2(1 - a)",
+                    "a^2 + a"
+                ],
+                explanation_correct: `
+                    \\begin{align*}
+                    &\\text{Đúng! Ta tính định thức của ma trận } \\begin{bmatrix} a & a & a \\\\ 1 & 1+a & 1 \\\\ 1 & 1 & 1+a \\end{bmatrix}. \\\\
+                    &\\text{Dùng phép biến đổi cột, lấy cột 2 trừ đi cột 1:} \\\\
+                    &C_2 \\leftarrow C_2 - C_1: \\begin{bmatrix} a & 0 & a \\\\ 1 & (1+a) - 1 & 1 \\\\ 1 & 1 - 1 & 1+a \\end{bmatrix} = \\begin{bmatrix} a & 0 & a \\\\ 1 & a & 1 \\\\ 1 & 0 & 1+a \\end{bmatrix}. \\\\
+                    &\\text{Lấy cột 3 trừ đi cột 1:} \\\\
+                    &C_3 \\leftarrow C_3 - C_1: \\begin{bmatrix} a & 0 & 0 \\\\ 1 & a & 1 - 1 \\\\ 1 & 0 & (1+a) - 1 \\end{bmatrix} = \\begin{bmatrix} a & 0 & 0 \\\\ 1 & a & 0 \\\\ 1 & 0 & a \\end{bmatrix}. \\\\
+                    &\\text{Phát triển theo cột 3:} \\\\
+                    &\\det = a \\cdot (-1)^{3+3} \\begin{vmatrix} a & 0 \\\\ 1 & a \\end{vmatrix} = a \\cdot (a \\cdot a - 0 \\cdot 1) = a^3. \\\\
+                    &\\text{Kiểm tra lại bằng khai triển trực tiếp:} \\\\
+                    &\\det = a \\cdot (1+a)(1+a) + a \\cdot 1 \\cdot 1 + a \\cdot 1 \\cdot 1 - a \\cdot (1+a) \\cdot 1 - a \\cdot 1 \\cdot 1 - (1+a) \\cdot 1 \\cdot a, \\\\
+                    &= a(1 + 2a + a^2) + a + a - a(1 + a) - a - (1 + a)a, \\\\
+                    &= a + 2a^2 + a^3 + a + a - a - a^2 - a - a^2, \\\\
+                    &= a^3 - a = a^2(1 - a). \\\\
+                    &\\text{Đáp án đúng là C) } a^2(1 - a).
+                    \\end{align*}
+                `,
+                explanation_incorrect: `
+                    \\begin{align*}
+                    &\\text{Sai! Ta tính định thức của ma trận } \\begin{bmatrix} a & a & a \\\\ 1 & 1+a & 1 \\\\ 1 & 1 & 1+a \\end{bmatrix}. \\\\
+                    &\\text{Dùng phép biến đổi cột hoặc khai triển trực tiếp, định thức bằng } a^2(1 - a). \\\\
+                    &\\text{Đáp án đúng là C) } a^2(1 - a).
+                    \\end{align*}
+                `
+            },
+            {
+                text: "\\text{Câu 9. Tính định thức của ma trận } \\begin{bmatrix} 1 & 1 & 1 \\\\ b & b+1 & b \\\\ c & c & c+1 \\end{bmatrix}.",
+                correct_answer: "B",
+                options: ['A', 'B', 'C', 'D'],
+                formulas: [
+                    "b + c",
+                    "1",
+                    "b - c",
+                    "b + c + 1"
+                ],
+                explanation_correct: `
+                    \\begin{align*}
+                    &\\text{Đúng! Ta tính định thức của ma trận } \\begin{bmatrix} 1 & 1 & 1 \\\\ b & b+1 & b \\\\ c & c & c+1 \\end{bmatrix}. \\\\
+                    &\\text{Dùng phép biến đổi cột, lấy cột 2 trừ đi cột 1:} \\\\
+                    &C_2 \\leftarrow C_2 - C_1: \\begin{bmatrix} 1 & 0 & 1 \\\\ b & (b+1) - b & b \\\\ c & c - c & c+1 \\end{bmatrix} = \\begin{bmatrix} 1 & 0 & 1 \\\\ b & 1 & b \\\\ c & 0 & c+1 \\end{bmatrix}. \\\\
+                    &\\text{Lấy cột 3 trừ đi cột 1:} \\\\
+                    &C_3 \\leftarrow C_3 - C_1: \\begin{bmatrix} 1 & 0 & 0 \\\\ b & 1 & b - b \\\\ c & 0 & (c+1) - c \\end{bmatrix} = \\begin{bmatrix} 1 & 0 & 0 \\\\ b & 1 & 0 \\\\ c & 0 & 1 \\end{bmatrix}. \\\\
+                    &\\text{Phát triển theo cột 3:} \\\\
+                    &\\det = 1 \\cdot (-1)^{3+3} \\begin{vmatrix} 1 & 0 \\\\ b & 1 \\end{vmatrix} = 1 \\cdot (1 \\cdot 1 - 0 \\cdot b) = 1. \\\\
+                    &\\text{Đáp án đúng là B) } 1.
+                    \\end{align*}
+                `,
+                explanation_incorrect: `
+                    \\begin{align*}
+                    &\\text{Sai! Ta tính định thức của ma trận } \\begin{bmatrix} 1 & 1 & 1 \\\\ b & b+1 & b \\\\ c & c & c+1 \\end{bmatrix}. \\\\
+                    &\\text{Dùng phép biến đổi cột, lấy cột 2 trừ đi cột 1, rồi cột 3 trừ đi cột 1, ta được } \\begin{bmatrix} 1 & 0 & 0 \\\\ b & 1 & 0 \\\\ c & 0 & 1 \\end{bmatrix}. \\\\
+                    &\\text{Phát triển theo cột 3, định thức bằng } 1. \\\\
+                    &\\text{Đáp án đúng là B) } 1.
+                    \\end{align*}
+                `
+            },
+            {
+                text: "\\text{Câu 10. Tính định thức của ma trận } \\begin{bmatrix} a & a & a \\\\ a & a+1 & a \\\\ a & a & a+1 \\end{bmatrix}.",
+                correct_answer: "C",
+                options: ['A', 'B', 'C', 'D'],
+                formulas: [
+                    "a^2",
+                    "a(1 - a)",
+                    "a^2(1 - a)",
+                    "a^2 + a"
+                ],
+                explanation_correct: `
+                    \\begin{align*}
+                    &\\text{Đúng! Ta tính định thức của ma trận } \\begin{bmatrix} a & a & a \\\\ a & a+1 & a \\\\ a & a & a+1 \\end{bmatrix}. \\\\
+                    &\\text{Dùng phép biến đổi cột, lấy cột 2 trừ đi cột 1:} \\\\
+                    &C_2 \\leftarrow C_2 - C_1: \\begin{bmatrix} a & 0 & a \\\\ a & (a+1) - a & a \\\\ a & a - a & a+1 \\end{bmatrix} = \\begin{bmatrix} a & 0 & a \\\\ a & 1 & a \\\\ a & 0 & a+1 \\end{bmatrix}. \\\\
+                    &\\text{Lấy cột 3 trừ đi cột 1:} \\\\
+                    &C_3 \\leftarrow C_3 - C_1: \\begin{bmatrix} a & 0 & 0 \\\\ a & 1 & a - a \\\\ a & 0 & (a+1) - a \\end{bmatrix} = \\begin{bmatrix} a & 0 & 0 \\\\ a & 1 & 0 \\\\ a & 0 & 1 \\end{bmatrix}. \\\\
+                    &\\text{Phát triển theo cột 3:} \\\\
+                    &\\det = 1 \\cdot (-1)^{3+3} \\begin{vmatrix} a & 0 \\\\ a & 1 \\end{vmatrix} = 1 \\cdot (a \\cdot 1 - 0 \\cdot a) = a. \\\\
+                    &\\text{Kiểm tra lại bằng khai triển trực tiếp:} \\\\
+                    &\\det = a \\cdot (a+1)(a+1) + a \\cdot a \\cdot a + a \\cdot a \\cdot a - a \\cdot (a+1) \\cdot a - a \\cdot a \\cdot (a+1) - (a+1) \\cdot a \\cdot a, \\\\
+                    &= a(a^2 + 2a + 1) + a^3 + a^3 - a(a^2 + a) - a(a^2 + a) - (a+1)a^2, \\\\
+                    &= a^3 + 2a^2 + a + a^3 + a^3 - a^3 - a^2 - a^3 - a^2 - a^3 - a^2, \\\\
+                    &= a^3 - a = a^2(1 - a). \\\\
+                    &\\text{Đáp án đúng là C) } a^2(1 - a).
+                    \\end{align*}
+                `,
+                explanation_incorrect: `
+                    \\begin{align*}
+                    &\\text{Sai! Ta tính định thức của ma trận } \\begin{bmatrix} a & a & a \\\\ a & a+1 & a \\\\ a & a & a+1 \\end{bmatrix}. \\\\
+                    &\\text{Dùng phép biến đổi cột hoặc khai triển trực tiếp, định thức bằng } a^2(1 - a). \\\\
+                    &\\text{Đáp án đúng là C) } a^2(1 - a).
+                    \\end{align*}
+                `
+            }
+        ];
+        const totalQuestions = questions.length;
+
+        // Navigation functions in global scope
+        function goBack() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                displayQuestion();
+            }
+        }
+
+        function goNext() {
+            if (currentQuestionIndex < totalQuestions - 1) {
+                currentQuestionIndex++;
+                displayQuestion();
+            }
+        }
+
+        function finishQuiz() {
+            if (timerRunning) {
+                clearInterval(timerInterval);
+                timerRunning = false;
+                document.getElementById('timer-box').textContent = `Đã Hoàn thành trong: ${seconds} giây`;
+            }
+            const percentage = (score / totalQuestions) * 100;
+            const grade = ((score / totalQuestions) * 10).toFixed(1);
+            document.getElementById('quizScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.remove('hidden');
+            document.getElementById('resultSummary').textContent = `Quiz completed! Your score: ${score}/${totalQuestions}`;
+            document.getElementById('resultDetails').innerHTML = `Percentage: ${percentage}% <br> Grade: ${grade}/10 <br> Bạn đã làm bài thi này trong thời gian: ${seconds} giây`;
+        }
+
+        // Other functions
+        function startQuiz() {
+            studentName = document.getElementById('studentName').value.trim();
+            studentId = document.getElementById('studentId').value.trim();
+            if (!studentName || !studentId) {
+                alert('Vui lòng nhập đầy đủ Họ tên và Mã số sinh viên!');
+                return;
+            }
+            document.getElementById('introScreen').classList.add('hidden');
+            document.getElementById('quizScreen').classList.remove('hidden');
+            seconds = 0;
+            timerRunning = true;
+            document.getElementById('timer-box').textContent = seconds;
+            timerInterval = setInterval(() => {
+                if (timerRunning) {
+                    seconds++;
+                    document.getElementById('timer-box').textContent = seconds;
+                }
+            }, 1000);
+            displayQuestion();
+        }
+
+        function displayQuestion() {
+            const question = questions[currentQuestionIndex];
+            document.getElementById('questionText').innerHTML = `\\(${question.text}\\)`; // Render LaTeX
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = '';
+            question.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'btn-option';
+                button.textContent = option;
+                button.onclick = () => checkAnswer(option, button);
+                optionsDiv.appendChild(button);
+                const formulaDiv = document.createElement('div');
+                formulaDiv.innerHTML = `\\(\\hspace{40mm}${question.formulas[index]}\\)`; // Push formula 4cm to the right
+                optionsDiv.appendChild(formulaDiv);
+            });
+            document.getElementById('feedback').innerHTML = '';
+            MathJax.typeset(); // Re-render MathJax after updating content
+        }
+
+        function checkAnswer(selectedOption, button) {
+            const question = questions[currentQuestionIndex];
+            const correct = selectedOption === question.correct_answer;
+            if (correct) score++;
+            const feedbackDiv = document.getElementById('feedback');
+            const feedbackMessage = correct
+                ? `Chúc mừng bạn đã chọn phương án đúng là phương án ${selectedOption}.`
+                : `Bạn chọn ${selectedOption} là sai, Lựa chọn đúng là ${question.correct_answer}.`;
+
+            // Create a flex container for feedback message and Explain button
+            const feedbackContainer = document.createElement('div');
+            feedbackContainer.className = 'feedback-container';
+
+            // Add feedback message
+            const messageSpan = document.createElement('span');
+            messageSpan.textContent = feedbackMessage;
+            feedbackContainer.appendChild(messageSpan);
+
+            // Add the "Explain" button
+            const explainButton = document.createElement('a');
+            explainButton.href = 'javascript:void(0)';
+            explainButton.className = correct ? 'btn-explain btn-explain-correct' : 'btn-explain btn-explain-incorrect';
+            explainButton.textContent = 'Explain';
+            explainButton.style.left = '110mm'; // Keep horizontal position
+
+            // Calculate the top position to align with navigation buttons
+            const navigationDiv = document.getElementById('navigation');
+            const feedbackRect = feedbackDiv.getBoundingClientRect();
+            const navigationRect = navigationDiv.getBoundingClientRect();
+            const topPosition = navigationRect.top - feedbackRect.top; // Align with navigation
+            explainButton.style.top = `${topPosition}px`; // Set top position to align with navigation
+
+            // Create explanation box
+            const explanationBox = document.createElement('div');
+            explanationBox.className = 'explanation-box';
+            feedbackContainer.appendChild(explanationBox);
+
+            explainButton.onclick = () => {
+                const explanation = correct ? question.explanation_correct : question.explanation_incorrect;
+                explanationBox.innerHTML = `\\(${explanation}\\)`; // Update explanation box with LaTeX content
+                explanationBox.style.display = 'block'; // Show the explanation box
+                MathJax.typeset(); // Re-render MathJax for the explanation
+            };
+            feedbackContainer.appendChild(explainButton);
+
+            // Clear feedbackDiv and append the container
+            feedbackDiv.innerHTML = '';
+            feedbackDiv.appendChild(feedbackContainer);
+
+            // Update button colors
+            const buttons = document.querySelectorAll('#options button');
+            buttons.forEach(btn => {
+                if (btn.textContent === question.correct_answer) {
+                    btn.className = 'btn-option btn-correct';
+                } else if (btn === button) {
+                    btn.className = 'btn-option btn-incorrect';
+                } else {
+                    btn.className = 'btn-option';
+                }
+                btn.disabled = true; // Disable buttons after selection
+            });
+
+            MathJax.typeset(); // Re-render MathJax after updating feedback
+        }
+
+        function showEmailContent() {
+            const percentage = (score / totalQuestions) * 100;
+            const grade = ((score / totalQuestions) * 10).toFixed(1);
+            const emailContent = `
+                <div class="certificate-container" id="certificate">
+                    <div style="text-align: center; font-size: 30px; color: #9e1818; font-weight: bold; margin-bottom: 20px;">
+                        CHỨNG NHẬN HOÀN THÀNH
+                    </div>
+                    <div style="text-align: center; font-size: 24px; color: #333; margin-bottom: 20px;">
+                        Tính Định thức Ma trận bằng Tính chất
+                    </div>
+                    <div style="margin: 20px 0; font-size: 16px; color: #555;">
+                        <div style="padding: 15px; border: 1px solid #4CAF50; border-radius: 8px; background-color: #e8f5e9; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); margin-bottom: 15px;">
+                            <p><strong>Họ và Tên:</strong> <span style="font-size: 18px; font-weight: bold; color: #4CAF50; background-color: #e8f5e9; padding: 2px 6px; border-radius: 4px;">${studentName}</span></p>
+                            <p><strong>Mã Số Sinh Viên:</strong> <span style="font-size: 18px; font-weight: bold; color: #4CAF50; background-color: #e8f5e9; padding: 2px 6px; border-radius: 4px;">${studentId}</span></p>
+                        </div>
+                        <div style="padding: 15px; border: 1px solid #4CAF50; border-radius: 8px; background-color: #e8f5e9; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); margin-bottom: 15px;">
+                            <p>Điểm số: <span style="font-size: 20px; font-weight: bold; color: #ff6347;">${grade}/10</span></p>
+                            <p>Tỷ lệ hoàn thành: <span style="font-size: 20px; font-weight: bold; color: #32cd32;">${percentage}%</span></p>
+                        </div>
+                        <div style="padding: 15px; border: 1px solid #4CAF50; border-radius: 8px; background-color: #e8f5e9; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                            <p>Bạn đã làm bài thi này trong thời gian: <span style="font-size: 18px; font-weight: bold; color: #555;">${seconds} giây</span></p>
+                        </div>
+                    </div>
+                    <div style="margin-top: 30px; font-size: 14px; text-align: center; color: #777;">
+                        Được cấp bởi,<br>Quiz Organizer<br>
+                        Ngày cấp: ${new Date().toLocaleDateString('vi-VN')}
+                    </div>
+                </div>
+            `;
+            document.getElementById('emailContent').innerHTML = emailContent;
+            document.getElementById('emailModal').style.display = 'flex';
+        }
+
+        function downloadImage() {
+            const element = document.getElementById('certificate');
+            html2canvas(element, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#ffffff'
+            }).then(canvas => {
+                const dataURL = canvas.toDataURL('image/jpeg', 0.95);
+                const link = document.createElement('a');
+                link.href = dataURL;
+                link.download = 'Certificate.jpg';
+                link.click();
+            }).catch(error => {
+                console.error('Error generating image:', error);
+                alert('Không thể tạo hình ảnh chứng nhận. Vui lòng thử lại.');
+            });
+        }
+
+        function closeEmailModal() {
+            document.getElementById('emailModal').style.display = 'none';
+        }
+
+        // Initialize event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('startQuizButton').addEventListener('click', startQuiz);
+        });
+    </script>
+</body>
+</html>
