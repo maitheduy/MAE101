@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phương pháp xác định cột cơ sở và cột tự do trong ma trận</title>
+
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        accent: '#F59E0B',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+
+    <!-- MathJax -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async
+            src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+    </script>
+
+    <style>
+        /* Custom styles for math formulas */
+        .math {
+            margin: 1.5rem 0;
+            overflow-x: auto;
+        }
+        
+        /* Slide transition animation */
+        .slide-enter-active, .slide-leave-active {
+            transition: all 0.5s ease;
+        }
+        .slide-enter-from, .slide-leave-to {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+
+    <div class="container mx-auto px-4 py-12 max-w-5xl">
+        <h1 class="text-4xl font-bold text-center text-gray-800 mb-12">
+            Phương pháp xác định cột cơ sở và cột tự do trong ma trận
+            <span class="block text-xl font-normal text-gray-600 mt-2">Liên hệ với Null (ker) và Imag</span>
+        </h1>
+
+        <div class="relative">
+            <!-- Slides container -->
+            <div class="slide-container">
+                <!-- Slide 1 -->
+                <div class="slide active">
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden border-l-4 border-primary">
+                        <div class="p-8">
+                            <div class="flex items-center mb-6">
+                                <span class="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-white font-bold mr-4">1</span>
+                                <h2 class="text-2xl font-bold text-gray-800">Giới thiệu</h2>
+                            </div>
+                            <div class="prose max-w-none text-gray-700">
+                                <p>Trong đại số tuyến tính, việc xác định các cột cơ sở và cột tự do của một ma trận là bước quan trọng trong việc phân tích các đặc tính của ma trận đó. Những khái niệm này liên quan chặt chẽ đến hai không gian quan trọng là <span class="font-medium text-primary">không gian ảnh (Imag)</span> và <span class="font-medium text-primary">không gian Null (ker)</span>. Chúng ta sẽ sử dụng một ẩn dụ trực quan để giúp dễ dàng hình dung mối quan hệ giữa các khái niệm này.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 2 -->
+                <div class="slide">
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden border-l-4 border-secondary">
+                        <div class="p-8">
+                            <div class="flex items-center mb-6">
+                                <span class="flex items-center justify-center w-10 h-10 rounded-full bg-secondary text-white font-bold mr-4">2</span>
+                                <h2 class="text-2xl font-bold text-gray-800">Cột cơ sở và cột tự do</h2>
+                            </div>
+                            <div class="prose max-w-none text-gray-700">
+                                <p class="font-medium text-gray-800"><span class="text-secondary">Cột cơ sở:</span> Cột cơ sở của một ma trận là những cột <i>tuyến tính độc lập</i>. Chúng đóng vai trò quan trọng trong việc xác định không gian ảnh của ma trận. Sau khi thực hiện các phép biến đổi sơ cấp, các cột cơ sở là những cột có phần tử chủ (pivot) khác không trong dạng bậc thang.</p>
+                                <p class="mt-4 font-medium text-gray-800"><span class="text-secondary">Cột tự do:</span> Cột tự do là những cột không phải là cột cơ sở. Những cột này có thể được biểu diễn dưới dạng tổ hợp tuyến tính của các cột cơ sở. Khi đó, chúng không đóng góp độc lập vào không gian ảnh mà chỉ "tái tạo" lại không gian ảnh qua các cột cơ sở.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 3 -->
+                <div class="slide">
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden border-l-4 border-accent">
+                        <div class="p-8">
+                            <div class="flex items-center mb-6">
+                                <span class="flex items-center justify-center w-10 h-10 rounded-full bg-accent text-white font-bold mr-4">3</span>
+                                <h2 class="text-2xl font-bold text-gray-800">Liên hệ với Null (ker) và Imag</h2>
+                            </div>
+                            <div class="prose max-w-none text-gray-700">
+                                <p class="font-medium text-gray-800"><span class="text-accent">Không gian ảnh (Imag):</span> Không gian ảnh của ma trận \( A \) là không gian con của không gian đầu ra mà ma trận có thể sinh ra. Các cột cơ sở của ma trận tạo thành cơ sở của không gian ảnh này.</p>
+                                <div class="math">
+                                    \[ \text{Im}(A) = \text{span}\left\{ \text{các cột cơ sở của } A \right\} \]
+                                </div>
+                                <p class="font-medium text-gray-800 mt-4"><span class="text-accent">Không gian Null (ker):</span> Không gian Null của ma trận \( A \), ký hiệu là \( \text{ker}(A) \), là tập hợp tất cả các véc-tơ \( \mathbf{x} \) sao cho \( A \cdot \mathbf{x} = \mathbf{0} \).</p>
+                                <div class="math">
+                                    \[ \text{ker}(A) = \left\{ \mathbf{x} \in \mathbb{R}^n \mid A\mathbf{x} = \mathbf{0} \right\} \]
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 4 -->
+                <div class="slide">
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden border-l-4 border-primary">
+                        <div class="p-8">
+                            <div class="flex items-center mb-6">
+                                <span class="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-white font-bold mr-4">4</span>
+                                <h2 class="text-2xl font-bold text-gray-800">Ẩn dụ: Ma trận như một hộp chỉ màu</h2>
+                            </div>
+                            <div class="prose max-w-none text-gray-700">
+                                <div class="flex flex-col md:flex-row gap-6">
+                                    <div class="flex-1 bg-blue-50 p-6 rounded-lg">
+                                        <h3 class="font-bold text-lg text-primary mb-3">Không gian ảnh</h3>
+                                        <p>Hình dung như bức tranh vẽ được từ các màu cơ bản. Các cột cơ sở như những màu chính trong hộp màu, có thể pha trộn để tạo ra mọi màu sắc khác.</p>
+                                    </div>
+                                    <div class="flex-1 bg-amber-50 p-6 rounded-lg">
+                                        <h3 class="font-bold text-lg text-accent mb-3">Không gian Null</h3>
+                                        <p>Như những cây cọ vô hình - khi pha trộn chúng lại không tạo ra màu sắc nào mới. Chúng đại diện cho các tổ hợp tuyến tính không đóng góp vào không gian ảnh.</p>
+                                    </div>
+                                </div>
+                                <div class="mt-6 bg-gradient-to-r from-blue-100 to-amber-100 p-6 rounded-lg">
+                                    <p class="font-medium">Mối quan hệ: Số chiều không gian ảnh (rank) + Số chiều không gian Null (nullity) = Số cột của ma trận</p>
+                                    <div class="math">
+                                        \[ \text{rank}(A) + \text{nullity}(A) = n \]
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 5 -->
+                <div class="slide">
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden border-l-4 border-secondary">
+                        <div class="p-8">
+                            <div class="flex items-center mb-6">
+                                <span class="flex items-center justify-center w-10 h-10 rounded-full bg-secondary text-white font-bold mr-4">5</span>
+                                <h2 class="text-2xl font-bold text-gray-800">Ví dụ cụ thể</h2>
+                            </div>
+                            <div class="prose max-w-none text-gray-700">
+                                <p>Xét ma trận:</p>
+                                <div class="math">
+                                    \[ A = \begin{pmatrix} 
+                                    1 & 2 & 3 \\ 
+                                    0 & 1 & 1 
+                                    \end{pmatrix} \]
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                                    <div class="bg-green-50 p-4 rounded-lg">
+                                        <h3 class="font-bold text-secondary mb-2">Cột cơ sở</h3>
+                                        <ul class="list-disc pl-5 space-y-1">
+                                            <li>Cột 1: \(\begin{pmatrix} 1 \\ 0 \end{pmatrix}\)</li>
+                                            <li>Cột 2: \(\begin{pmatrix} 2 \\ 1 \end{pmatrix}\)</li>
+                                        </ul>
+                                    </div>
+                                    <div class="bg-purple-50 p-4 rounded-lg">
+                                        <h3 class="font-bold text-purple-600 mb-2">Cột tự do</h3>
+                                        <ul class="list-disc pl-5 space-y-1">
+                                            <li>Cột 3: \(\begin{pmatrix} 3 \\ 1 \end{pmatrix} = 1 \times \text{Cột 1} + 1 \times \text{Cột 2}\)</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation buttons -->
+            <div class="flex justify-between mt-8">
+                <button onclick="prevSlide()" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                    ← Trước
+                </button>
+                <button onclick="nextSlide()" class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition">
+                    Tiếp theo →
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Slide management
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+
+        function showSlide(index) {
+            // Hide all slides
+            slides.forEach(slide => {
+                slide.classList.remove('active');
+            });
+            
+            // Show current slide
+            slides[index].classList.add('active');
+            currentSlide = index;
+        }
+
+        function nextSlide() {
+            const nextIndex = (currentSlide + 1) % totalSlides;
+            showSlide(nextIndex);
+        }
+
+        function prevSlide() {
+            const prevIndex = (currentSlide - 1 + totalSlides) % totalSlides;
+            showSlide(prevIndex);
+        }
+
+        // Auto-advance slides every 10 seconds
+        let slideInterval = setInterval(nextSlide, 10000);
+
+        // Pause auto-advance when user interacts
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('click', () => {
+                clearInterval(slideInterval);
+                slideInterval = setInterval(nextSlide, 10000);
+            });
+        });
+
+        // Show first slide initially
+        showSlide(0);
+    </script>
+
+</body>
+</html>
