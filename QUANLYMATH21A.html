@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý video MAE101</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- MathJax configuration -->
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['\\(', '\\)']],
+          displayMath: [['\\[', '\\]']],
+          processEscapes: true,
+        },
+        options: {
+          skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'a'],
+          ignoreHtmlClass: 'tex2jax_ignore',
+        }
+      };
+    </script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        .video-description-scrollable {
+            max-height: 100px; /* Adjusted */
+            overflow-y: auto;
+            padding-right: 8px;
+            scrollbar-width: thin;
+            scrollbar-color: #c1c1c1 #f1f1f1;
+        }
+        .video-description-scrollable::-webkit-scrollbar { width: 6px; }
+        .video-description-scrollable::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 3px; }
+        .video-description-scrollable::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 3px; }
+        .video-description-scrollable::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+
+        .video-thumbnail-container { position: relative; width: 100%; padding-bottom: 56.25%; overflow: hidden; background-color: #f3f4f6; }
+        .video-thumbnail { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
+        .video-card:hover .video-thumbnail { transform: scale(1.03); }
+        .play-button { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: rgba(0, 0, 0, 0.7); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; }
+        .video-card:hover .play-button { background-color: rgba(255, 0, 0, 0.8); transform: translate(-50%, -50%) scale(1.1); }
+
+        /* Folder Tree Styles */
+        .folder-tree ul { padding-left: 1rem; }
+        .folder-tree li { margin-bottom: 0.25rem; }
+        .folder-item { display: flex; align-items: center; padding: 0.25rem 0.5rem; border-radius: 0.25rem; cursor: pointer; hover:bg-gray-300; }
+        .folder-item.active { background-color: #bfdbfe; /* blue-200 */ color: #1e40af; /* blue-800 */ }
+        .folder-item .folder-icon { margin-right: 0.5rem; }
+        .folder-item .folder-name { flex-grow: 1; }
+        .folder-actions button { margin-left: 0.25rem; padding: 0.1rem 0.25rem; font-size: 0.75rem; }
+        .folder-actions { opacity: 0; transition: opacity 0.2s ease-in-out; }
+        .folder-item:hover .folder-actions { opacity: 1; }
+        .folder-children { display: none; } /* Hidden by default */
+        .folder-item.expanded > .folder-children { display: block; }
+        .folder-item.expanded > .folder-header .toggle-icon { transform: rotate(90deg); }
+        .toggle-icon { transition: transform 0.2s ease-in-out; width: 1em; text-align: center; }
+
+        /* Modal max height */
+        .modal-content-scrollable { max-h-[85vh]; overflow-y: auto; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="flex">
+        <!-- Folder Sidebar -->
+        <aside id="folder-sidebar" class="w-64 bg-gray-50 p-4 border-r border-gray-200 min-h-screen flex flex-col">
+            <h2 class="text-xl font-semibold text-blue-700 mb-3">Thư mục Video</h2>
+            <button id="add-root-folder-btn" class="w-full mb-3 px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition text-sm flex items-center justify-center">
+                <i class="fas fa-plus mr-2"></i>Thêm Thư Mục Gốc
+            </button>
+            <div id="folder-tree-container" class="folder-tree flex-grow overflow-y-auto">
+                <!-- Folder tree will be rendered here -->
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 p-0">
+            <div class="container mx-auto px-4 py-8">
+                <!-- Header -->
+                <header class="mb-6 text-center">
+                    <h1 class="text-4xl font-bold text-blue-800 mb-2">Quản lý video MAE101</h1>
+                    <p class="text-gray-600">Ứng dụng quản lý video với thư mục và hỗ trợ công thức toán học</p>
+                </header>
+
+                <!-- Breadcrumbs -->
+                <div id="breadcrumb-container" class="mb-4 text-sm text-gray-700 flex items-center space-x-1">
+                    <!-- Breadcrumbs will be rendered here -->
+                </div>
+
+                <!-- Control Panel -->
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <!-- Search and Add Button -->
+                    <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+                        <div class="relative w-full md:w-1/2">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-search text-gray-400"></i>
+                            </div>
+                            <input type="text" id="search-input" placeholder="Tìm kiếm video trong thư mục hiện tại..."
+                                   class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <button id="add-btn" class="w-full md:w-auto px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center justify-center">
+                            <i class="fas fa-plus mr-2"></i> Thêm Video
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Video Grid -->
+                <div id="video-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Videos will be loaded here by JavaScript -->
+                </div>
+
+                <!-- Empty State -->
+                <div id="empty-state" class="text-center py-16">
+                    <i class="fas fa-folder-open text-5xl text-gray-300 mb-4"></i>
+                    <h3 class="text-xl font-medium text-gray-500 mb-2">Thư mục trống hoặc không có video</h3>
+                    <p class="text-gray-400 mb-4">Hãy thêm video mới vào thư mục này hoặc chọn thư mục khác.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add/Edit Video Modal -->
+    <div id="video-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50 p-4">
+        <div class="bg-white rounded-lg p-6 w-full max-w-lg modal-content-scrollable">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="modal-title" class="text-2xl font-bold">Thêm Video Mới</h2>
+                <button id="close-modal" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="video-form">
+                <input type="hidden" id="video-id">
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2 font-medium">Tiêu đề video <span class="text-red-500">*</span></label>
+                    <input type="text" id="video-title" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2 font-medium">URL Video <span class="text-red-500">*</span></label>
+                    <input type="url" id="video-url" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="https://www.youtube.com/watch?v=... hoặc https://www.tiktok.com/@...">
+                    <p class="text-xs text-gray-500 mt-1">Hỗ trợ YouTube, TikTok, Vimeo, Dailymotion, Facebook và các liên kết video khác</p>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2 font-medium">Chọn thư mục <span class="text-red-500">*</span></label>
+                    <select id="video-folder-select" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <!-- Options will be populated by JS -->
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2 font-medium">Chủ đề (Tag)</label>
+                    <select id="video-subject-category" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">-- Chọn chủ đề (không bắt buộc) --</option>
+                        <optgroup label="Đại số">
+                            <option value="algebra_linear">Đại số tuyến tính</option>
+                            <option value="algebra_group">Lý thuyết nhóm</option>
+                        </optgroup>
+                        <optgroup label="Giải tích">
+                            <option value="calculus_diff">Vi phân</option>
+                            <option value="calculus_integral">Tích phân</option>
+                        </optgroup>
+                        <optgroup label="Chuyên ngành">
+                            <option value="special_physics">Vật lý</option>
+                            <option value="special_chem">Hóa học</option>
+                        </optgroup>
+                        <option value="other">Khác</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2 font-medium">Mô tả</label>
+                    <div class="video-description-scrollable border border-gray-300 rounded-lg p-3 bg-gray-50" style="max-height: 150px;">
+                        <textarea id="video-description" rows="5" class="w-full px-2 py-1 bg-transparent focus:outline-none resize-none" placeholder="Nhập mô tả... \\(E=mc^2\\) hoặc \\[\\sum_{i=0}^n i = \\frac{n(n+1)}{2}\\]"></textarea>
+                    </div>
+                    <div class="mt-2 flex gap-2">
+                        <button type="button" id="preview-math" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 text-sm flex items-center">
+                            <i class="fas fa-eye mr-1"></i> Xem trước
+                        </button>
+                    </div>
+                    <div id="math-preview" class="hidden mt-4 p-3 bg-white rounded-lg border border-gray-200"></div>
+                </div>
+                <div class="flex justify-end space-x-2">
+                    <button type="button" id="cancel-btn" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition">Hủy</button>
+                    <button type="submit" id="save-btn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Video Confirmation Modal -->
+    <div id="delete-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50 p-4">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md">
+            <div class="text-center">
+                <i class="fas fa-exclamation-triangle text-4xl text-yellow-500 mb-4"></i>
+                <h3 class="text-xl font-medium mb-2">Xác nhận xóa video</h3>
+                <p class="text-gray-600 mb-6">Bạn có chắc chắn muốn xóa video "<span id="video-to-delete-name" class="font-semibold"></span>"? Hành động này không thể hoàn tác.</p>
+                <div class="flex justify-center space-x-4">
+                    <button id="cancel-delete" class="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition">Hủy</button>
+                    <button id="confirm-delete" class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">Xóa</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Folder Modal -->
+    <div id="folder-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50 p-4">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="folder-modal-title" class="text-2xl font-bold">Thêm Thư Mục</h2>
+                <button id="close-folder-modal" class="text-gray-500 hover:text-gray-700"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="folder-form">
+                <input type="hidden" id="folder-id-input">
+                <input type="hidden" id="parent-folder-id-input">
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2 font-medium">Tên thư mục <span class="text-red-500">*</span></label>
+                    <input type="text" id="folder-name-input" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="flex justify-end space-x-2">
+                    <button type="button" id="cancel-folder-btn" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition">Hủy</button>
+                    <button type="submit" id="save-folder-btn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Folder Confirmation Modal -->
+    <div id="delete-folder-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50 p-4">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md">
+            <div class="text-center">
+                <i class="fas fa-exclamation-triangle text-4xl text-yellow-500 mb-4"></i>
+                <h3 class="text-xl font-medium mb-2">Xác nhận xóa thư mục</h3>
+                <p class="text-gray-600 mb-6">Bạn có chắc chắn muốn xóa thư mục "<span id="folder-to-delete-name" class="font-semibold"></span>"? Tất cả thư mục con cũng sẽ bị xóa. Video trong các thư mục này sẽ được chuyển về thư mục gốc (hoặc thư mục cha của thư mục bị xóa nếu có).</p>
+                <div class="flex justify-center space-x-4">
+                    <button id="cancel-delete-folder" class="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition">Hủy</button>
+                    <button id="confirm-delete-folder" class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">Xóa</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const videoContainer = document.getElementById('video-container');
+            const emptyState = document.getElementById('empty-state');
+            const searchInput = document.getElementById('search-input');
+            const addBtn = document.getElementById('add-btn');
+            const videoModal = document.getElementById('video-modal');
+            const deleteModal = document.getElementById('delete-modal');
+            const closeModalBtn = document.getElementById('close-modal');
+            const cancelBtn = document.getElementById('cancel-btn');
+            const cancelDeleteBtn = document.getElementById('cancel-delete');
+            const confirmDeleteBtn = document.getElementById('confirm-delete');
+            const videoForm = document.getElementById('video-form');
+            const modalTitle = document.getElementById('modal-title');
+            const saveBtn = document.getElementById('save-btn');
+            const previewMathBtn = document.getElementById('preview-math');
+            const mathPreview = document.getElementById('math-preview');
+            const videoSubjectCategory = document.getElementById('video-subject-category');
+            const videoFolderSelect = document.getElementById('video-folder-select');
+            const videoToDeleteNameSpan = document.getElementById('video-to-delete-name');
+
+            // Folder related DOM Elements
+            const folderSidebar = document.getElementById('folder-sidebar');
+            const folderTreeContainer = document.getElementById('folder-tree-container');
+            const addRootFolderBtn = document.getElementById('add-root-folder-btn');
+            const folderModal = document.getElementById('folder-modal');
+            const folderModalTitle = document.getElementById('folder-modal-title');
+            const closeFolderModalBtn = document.getElementById('close-folder-modal');
+            const folderForm = document.getElementById('folder-form');
+            const folderIdInput = document.getElementById('folder-id-input');
+            const parentFolderIdInput = document.getElementById('parent-folder-id-input');
+            const folderNameInput = document.getElementById('folder-name-input');
+            const cancelFolderBtn = document.getElementById('cancel-folder-btn');
+            const saveFolderBtn = document.getElementById('save-folder-btn');
+            const deleteFolderModal = document.getElementById('delete-folder-modal');
+            const folderToDeleteNameSpan = document.getElementById('folder-to-delete-name');
+            const cancelDeleteFolderBtn = document.getElementById('cancel-delete-folder');
+            const confirmDeleteFolderBtn = document.getElementById('confirm-delete-folder');
+            const breadcrumbContainer = document.getElementById('breadcrumb-container');
+
+            // Data
+            let videos = [];
+            let folders = [];
+            let nextVideoId = 1;
+            let nextFolderId = 1;
+
+            let currentFolderId = null; // null for root/all videos initially
+            let currentSearch = '';
+            let videoToDelete = null;
+            let folderToDeleteId = null;
+            let expandedFolders = new Set(); // To keep track of expanded folders
+
+
+            // --- DATA PERSISTENCE ---
+            function saveData() {
+                localStorage.setItem('videoManagerDataMAE101', JSON.stringify({
+                    videos,
+                    folders,
+                    nextVideoId,
+                    nextFolderId,
+                    expandedFolders: Array.from(expandedFolders), // Convert Set to Array for JSON
+                    currentFolderId 
+                }));
+            }
+
+            function loadData() {
+                const data = JSON.parse(localStorage.getItem('videoManagerDataMAE101'));
+                if (data) {
+                    videos = data.videos || [];
+                    folders = data.folders || [];
+                    nextVideoId = data.nextVideoId || 1;
+                    nextFolderId = data.nextFolderId || 1;
+                    expandedFolders = new Set(data.expandedFolders || []);
+                    currentFolderId = data.currentFolderId !== undefined ? data.currentFolderId : null;
+                } else {
+                    // Initialize with some default data if nothing in localStorage
+                    folders = [
+                        { id: `f${nextFolderId++}`, name: "Toán học", parentId: null, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+                        { id: `f${nextFolderId++}`, name: "Giải tích", parentId: `f1`, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+                        { id: `f${nextFolderId++}`, name: "Vật lý", parentId: null, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
+                    ];
+                    videos = [
+                        { id: nextVideoId++, title: "Đại số tuyến tính cơ bản", url: "https://www.youtube.com/watch?v=ZK3O402wf1c", folderId: 'f2', subjectCategory: "algebra_linear", description: "Ma trận và vector. $$Ax=b$$ Xem thêm tại https://example.com" },
+                        { id: nextVideoId++, title: "Video TikTok về toán học", url: "https://www.tiktok.com/@mathfun/video/123456789", folderId: 'f2', subjectCategory: "calculus_integral", description: "Giải thích tích phân qua video ngắn. Xem thêm tại http://mathworld.wolfram.com" }
+                    ];
+                    expandedFolders.add('f1'); // Expand "Toán học" by default
+                }
+            }
+            
+            // --- FOLDER HELPER FUNCTIONS ---
+            function getFolder(folderId) {
+                return folders.find(f => f.id === folderId);
+            }
+
+            function getSubFolders(parentId) {
+                return folders.filter(f => f.parentId === parentId).sort((a,b) => a.name.localeCompare(b.name));
+            }
+
+            function getFolderPath(folderId) {
+                const path = [];
+                let current = getFolder(folderId);
+                while (current) {
+                    path.unshift(current);
+                    current = getFolder(current.parentId);
+                }
+                return path;
+            }
+            
+            function getAllSubFolderIds(folderId) {
+                let ids = [folderId];
+                let queue = [folderId];
+                while (queue.length > 0) {
+                    const currentParentId = queue.shift();
+                    const children = getSubFolders(currentParentId);
+                    for (const child of children) {
+                        ids.push(child.id);
+                        queue.push(child.id);
+                    }
+                }
+                return ids;
+            }
+
+            // --- VIDEO HELPER FUNCTIONS ---
+            function getVideoThumbnail(url) {
+                // YouTube
+                const youtubeRegExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+                const youtubeMatch = url.match(youtubeRegExp);
+                if (youtubeMatch && youtubeMatch[2].length === 11) {
+                    return `https://img.youtube.com/vi/${youtubeMatch[2]}/mqdefault.jpg`;
+                }
+                
+                // TikTok (lưu ý: TikTok không cung cấp API thumbnail công khai, đây chỉ là giải pháp tạm thời)
+                const tiktokRegExp = /tiktok\.com\/@.+\/video\/(\d+)/;
+                const tiktokMatch = url.match(tiktokRegExp);
+                if (tiktokMatch) {
+                    // Sử dụng dịch vụ bên thứ 3 để lấy thumbnail TikTok
+                    return `https://tikcdn.io/ssstik/${tiktokMatch[1]}`;
+                }
+                
+                // Vimeo
+                const vimeoRegExp = /vimeo\.com\/(\d+)/;
+                const vimeoMatch = url.match(vimeoRegExp);
+                if (vimeoMatch) {
+                    return `https://vumbnail.com/${vimeoMatch[1]}.jpg`;
+                }
+                
+                // Dailymotion
+                const dailymotionRegExp = /dailymotion\.com\/video\/([a-zA-Z0-9]+)/;
+                const dailymotionMatch = url.match(dailymotionRegExp);
+                if (dailymotionMatch) {
+                    return `https://www.dailymotion.com/thumbnail/video/${dailymotionMatch[1]}`;
+                }
+                
+                // Facebook
+                const facebookRegExp = /facebook\.com\/.+\/videos\/(\d+)/;
+                const facebookMatch = url.match(facebookRegExp);
+                if (facebookMatch) {
+                    return `https://graph.facebook.com/${facebookMatch[1]}/picture`;
+                }
+                
+                // Nếu không phải các nền tảng trên, trả về favicon của domain
+                try {
+                    const domain = new URL(url).hostname;
+                    return `https://www.google.com/s2/favicons?domain=${domain}`;
+                } catch {
+                    return '';
+                }
+            }
+
+            function getVideoPlatformIcon(url) {
+                if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                    return 'fab fa-youtube text-red-600';
+                } else if (url.includes('tiktok.com')) {
+                    return 'fab fa-tiktok text-black';
+                } else if (url.includes('vimeo.com')) {
+                    return 'fab fa-vimeo-v text-blue-500';
+                } else if (url.includes('dailymotion.com')) {
+                    return 'fab fa-dailymotion text-blue-700';
+                } else if (url.includes('facebook.com')) {
+                    return 'fab fa-facebook text-blue-600';
+                } else {
+                    return 'fas fa-video text-gray-500';
+                }
+            }
+
+            function isValidVideoUrl(url) {
+                // Kiểm tra URL hợp lệ (cơ bản)
+                try {
+                    new URL(url);
+                    return true;
+                } catch {
+                    return false;
+                }
+            }
+
+            // --- RENDERING FUNCTIONS ---
+            function renderAll() {
+                renderFolderTree();
+                renderBreadcrumbs();
+                renderVideos();
+                populateFolderSelect(); // For Add/Edit video modal
+                saveData();
+            }
+
+            function renderFolderTree() {
+                folderTreeContainer.innerHTML = '';
+                const rootFolders = getSubFolders(null);
+                
+                const ul = document.createElement('ul');
+                if (rootFolders.length === 0 && folders.length > 0) { // Should not happen if data is consistent
+                    ul.innerHTML = `<li class="text-gray-500 text-sm p-2">Lỗi: Không tìm thấy thư mục gốc.</li>`;
+                } else if (folders.length === 0) {
+                     ul.innerHTML = `<li class="text-gray-500 text-sm p-2">Chưa có thư mục nào.</li>`;
+                }
+                
+                rootFolders.forEach(folder => ul.appendChild(createFolderTreeItem(folder, 0)));
+                folderTreeContainer.appendChild(ul);
+
+                // Add "All Videos" Item
+                const allVideosItem = document.createElement('div');
+                allVideosItem.className = `folder-item mt-4 ${currentFolderId === null ? 'active font-semibold' : 'hover:bg-gray-200'}`;
+                allVideosItem.innerHTML = `<i class="fas fa-fw fa-inbox folder-icon text-gray-500"></i> <span class="folder-name">Tất cả Video</span>`;
+                allVideosItem.addEventListener('click', () => {
+                    currentFolderId = null;
+                    renderAll();
+                });
+                folderTreeContainer.prepend(allVideosItem); // Add to the top
+            }
+
+            function createFolderTreeItem(folder, level) {
+                const li = document.createElement('li');
+                li.style.paddingLeft = `${level * 0.5}rem`; // Indentation
+
+                const folderItemDiv = document.createElement('div');
+                folderItemDiv.className = `folder-item ${currentFolderId === folder.id ? 'active font-semibold' : 'hover:bg-gray-200'}`;
+                
+                const children = getSubFolders(folder.id);
+                const isExpanded = expandedFolders.has(folder.id);
+
+                folderItemDiv.innerHTML = `
+                    <div class="folder-header flex items-center flex-grow" data-folder-id="${folder.id}">
+                        <span class="toggle-icon mr-1 ${children.length > 0 ? 'cursor-pointer' : 'opacity-0'}">
+                            ${children.length > 0 ? (isExpanded ? '<i class="fas fa-caret-down"></i>' : '<i class="fas fa-caret-right"></i>') : ''}
+                        </span>
+                        <i class="fas fa-fw ${isExpanded && children.length > 0 ? 'fa-folder-open' : 'fa-folder'} folder-icon text-yellow-500"></i>
+                        <span class="folder-name truncate" title="${folder.name}">${folder.name}</span>
+                    </div>
+                    <div class="folder-actions flex-shrink-0">
+                        <button class="add-subfolder-btn text-green-500 hover:text-green-700" title="Thêm thư mục con" data-parent-id="${folder.id}"><i class="fas fa-plus-circle"></i></button>
+                        <button class="edit-folder-btn text-blue-500 hover:text-blue-700" title="Sửa tên" data-folder-id="${folder.id}"><i class="fas fa-edit"></i></button>
+                        <button class="delete-folder-btn text-red-500 hover:text-red-700" title="Xóa thư mục" data-folder-id="${folder.id}"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                `;
+                
+                folderItemDiv.querySelector('.folder-header').addEventListener('click', (e) => {
+                    // Only toggle/select if not clicking on action buttons area
+                     if (!e.target.closest('.folder-actions') && !e.target.closest('.add-subfolder-btn') && !e.target.closest('.edit-folder-btn') && !e.target.closest('.delete-folder-btn')) {
+                        if (children.length > 0 && e.target.closest('.toggle-icon')) {
+                             toggleFolder(folder.id);
+                        } else {
+                            currentFolderId = folder.id;
+                            renderAll();
+                        }
+                    }
+                });
+                
+                li.appendChild(folderItemDiv);
+
+                if (children.length > 0) {
+                    const childrenUl = document.createElement('ul');
+                    childrenUl.className = 'folder-children';
+                    if (isExpanded) {
+                        childrenUl.style.display = 'block';
+                    }
+                    children.forEach(child => childrenUl.appendChild(createFolderTreeItem(child, level + 1)));
+                    li.appendChild(childrenUl);
+                }
+                return li;
+            }
+            
+            function toggleFolder(folderId) {
+                if (expandedFolders.has(folderId)) {
+                    expandedFolders.delete(folderId);
+                } else {
+                    expandedFolders.add(folderId);
+                }
+                renderFolderTree(); // Re-render to show open/close state
+                saveData();
+            }
+
+            function renderBreadcrumbs() {
+                breadcrumbContainer.innerHTML = '';
+                const homeIcon = document.createElement('span');
+                homeIcon.innerHTML = `<i class="fas fa-home text-blue-600 hover:text-blue-800 cursor-pointer"></i>`;
+                homeIcon.title = "Thư mục gốc";
+                homeIcon.addEventListener('click', () => {
+                    currentFolderId = null;
+                    renderAll();
+                });
+                breadcrumbContainer.appendChild(homeIcon);
+
+                if (currentFolderId) {
+                    const path = getFolderPath(currentFolderId);
+                    path.forEach((folder, index) => {
+                        const separator = document.createElement('span');
+                        separator.className = 'mx-1 text-gray-400';
+                        separator.textContent = '>';
+                        breadcrumbContainer.appendChild(separator);
+
+                        const folderLink = document.createElement('span');
+                        folderLink.textContent = folder.name;
+                        if (index < path.length - 1) {
+                            folderLink.className = 'hover:underline cursor-pointer text-blue-600';
+                            folderLink.addEventListener('click', () => {
+                                currentFolderId = folder.id;
+                                renderAll();
+                            });
+                        } else {
+                            folderLink.className = 'font-semibold text-gray-800'; // Current folder
+                        }
+                        breadcrumbContainer.appendChild(folderLink);
+                    });
+                } else {
+                     const separator = document.createElement('span');
+                     separator.className = 'mx-1 text-gray-400';
+                     separator.textContent = '>';
+                     breadcrumbContainer.appendChild(separator);
+                     const allVideosText = document.createElement('span');
+                     allVideosText.textContent = "Tất cả Video";
+                     allVideosText.className = 'font-semibold text-gray-800';
+                     breadcrumbContainer.appendChild(allVideosText);
+                }
+            }
+            
+            function populateFolderSelect(selectedFolderId = null) {
+                videoFolderSelect.innerHTML = '<option value="">-- Chọn thư mục gốc --</option>'; // Root option
+                
+                function addOptions(parentId, prefix) {
+                    const children = getSubFolders(parentId);
+                    children.forEach(folder => {
+                        const option = document.createElement('option');
+                        option.value = folder.id;
+                        option.textContent = prefix + folder.name;
+                        videoFolderSelect.appendChild(option);
+                        addOptions(folder.id, prefix + '– '); // Indent subfolders
+                    });
+                }
+                addOptions(null, ''); // Start from root
+
+                if (selectedFolderId) {
+                    videoFolderSelect.value = selectedFolderId;
+                } else if (currentFolderId) {
+                    videoFolderSelect.value = currentFolderId; // Default to current folder
+                } else {
+                    videoFolderSelect.value = ""; // Default to root
+                }
+            }
+
+
+            function renderVideos() {
+                let videosToDisplay = videos;
+
+                if (currentFolderId) {
+                    videosToDisplay = videos.filter(video => video.folderId === currentFolderId);
+                } else {
+                    // "All Videos" means all videos, regardless of folder
+                    videosToDisplay = videos; 
+                }
+
+                if (currentSearch) {
+                    videosToDisplay = videosToDisplay.filter(video =>
+                        video.title.toLowerCase().includes(currentSearch) ||
+                        (video.description && video.description.toLowerCase().includes(currentSearch))
+                    );
+                }
+                
+                videoContainer.innerHTML = '';
+
+                if (videosToDisplay.length === 0) {
+                    videoContainer.classList.add('hidden');
+                    emptyState.classList.remove('hidden');
+                    if(currentSearch) {
+                        emptyState.querySelector('h3').textContent = "Không tìm thấy video nào";
+                        emptyState.querySelector('p').textContent = "Hãy thử từ khóa tìm kiếm khác.";
+                    } else if (currentFolderId) {
+                        emptyState.querySelector('h3').textContent = "Thư mục trống";
+                        emptyState.querySelector('p').textContent = `Thư mục "${getFolder(currentFolderId)?.name || ''}" hiện chưa có video.`;
+                    } else {
+                        emptyState.querySelector('h3').textContent = "Không có video nào";
+                        emptyState.querySelector('p').textContent = "Hãy thêm video mới bằng nút 'Thêm Video'.";
+                    }
+
+                } else {
+                    videoContainer.classList.remove('hidden');
+                    emptyState.classList.add('hidden');
+
+                    videosToDisplay.forEach(video => {
+                        const videoCard = document.createElement('div');
+                        videoCard.className = 'video-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition flex flex-col';
+                        
+                        const thumbnailUrl = getVideoThumbnail(video.url);
+                        const formattedDescription = formatDescriptionWithLinks(video.description);
+                        const subjectName = getSubjectCategoryName(video.subjectCategory);
+                        const subjectClass = getSubjectCategoryClass(video.subjectCategory);
+                        const platformIcon = getVideoPlatformIcon(video.url);
+                        
+                        videoCard.innerHTML = `
+                            <div class="mb-2">
+                                <a href="${video.url}" target="_blank" class="block">
+                                    <div class="video-thumbnail-container">
+                                        ${thumbnailUrl ? 
+                                            `<img src="${thumbnailUrl}" alt="${video.title}" class="video-thumbnail">` : 
+                                            `<div class="absolute inset-0 flex items-center justify-center text-gray-400"><i class="fas fa-video-slash text-4xl"></i></div>`
+                                        }
+                                        <div class="play-button"><i class="fas fa-play text-white text-xl"></i></div>
+                                        <div class="absolute top-2 right-2 bg-white bg-opacity-80 rounded-full p-1">
+                                            <i class="${platformIcon} text-lg"></i>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="p-4 pt-2 flex-grow flex flex-col justify-between">
+                                <div>
+                                    <div class="flex justify-between items-start mb-1">
+                                        <h3 class="font-bold text-lg line-clamp-2" title="${video.title}">${video.title}</h3>
+                                        ${subjectName ? `<span class="flex-shrink-0 ml-2 ${subjectClass} text-xs px-2 py-1 rounded-full whitespace-nowrap">${subjectName}</span>` : ''}
+                                    </div>
+                                    <div class="video-description-scrollable mb-3">
+                                        <div class="video-description text-sm text-gray-600">${formattedDescription || '<span class="italic text-gray-400">Không có mô tả.</span>'}</div>
+                                    </div>
+                                </div>
+                                <div class="flex justify-end items-center text-sm mt-auto pt-2 border-t border-gray-100">
+                                    <button class="edit-btn px-3 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 mr-2 flex items-center" data-id="${video.id}">
+                                        <i class="fas fa-edit mr-1"></i> Sửa
+                                    </button>
+                                    <button class="delete-btn px-3 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200 flex items-center" data-id="${video.id}">
+                                        <i class="fas fa-trash-alt mr-1"></i> Xóa
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        videoContainer.appendChild(videoCard);
+                    });
+                    
+                    if (window.MathJax) {
+                        MathJax.typesetPromise();
+                    }
+                }
+            }
+
+            function formatDescriptionWithLinks(description) {
+                if (!description) return '';
+                
+                // Xử lý URL - chuyển thành thẻ <a>
+                let formatted = description.replace(
+                    /(https?:\/\/[^\s]+)/g, 
+                    '<a href="$1" target="_blank" class="text-blue-600 hover:underline">$1</a>'
+                );
+                
+                // Xử lý công thức toán học
+                formatted = formatted.replace(/\$\$(.*?)\$\$/gs, '\\[$1\\]');
+                formatted = formatted.replace(/\$(.*?)\$/gs, '\\($1\\)');
+                
+                // Xử lý xuống dòng
+                formatted = formatted.replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
+                
+                return formatted;
+            }
+
+            function getSubjectCategoryName(subjectCategory) {
+                const categories = {
+                    'algebra_linear': 'ĐS tuyến tính', 'algebra_group': 'Lý thuyết nhóm',
+                    'calculus_diff': 'Vi phân', 'calculus_integral': 'Tích phân',
+                    'special_physics': 'Vật lý', 'special_chem': 'Hóa học', 'other': 'Khác'
+                };
+                return categories[subjectCategory] || '';
+            }
+
+            function getSubjectCategoryClass(subjectCategory) {
+                 const baseClass = "text-xs px-2 py-0.5 rounded-full whitespace-nowrap";
+                const classes = {
+                    'algebra_linear': 'bg-blue-100 text-blue-700', 'algebra_group': 'bg-blue-100 text-blue-700',
+                    'calculus_diff': 'bg-green-100 text-green-700', 'calculus_integral': 'bg-green-100 text-green-700',
+                    'special_physics': 'bg-purple-100 text-purple-700', 'special_chem': 'bg-orange-100 text-orange-700',
+                    'other': 'bg-gray-100 text-gray-700'
+                };
+                return classes[subjectCategory] || 'bg-gray-100 text-gray-800';
+            }
+
+            // --- MODAL HANDLING ---
+            function openVideoModal(video = null) {
+                const isEditing = !!video;
+                videoForm.reset();
+                mathPreview.classList.add('hidden');
+                mathPreview.innerHTML = '';
+                
+                populateFolderSelect(video ? video.folderId : (currentFolderId || ""));
+
+                if (isEditing) {
+                    modalTitle.textContent = 'Sửa Video';
+                    saveBtn.textContent = 'Cập nhật';
+                    document.getElementById('video-id').value = video.id;
+                    document.getElementById('video-title').value = video.title;
+                    document.getElementById('video-url').value = video.url;
+                    videoSubjectCategory.value = video.subjectCategory || "";
+                    document.getElementById('video-description').value = video.description || '';
+                } else {
+                    modalTitle.textContent = 'Thêm Video Mới';
+                    saveBtn.textContent = 'Lưu';
+                    document.getElementById('video-id').value = '';
+                }
+                videoModal.classList.remove('hidden');
+            }
+
+            function openDeleteVideoModal(id) {
+                const video = videos.find(v => v.id === id);
+                if (!video) return;
+                videoToDelete = id;
+                videoToDeleteNameSpan.textContent = video.title;
+                deleteModal.classList.remove('hidden');
+            }
+            
+            function openFolderModal(folder = null, parentId = null) {
+                folderForm.reset();
+                if (folder) { // Editing
+                    folderModalTitle.textContent = 'Sửa tên thư mục';
+                    folderIdInput.value = folder.id;
+                    parentFolderIdInput.value = folder.parentId || '';
+                    folderNameInput.value = folder.name;
+                    saveFolderBtn.textContent = 'Cập nhật';
+                } else { // Adding
+                    folderModalTitle.textContent = parentId ? 'Thêm thư mục con' : 'Thêm thư mục gốc';
+                    folderIdInput.value = '';
+                    parentFolderIdInput.value = parentId || '';
+                    folderNameInput.value = '';
+                    saveFolderBtn.textContent = 'Lưu';
+                }
+                folderModal.classList.remove('hidden');
+                folderNameInput.focus();
+            }
+
+            function openDeleteFolderModal(folderId) {
+                const folder = getFolder(folderId);
+                if (!folder) return;
+                folderToDeleteId = folderId;
+                folderToDeleteNameSpan.textContent = folder.name;
+                deleteFolderModal.classList.remove('hidden');
+            }
+
+
+            function closeAllModals() {
+                videoModal.classList.add('hidden');
+                deleteModal.classList.add('hidden');
+                folderModal.classList.add('hidden');
+                deleteFolderModal.classList.add('hidden');
+            }
+
+            // --- EVENT LISTENERS ---
+            function setupEventListeners() {
+                searchInput.addEventListener('input', function() {
+                    currentSearch = this.value.toLowerCase();
+                    renderVideos(); // Only re-render videos, not the whole tree
+                });
+
+                addBtn.addEventListener('click', () => openVideoModal());
+                
+                closeModalBtn.addEventListener('click', closeAllModals);
+                cancelBtn.addEventListener('click', closeAllModals);
+                cancelDeleteBtn.addEventListener('click', closeAllModals);
+
+                confirmDeleteBtn.addEventListener('click', function() {
+                    if (videoToDelete !== null) {
+                        videos = videos.filter(video => video.id !== videoToDelete);
+                        videoToDelete = null;
+                        renderAll();
+                        closeAllModals();
+                    }
+                });
+
+                previewMathBtn.addEventListener('click', function() {
+                    const description = document.getElementById('video-description').value;
+                    mathPreview.innerHTML = formatDescriptionWithLinks(description);
+                    mathPreview.classList.remove('hidden');
+                    if (window.MathJax) MathJax.typesetPromise([mathPreview]);
+                });
+
+                videoForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const id = document.getElementById('video-id').value;
+                    const title = document.getElementById('video-title').value.trim();
+                    const url = document.getElementById('video-url').value.trim();
+                    const selectedFolderId = videoFolderSelect.value || null; // null for root
+                    const subject = videoSubjectCategory.value;
+                    const description = document.getElementById('video-description').value.trim();
+                    
+                    if (!title || !url) {
+                        alert('Vui lòng điền tiêu đề và URL video.');
+                        return;
+                    }
+                    
+                    if (!isValidVideoUrl(url)) {
+                        alert('Vui lòng nhập URL hợp lệ.');
+                        return;
+                    }
+
+                    const videoData = { title, url, folderId: selectedFolderId, subjectCategory: subject, description };
+
+                    if (id) { // Edit
+                        const index = videos.findIndex(v => v.id === parseInt(id));
+                        if (index !== -1) videos[index] = { ...videos[index], ...videoData };
+                    } else { // Add
+                        videos.push({ id: nextVideoId++, ...videoData });
+                    }
+                    renderAll();
+                    closeAllModals();
+                });
+
+                videoContainer.addEventListener('click', function(e) {
+                    const editBtn = e.target.closest('.edit-btn');
+                    if (editBtn) {
+                        const id = parseInt(editBtn.dataset.id);
+                        const video = videos.find(v => v.id === id);
+                        if (video) openVideoModal(video);
+                    }
+                    
+                    const deleteBtn = e.target.closest('.delete-btn');
+                    if (deleteBtn) {
+                        const id = parseInt(deleteBtn.dataset.id);
+                        openDeleteVideoModal(id);
+                    }
+                });
+
+                // Folder Event Listeners
+                addRootFolderBtn.addEventListener('click', () => openFolderModal(null, null));
+
+                folderTreeContainer.addEventListener('click', e => {
+                    const addSubfolderTarget = e.target.closest('.add-subfolder-btn');
+                    const editFolderTarget = e.target.closest('.edit-folder-btn');
+                    const deleteFolderTarget = e.target.closest('.delete-folder-btn');
+
+                    if (addSubfolderTarget) {
+                        openFolderModal(null, addSubfolderTarget.dataset.parentId);
+                    } else if (editFolderTarget) {
+                        const folder = getFolder(editFolderTarget.dataset.folderId);
+                        if (folder) openFolderModal(folder);
+                    } else if (deleteFolderTarget) {
+                        openDeleteFolderModal(deleteFolderTarget.dataset.folderId);
+                    }
+                });
+                
+                closeFolderModalBtn.addEventListener('click', closeAllModals);
+                cancelFolderBtn.addEventListener('click', closeAllModals);
+                
+                folderForm.addEventListener('submit', e => {
+                    e.preventDefault();
+                    const id = folderIdInput.value;
+                    const parentId = parentFolderIdInput.value || null;
+                    const name = folderNameInput.value.trim();
+
+                    if (!name) {
+                        alert('Tên thư mục không được để trống.');
+                        return;
+                    }
+                    // Check for duplicate name in the same parent
+                    const siblings = getSubFolders(parentId);
+                    if (siblings.some(f => f.name === name && f.id !== id)) {
+                         alert(`Thư mục con "${name}" đã tồn tại trong thư mục cha này.`);
+                         return;
+                    }
+
+
+                    if (id) { // Editing
+                        const folder = getFolder(id);
+                        if (folder) {
+                            folder.name = name;
+                            folder.updatedAt = new Date().toISOString();
+                        }
+                    } else { // Adding
+                        folders.push({
+                            id: `f${nextFolderId++}`,
+                            name,
+                            parentId,
+                            createdAt: new Date().toISOString(),
+                            updatedAt: new Date().toISOString()
+                        });
+                        if(parentId) expandedFolders.add(parentId); // Auto-expand parent
+                    }
+                    renderAll();
+                    closeAllModals();
+                });
+
+                cancelDeleteFolderBtn.addEventListener('click', closeAllModals);
+                confirmDeleteFolderBtn.addEventListener('click', () => {
+                    if (!folderToDeleteId) return;
+
+                    const folderToDelete = getFolder(folderToDeleteId);
+                    if (!folderToDelete) return;
+
+                    const allIdsToDelete = getAllSubFolderIds(folderToDeleteId);
+                    const destinationFolderId = folderToDelete.parentId || null; // Move to parent or root
+
+                    // Move videos from all deleted folders
+                    videos.forEach(video => {
+                        if (allIdsToDelete.includes(video.folderId)) {
+                            video.folderId = destinationFolderId;
+                        }
+                    });
+
+                    // Delete folders
+                    folders = folders.filter(f => !allIdsToDelete.includes(f.id));
+                    
+                    // If current folder was deleted or one of its children, navigate to parent or root
+                    if (allIdsToDelete.includes(currentFolderId)) {
+                        currentFolderId = destinationFolderId;
+                    }
+                    
+                    folderToDeleteId = null;
+                    renderAll();
+                    closeAllModals();
+                });
+
+
+                window.addEventListener('click', function(e) {
+                    if (e.target === videoModal || e.target === deleteModal || e.target === folderModal || e.target === deleteFolderModal) {
+                        closeAllModals();
+                    }
+                });
+                 // Keyboard accessibility for modals
+                window.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        closeAllModals();
+                    }
+                });
+            }
+
+            // --- INITIALIZATION ---
+            function init() {
+                loadData(); // Load data first
+                setupEventListeners();
+                renderAll(); // Then render everything
+            }
+
+            init();
+        });
+    </script>
+</body>
+</html>
