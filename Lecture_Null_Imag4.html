@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Không gian Null và Image của ma trận</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Cấu hình MathJax trước khi nạp -->
+  <script>
+    window.MathJax = {
+      tex: {inlineMath: [['$$','$$'], ['\\(','\\)']]},
+      svg: {fontCache: 'global'}
+    };
+  </script>
+  <!-- Math.js -->
+  <script src="https://cdn.jsdelivr.net/npm/mathjs@11.6.0/lib/browser/math.js"></script>
+  <style>
+    /* CSS chung */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    /* Layout chia đôi màn hình */
+    .split-screen {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+    
+    /* Bên trái - Bài giảng */
+    .lecture-container {
+      width: 50%;
+      height: 100%;
+      overflow-y: auto;
+      padding: 20px;
+      background-color: #f8f9fa;
+      border-right: 1px solid #ddd;
+    }
+    
+    /* Bên phải - Ứng dụng */
+    .app-container {
+      width: 50%;
+      height: 100%;
+      overflow-y: auto;
+      padding: 20px;
+      background-color: #fff;
+      position: relative;
+    }
+    
+    /* Thanh điều khiển âm thanh */
+    .audio-controls {
+      position: sticky;
+      top: 0;
+      background: white;
+      padding: 15px;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .audio-upload {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    
+    .audio-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #3b82f6;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: none;
+      outline: none;
+      transition: all 0.2s;
+    }
+    
+    .audio-btn:hover {
+      background: #2563eb;
+    }
+    
+    .audio-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+    
+    .progress-container {
+      width: 100%;
+      height: 6px;
+      background: #e5e7eb;
+      border-radius: 3px;
+      cursor: pointer;
+      margin-top: 5px;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      background: #3b82f6;
+      border-radius: 3px;
+      width: 0%;
+      transition: width 0.1s;
+    }
+    
+    .time-display {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      color: #6b7280;
+    }
+    
+    /* Slide bài giảng */
+    .slide {
+      background: white;
+      border-radius: 8px;
+      padding: 25px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .slide-title {
+      color: #1e40af;
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+    
+    .block {
+      background: #eff6ff;
+      padding: 15px;
+      border-left: 4px solid #3b82f6;
+      margin-bottom: 15px;
+      border-radius: 4px;
+    }
+    
+    .example {
+      background: #ecfdf5;
+      padding: 15px;
+      border-left: 4px solid #10b981;
+      margin-bottom: 15px;
+      border-radius: 4px;
+    }
+    
+    .alert {
+      background: #fee2e2;
+      padding: 15px;
+      border-left: 4px solid #ef4444;
+      margin-bottom: 15px;
+      border-radius: 4px;
+    }
+    
+    /* Ứng dụng tính toán */
+    .matrix-input {
+      display: inline-grid;
+      grid-template-columns: repeat(var(--cols), 1fr);
+      gap: 10px;
+      margin: 15px 0;
+    }
+    
+    .matrix-input input {
+      width: 60px;
+      height: 60px;
+      text-align: center;
+      font-size: 18px;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    
+    .matrix-input input:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+    
+    .step-container {
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-left: 4px solid #3b82f6;
+    }
+    
+    .math-display {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 15px 0;
+      overflow-x: auto;
+    }
+    
+    .pivot {
+      background: #dbeafe;
+      font-weight: bold;
+    }
+    
+    .free-var {
+      background: #ecfdf5;
+      font-weight: bold;
+    }
+    
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .split-screen {
+        flex-direction: column;
+      }
+      
+      .lecture-container, .app-container {
+        width: 100%;
+        height: 50vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="split-screen">
+    <!-- Bên trái: Bài giảng -->
+    <div class="lecture-container">
+      <!-- Slide 1: Tiêu đề -->
+      <div class="slide">
+        <div class="slide-title">Không gian Null và Image của ma trận</div>
+        <div style="text-align: center; margin-bottom: 20px;">Một cách tiếp cận trực quan</div>
+        <div style="text-align: center; color: #6b7280;">Đại học Khoa học Tự nhiên</div>
+      </div>
+      
+      <!-- Slide 2: Định nghĩa -->
+      <div class="slide">
+        <h3 class="slide-title">Hai không gian cơ bản: Null & Image</h3>
+        
+        <div class="block">
+          <h4 style="font-weight: bold; margin-bottom: 10px;">Định nghĩa</h4>
+          <ul style="list-style-type: disc; padding-left: 20px;">
+            <li style="margin-bottom: 10px;">
+              <strong>Không gian Null (\(\Ker\))</strong> của \( A \):
+              <div class="math-display">
+                $$ \Ker A = \{\mathbf{x} \in \mathbb{R}^n \mid A\mathbf{x} = \mathbf{0} $$
+              </div>
+            </li>
+            <li>
+              <strong>Không gian Image (\(\Im\))</strong> của \( A \):
+              <div class="math-display">
+                $$ \Im A = \{A\mathbf{x} \mid \mathbf{x} \in \mathbb{R}^n\} $$
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="example">
+          <h4 style="font-weight: bold; margin-bottom: 10px;">Minh họa trực quan</h4>
+          <ul style="list-style-type: disc; padding-left: 20px;">
+            <li>\(\Ker A\) như chiếc hộp "tàng hình" - các vector bị biến thành \(\mathbf{0}\)</li>
+            <li>\(\Im A\) như bảng pha màu - tất cả các vector có thể đạt được</li>
+          </ul>
+        </div>
+
+        <div class="alert">
+          <h4 style="font-weight: bold; margin-bottom: 10px;">Định lý Rank-Nullity</h4>
+          <div class="math-display">
+            $$ \dim(\Im A) + \dim(\Ker A) = n $$
+          </div>
+        </div>
+      </div>
+      
+      <!-- Slide 3: Thuật toán Gauss -->
+      <div class="slide">
+        <h3 class="slide-title">Thuật toán Gauss: "Một công đôi việc"</h3>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+          <div class="block">
+            <h4 style="font-weight: bold; margin-bottom: 10px;">Các bước thực hiện</h4>
+            <ol style="list-style-type: decimal; padding-left: 20px;">
+              <li style="margin-bottom: 5px;">Đưa \( A \) về dạng <strong>RREF</strong></li>
+              <li style="margin-bottom: 5px;">Xác định <strong>cột pivot</strong></li>
+              <li style="margin-bottom: 5px;">Xác định <strong>biến tự do</strong></li>
+              <li>Tính <strong>rank</strong> và <strong>nullity</strong></li>
+            </ol>
+          </div>
+          
+          <div class="block">
+            <h4 style="font-weight: bold; margin-bottom: 10px;">Kết quả thu được</h4>
+            <ul style="list-style-type: disc; padding-left: 20px;">
+              <li style="margin-bottom: 5px;">Cơ sở của \(\Im A\) từ cột pivot</li>
+              <li style="margin-bottom: 5px;">Cơ sở của \(\Ker A\) từ biến tự do</li>
+              <li>Kiểm tra Rank-Nullity</li>
+            </ul>
+            
+            <div class="alert" style="margin-top: 10px;">
+              <strong>Lưu ý:</strong> Dùng cột từ ma trận <strong>gốc</strong> cho \(\Im A\)
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Slide 4: Ví dụ 1 -->
+      <div class="slide">
+        <h3 class="slide-title">Ví dụ 1: Ma trận \(3 \times 3\)</h3>
+        
+        <div class="math-display" style="margin-bottom:20px;">
+          $$ A = 
+          \begin{pmatrix}
+            1 & 2 & 3 \\ 
+            1 & 3 & 1 \\ 
+            3 & 8 & 5
+          \end{pmatrix}
+          \xrightarrow{\text{RREF}}
+          \begin{pmatrix}
+            1 & 0 & -7 \\ 
+            0 & 1 & 2 \\ 
+            0 & 0 & 0
+          \end{pmatrix} $$
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+          <div class="example">
+            <h4 style="font-weight: bold; margin-bottom: 10px;">Không gian Image</h4>
+            <ul style="list-style-type: disc; padding-left: 20px;">
+              <li style="margin-bottom: 5px;">Cột pivot: 1, 2</li>
+              <li style="margin-bottom: 5px;">
+                \(\Im A = \operatorname{span}\left\{
+                \begin{pmatrix}1\\1\\3\end{pmatrix},
+                \begin{pmatrix}2\\3\\8\end{pmatrix}
+                \right\}\)
+              </li>
+              <li>\(\operatorname{rank}(A) = 2\)</li>
+            </ul>
+          </div>
+          
+          <div class="example">
+            <h4 style="font-weight: bold; margin-bottom: 10px;">Không gian Null</h4>
+            <ul style="list-style-type: disc; padding-left: 20px;">
+              <li style="margin-bottom: 5px;">Biến tự do: \(x_3\)</li>
+              <li style="margin-bottom: 5px;">
+                \(\Ker A = \operatorname{span}\left\{
+                \begin{pmatrix}7\\-2\\1\end{pmatrix}
+                \right\}\)
+              </li>
+              <li>\(\operatorname{nullity}(A) = 1\)</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 15px; font-weight: bold;">
+          <strong>Kiểm tra:</strong> \(2 (\operatorname{rank}) + 1 (\operatorname{nullity}) = 3\) (số cột) \(\quad\checkmark\)
+        </div>
+      </div>
+      
+      <!-- Slide 5: Ví dụ 2 -->
+      <div class="slide">
+        <h3 class="slide-title">Ví dụ 2: Ma trận \(2 \times 4\)</h3>
+        
+        <div class="math-display" style="margin-bottom:20px;">
+          $$ A = 
+          \begin{pmatrix}
+            1 & 0 & 3 & 6 \\
+            0 & 1 & 1 & 2
+          \end{pmatrix}
+          \quad (\text{Đã ở dạng RREF}) $$
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+          <div class="example">
+            <h4 style="font-weight: bold; margin-bottom: 10px;">Không gian Image</h4>
+            <ul style="list-style-type: disc; padding-left: 20px;">
+              <li style="margin-bottom: 5px;">Cột pivot: 1, 2</li>
+              <li style="margin-bottom: 5px;">\(\Im A = \mathbb{R}^2\)</li>
+              <li>\(\operatorname{rank}(A) = 2\)</li>
+            </ul>
+          </div>
+          
+          <div class="example">
+            <h4 style="font-weight: bold; margin-bottom: 10px;">Không gian Null</h4>
+            <ul style="list-style-type: disc; padding-left: 20px;">
+              <li style="margin-bottom: 5px;">Biến tự do: \(x_3, x_4\)</li>
+              <li style="margin-bottom: 5px;">
+                \(\Ker A = \operatorname{span}\left\{
+                \begin{pmatrix}-3\\-1\\1\\0\end{pmatrix},
+                \begin{pmatrix}-6\\-2\\0\\1\end{pmatrix}
+                \right\}\)
+              </li>
+              <li>\(\operatorname{nullity}(A) = 2\)</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 15px; font-weight: bold;">
+          <strong>Kiểm tra:</strong> \(2 (\operatorname{rank}) + 2 (\operatorname{nullity}) = 4\) (số cột) \(\quad\checkmark\)
+        </div>
+      </div>
+      
+      <!-- Slide 6: Kết luận -->
+      <div class="slide">
+        <h3 class="slide-title">Thông điệp chính</h3>
+        
+        <div class="block">
+          <h4 style="font-weight: bold; margin-bottom: 10px;">Tóm tắt kiến thức</h4>
+          <ul style="list-style-type: disc; padding-left: 20px;">
+            <li style="margin-bottom: 5px;">\(\Ker A\) thể hiện các phụ thuộc tuyến tính giữa các cột</li>
+            <li style="margin-bottom: 5px;">\(\Im A\) cho biết không gian vector mà \(A\) ánh xạ tới</li>
+            <li style="margin-bottom: 5px;">Phân rã Gauss giúp xác định cả hai không gian cùng lúc</li>
+            <li>Định lý Rank-Nullity đảm bảo sự phân chia không gian</li>
+          </ul>
+        </div>
+        
+        <div class="alert">
+          <h4 style="font-weight: bold; margin-bottom: 10px;">Ứng dụng</h4>
+          <ul style="list-style-type: disc; padding-left: 20px;">
+            <li style="margin-bottom: 5px;">Giải hệ phương trình tuyến tính</li>
+            <li style="margin-bottom: 5px;">Phân tích cấu trúc của phép biến đổi tuyến tính</li>
+            <li>Ứng dụng trong đồ họa máy tính, xử lý tín hiệu</li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- Slide 7: Kết thúc -->
+      <div class="slide" style="text-align: center;">
+        <div style="font-size: 28px; font-weight: bold; margin-bottom: 30px;">Cảm ơn sự theo dõi của các bạn!</div>
+        <div style="font-size: 20px; margin-bottom: 20px;">Câu hỏi và thảo luận</div>
+      </div>
+    </div>
+    
+    <!-- Bên phải: Ứng dụng tính toán -->
+    <div class="app-container">
+      <!-- Thanh điều khiển âm thanh -->
+      <div class="audio-controls">
+        <div class="audio-upload">
+          <input type="file" id="audioInput" accept="audio/*" class="border rounded p-1">
+          <button id="playBtn" class="audio-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+            </svg>
+          </button>
+          <button id="pauseBtn" class="audio-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+            </svg>
+          </button>
+        </div>
+        
+        <div class="progress-container" id="progressBar">
+          <div class="progress-bar" id="progress"></div>
+        </div>
+        
+        <div class="time-display">
+          <span id="currentTime">00:00</span>
+          <span id="duration">00:00</span>
+        </div>
+      </div>
+      
+      <!-- Nội dung ứng dụng -->
+      <div style="max-width: 800px; margin: 0 auto;">
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="font-size: 28px; font-weight: bold; color: #1f2937; margin-bottom: 10px;">Không gian Null và Image của ma trận</h1>
+          <p style="color: #6b7280;">Nhập ma trận để tìm không gian null và image</p>
+        </div>
+
+        <!-- Matrix Input -->
+        <div style="background: white; border-radius: 12px; padding: 25px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+          <h2 style="font-size: 20px; font-weight: bold; color: #1f2937; margin-bottom: 20px;">Nhập ma trận</h2>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+            <div>
+              <label style="display: block; font-size: 14px; color: #4b5563; margin-bottom: 8px;">Số hàng</label>
+              <input type="number" id="rowsInput" min="1" max="10" value="3" 
+                     style="width: 80px; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px;">
+            </div>
+            <div>
+              <label style="display: block; font-size: 14px; color: #4b5563; margin-bottom: 8px;">Số cột</label>
+              <input type="number" id="colsInput" min="1" max="10" value="3" 
+                     style="width: 80px; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px;">
+            </div>
+          </div>
+
+          <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
+            <button id="createMatrixBtn" style="background: #e0e7ff; color: #3b82f6; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; transition: all 0.2s;">
+              Tạo ma trận
+            </button>
+            <button id="randomMatrixBtn" style="background: #d1fae5; color: #10b981; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; transition: all 0.2s;">
+              Tạo ma trận ngẫu nhiên
+            </button>
+            <button id="clearMatrixBtn" style="background: #f3f4f6; color: #6b7280; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; transition: all 0.2s;">
+              Xóa ma trận
+            </button>
+          </div>
+
+          <div id="matrixContainer" style="margin-top: 20px;"></div>
+
+          <button id="computeBtn" style="width: 100%; background: #3b82f6; color: white; font-weight: 500; padding: 12px; border-radius: 8px; margin-top: 20px; border: none; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;">
+            <svg xmlns="http://www.w3.org/2000/svg" style="width: 20px; height: 20px; margin-right: 8px;" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+            Tính toán
+          </button>
+        </div>
+
+        <!-- Results -->
+        <div id="results" style="margin-bottom: 50px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <audio id="audioPlayer"></audio>
+
+  <!-- Di chuyển MathJax xuống cuối body và bỏ async -->
+  <script id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <script>
+    // ==================== PHẦN ÂM THANH ====================
+    const audioPlayer = document.getElementById('audioPlayer');
+    const audioInput = document.getElementById('audioInput');
+    const playBtn = document.getElementById('playBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const progress = document.getElementById('progress');
+    const progressBar = document.getElementById('progressBar');
+    const currentTimeEl = document.getElementById('currentTime');
+    const durationEl = document.getElementById('duration');
+    const appContainer = document.querySelector('.app-container');
+    
+    // Biến theo dõi trạng thái
+    let isScrolling = false;
+    let isUserInteraction = false;
+    
+    // Khi người dùng chọn file audio
+    audioInput.addEventListener('change', function() {
+      const file = this.files[0];
+      if (file && file.type.startsWith('audio/')) {
+        audioPlayer.src = URL.createObjectURL(file);
+        audioPlayer.load();
+        
+        audioPlayer.onloadedmetadata = () => {
+          durationEl.textContent = formatTime(audioPlayer.duration);
+          progressBar.max = Math.floor(audioPlayer.duration);
+        };
+      } else {
+        alert("Vui lòng chọn một file âm thanh hợp lệ.");
+      }
+    });
+    
+    // Cập nhật thanh tiến trình
+    audioPlayer.addEventListener('timeupdate', updateProgress);
+    
+    // Nhấn vào thanh tiến trình để nhảy đến vị trí
+    progressBar.addEventListener('click', (e) => {
+      const percent = e.offsetX / progressBar.offsetWidth;
+      audioPlayer.currentTime = percent * audioPlayer.duration;
+      updateProgress();
+    });
+    
+    // Nút phát
+    playBtn.addEventListener('click', () => {
+      if (audioPlayer.src) {
+        audioPlayer.play();
+        isUserInteraction = true;
+      } else {
+        alert("Vui lòng chọn file âm thanh trước khi phát");
+      }
+    });
+    
+    // Nút tạm dừng
+    pauseBtn.addEventListener('click', () => {
+      audioPlayer.pause();
+    });
+    
+    // Theo dõi sự kiện cuộn
+    appContainer.addEventListener('scroll', handleScroll);
+    
+    // Tự động cập nhật thanh cuộn khi âm thanh phát
+    audioPlayer.addEventListener('timeupdate', syncScrollWithAudio);
+    
+    // Khi âm thanh kết thúc
+    audioPlayer.addEventListener('ended', () => {
+      progress.style.width = '0%';
+      currentTimeEl.textContent = '00:00';
+    });
+    
+    // Hàm cập nhật thanh tiến trình
+    function updateProgress() {
+      const percent = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+      progress.style.width = `${percent}%`;
+      
+      // Cập nhật thời gian
+      currentTimeEl.textContent = formatTime(audioPlayer.currentTime);
+      if (!isNaN(audioPlayer.duration)) {
+        durationEl.textContent = formatTime(audioPlayer.duration);
+      }
+    }
+    
+    // Hàm định dạng thời gian
+    function formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+    
+    // Hàm xử lý cuộn
+    function handleScroll() {
+      if (!isScrolling && !isUserInteraction) {
+        isScrolling = true;
+        
+        // Đồng bộ vị trí phát với vị trí cuộn
+        const scrollHeight = appContainer.scrollHeight - appContainer.clientHeight;
+        const scrollPercent = appContainer.scrollTop / scrollHeight;
+        audioPlayer.currentTime = scrollPercent * audioPlayer.duration;
+        
+        setTimeout(() => {
+          isScrolling = false;
+        }, 100);
+      }
+    }
+    
+    // Hàm đồng bộ cuộn với âm thanh
+    function syncScrollWithAudio() {
+      if (!isScrolling && !audioPlayer.paused && isUserInteraction) {
+        const scrollHeight = appContainer.scrollHeight - appContainer.clientHeight;
+        const scrollTo = (audioPlayer.currentTime / audioPlayer.duration) * scrollHeight;
+        appContainer.scrollTo({
+          top: scrollTo,
+          behavior: 'smooth'
+        });
+      }
+    }
+
+    // ==================== PHẦN ỨNG DỤNG TÍNH TOÁN ====================
+    // Hàm chuyển số thập phân sang phân số tối giản
+    function toFraction(decimal) {
+      // Xử lý các trường hợp đặc biệt
+      if (!isFinite(decimal)) {
+        if (isNaN(decimal)) return "0";
+        return decimal > 0 ? "\\infty" : "-\\infty";
+      }
+      
+      // Xử lý số 0
+      if (Math.abs(decimal) < 1.0E-10) return "0";
+      
+      // Xử lý số âm
+      const isNegative = decimal < 0;
+      decimal = Math.abs(decimal);
+      
+      const tolerance = 1.0E-6;
+      let h1 = 1, h2 = 0;
+      let k1 = 0, k2 = 1;
+      let b = decimal;
+      
+      do {
+        const a = Math.floor(b);
+        let aux = h1;
+        h1 = a * h1 + h2;
+        h2 = aux;
+        aux = k1;
+        k1 = a * k1 + k2;
+        k2 = aux;
+        b = 1 / (b - a);
+      } while (Math.abs(decimal - h1 / k1) > decimal * tolerance && k1 <= 1000000);
+      
+      // Trường hợp không thể xấp xỉ tốt
+      if (Math.abs(decimal - h1 / k1) > decimal * tolerance) {
+        // Làm tròn đến 6 chữ số thập phân và hiển thị dạng thập phân
+        const rounded = Math.round(decimal * 1e6) / 1e6;
+        return isNegative ? `-${rounded}` : rounded.toString();
+      }
+      
+      if (k1 === 1) return isNegative ? `-${h1}` : h1.toString();
+      return isNegative ? `-\\frac{${h1}}{${k1}}` : `\\frac{${h1}}{${k1}}`;
+    }
+
+    // Tạo ma trận nhập liệu
+    document.getElementById('createMatrixBtn').addEventListener('click', function() {
+      const rows = parseInt(document.getElementById('rowsInput').value);
+      const cols = parseInt(document.getElementById('colsInput').value);
+      
+      let html = '<div class="matrix-input" style="--cols:' + cols + '">';
+      for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < cols; j++) {
+          html += `<input type="number" id="m${i}${j}" placeholder="0" class="matrix-cell">`;
+        }
+      }
+      html += '</div>';
+      
+      document.getElementById('matrixContainer').innerHTML = html;
+      if (window.MathJax?.typeset) MathJax.typeset([document.getElementById('matrixContainer')]);
+    });
+
+    // Tạo ma trận ngẫu nhiên
+    document.getElementById('randomMatrixBtn').addEventListener('click', function() {
+      const rows = parseInt(document.getElementById('rowsInput').value);
+      const cols = parseInt(document.getElementById('colsInput').value);
+      
+      let html = '<div class="matrix-input" style="--cols:' + cols + '">';
+      for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < cols; j++) {
+          const randomValue = Math.floor(Math.random() * 10) - 4; // -4 đến 5
+          html += `<input type="number" id="m${i}${j}" value="${randomValue}" class="matrix-cell">`;
+        }
+      }
+      html += '</div>';
+      
+      document.getElementById('matrixContainer').innerHTML = html;
+      if (window.MathJax?.typeset) MathJax.typeset([document.getElementById('matrixContainer')]);
+    });
+
+    // Xóa ma trận
+    document.getElementById('clearMatrixBtn').addEventListener('click', function() {
+      document.getElementById('matrixContainer').innerHTML = '';
+      document.getElementById('results').innerHTML = '';
+      if (window.MathJax?.typeset) MathJax.typeset([document.getElementById('matrixContainer'), document.getElementById('results')]);
+    });
+
+    // Lấy ma trận từ input
+    function getMatrix() {
+      const rows = parseInt(document.getElementById('rowsInput').value);
+      const cols = parseInt(document.getElementById('colsInput').value);
+      const matrix = [];
+      
+      for (let i = 0; i < rows; i++) {
+        const row = [];
+        for (let j = 0; j < cols; j++) {
+          const val = parseFloat(document.getElementById(`m${i}${j}`).value) || 0;
+          row.push(val);
+        }
+        matrix.push(row);
+      }
+      
+      return matrix;
+    }
+
+    // Chuyển ma trận sang LaTeX với phân số
+    function matrixToLatex(matrix, pivotCols = [], freeCols = []) {
+      const rows = matrix.map((row, i) => 
+        row.map((val, j) => {
+          let value;
+          // Kiểm tra xem giá trị có phải là số nguyên không
+          if (Number.isInteger(val)) {
+            value = val.toString();
+          } else {
+            value = toFraction(val);
+          }
+          
+          if (pivotCols.includes(j)) return `\\color{blue}{\\mathbf{${value}}}`;
+          if (freeCols.includes(j)) return `\\color{teal}{\\mathbf{${value}}}`;
+          return value;
+        }).join(' & ')
+      );
+      return `\\begin{bmatrix} ${rows.join(' \\\\ ')} \\end{bmatrix}`;
+    }
+
+    // Hiển thị ma trận với MathJax
+    function displayMatrix(matrix, id, title = '', pivotCols = [], freeCols = []) {
+      const latex = matrixToLatex(matrix, pivotCols, freeCols);
+      return `
+        <div class="mb-4">
+          ${title ? `<p class="text-gray-600 mb-2">${title}</p>` : ''}
+          <div class="math-display" id="${id}">$${latex}$$</div>
+        </div>
+      `;
+    }
+
+    // Tính toán RREF và các không gian
+    document.getElementById('computeBtn').addEventListener('click', function() {
+      try {
+        const A = getMatrix();
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = `
+          <div class="step-container">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Bước 1: Phép khử Gauss đưa về dạng bậc thang</h2>
+            <p class="text-gray-600 mb-2">Ma trận gốc:</p>
+            ${displayMatrix(A, 'originalMatrix')}
+        `;
+
+        // Thực hiện phép khử Gauss (từng bước)
+        let currentMatrix = JSON.parse(JSON.stringify(A));
+        const steps = [];
+        const m = currentMatrix.length;
+        const n = currentMatrix[0].length;
+        let pivotCols = [];
+        let rank = 0;
+
+        for (let col = 0, row = 0; col < n && row < m; col++) {
+          // Tìm pivot
+          let pivot = row;
+          while (pivot < m && Math.abs(currentMatrix[pivot][col]) < 1e-10) {
+            pivot++;
+          }
+          
+          if (pivot === m) continue; // Không có pivot trong cột này
+          
+          pivotCols.push(col);
+          rank++;
+          
+          // Hoán đổi hàng nếu cần
+          if (pivot !== row) {
+            [currentMatrix[row], currentMatrix[pivot]] = [currentMatrix[pivot], currentMatrix[row]];
+            steps.push({
+              action: `Hoán đổi hàng ${row+1} và hàng ${pivot+1}`,
+              matrix: JSON.parse(JSON.stringify(currentMatrix))
+            });
+          }
+          
+          // Chuẩn hóa hàng pivot
+          const pivotVal = currentMatrix[row][col];
+          if (Math.abs(pivotVal) < 1e-10) {
+            // Bỏ qua nếu gặp phần tử gần 0 (tránh chia cho 0)
+            continue;
+          }
+
+          if (Math.abs(pivotVal - 1) > 1e-10) {
+            for (let j = col; j < n; j++) {
+              currentMatrix[row][j] /= pivotVal;
+            }
+            steps.push({
+              action: `Chuẩn hóa hàng ${row+1} (chia cho ${toFraction(pivotVal)})`,
+              matrix: JSON.parse(JSON.stringify(currentMatrix))
+            });
+          }
+          
+          // Khử các hàng khác
+          for (let i = 0; i < m; i++) {
+            if (i !== row && Math.abs(currentMatrix[i][col]) > 1e-10) {
+              const factor = currentMatrix[i][col];
+              for (let j = col; j < n; j++) {
+                currentMatrix[i][j] -= factor * currentMatrix[row][j];
+              }
+              steps.push({
+                action: `Hàng ${i+1} - ${toFraction(factor)} × hàng ${row+1}`,
+                matrix: JSON.parse(JSON.stringify(currentMatrix))
+              });
+            }
+          }
+          
+          row++;
+        }
+
+        // Hiển thị từng bước khử Gauss
+        steps.forEach((step, idx) => {
+          resultsDiv.innerHTML += `
+            <div class="mb-4">
+              <p class="text-gray-600 mb-1">Bước ${idx+1}: ${step.action}</p>
+              ${displayMatrix(step.matrix, `step${idx}Matrix`)}
+            </div>
+          `;
+          if (window.MathJax?.typeset) MathJax.typeset([resultsDiv]);
+        });
+
+        // Ma trận bậc thang cuối cùng
+        resultsDiv.innerHTML += `
+          <div class="mt-4">
+            <p class="text-gray-600 mb-1">Ma trận bậc thang cuối cùng:</p>
+            ${displayMatrix(currentMatrix, 'finalEchelonMatrix', '', pivotCols)}
+            <div class="bg-blue-50 text-blue-800 px-3 py-2 rounded-md inline-block mt-2">
+              Các cột pivot (đánh số từ 1): ${pivotCols.map(c => c + 1).join(', ')}
+            </div>
+          </div>
+        `;
+        if (window.MathJax?.typeset) MathJax.typeset([resultsDiv]);
+
+        resultsDiv.innerHTML += `</div>`; // Đóng step-container
+
+        // Bước 2: Xác định không gian Image
+        resultsDiv.innerHTML += `
+          <div class="step-container">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Bước 2: Xác định không gian \(\Im(A)\)</h2>
+            <p class="text-gray-600 mb-2">Các cột tương ứng với cột pivot trong ma trận gốc là các vector độc lập tuyến tính:</p>
+        `;
+
+        const imageBasis = pivotCols.map(c => A.map(row => row[c]));
+        imageBasis.forEach((col, idx) => {
+          const colMatrix = col.map(x => [x]);
+          resultsDiv.innerHTML += displayMatrix(colMatrix, `imageBasis${idx}`, `Vector cơ sở ${idx+1} (Cột ${pivotCols[idx]+1} của ma trận gốc)`);
+          if (window.MathJax?.typeset) MathJax.typeset([resultsDiv]);
+        });
+
+        resultsDiv.innerHTML += `
+          <div class="math-display">
+            $$ \Im(A) = \operatorname{span}\left\{${imageBasis.map((_, i) => `\mathbf{v}_{${i+1}}`).join(', ')}\right\} $$
+          </div>
+          <div class="mt-2 text-gray-700">
+            <strong>Rank(A) = ${rank}</strong> (số chiều của \(\Im(A)\))
+          </div>
+        `;
+        if (window.MathJax?.typeset) MathJax.typeset([resultsDiv]);
+
+        resultsDiv.innerHTML += `</div>`; // Đóng step-container
+
+        // Bước 3: Xác định không gian Null
+        resultsDiv.innerHTML += `
+          <div class="step-container">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Bước 3: Xác định không gian \(\Ker(A)\)</h2>
+            <p class="text-gray-600 mb-2">Giải hệ phương trình tuyến tính thuần nhất \(A\mathbf{x} = \mathbf{0}\):</p>
+            ${displayMatrix(currentMatrix, 'echelonForNull', 'Ma trận hệ số mở rộng:', pivotCols)}
+        `;
+
+        // Xác định các cột tự do (không phải pivot)
+        const freeCols = Array.from({length: n}, (_, j) => j)
+                          .filter(j => !pivotCols.includes(j));
+        
+        if (freeCols.length === 0) {
+          resultsDiv.innerHTML += `
+            <div class="bg-green-50 text-green-800 p-4 rounded-lg">
+              <p class="font-medium">Không có biến tự do ⇒ Hệ chỉ có nghiệm tầm thường</p>
+              <div class="math-display mt-2">
+                $$ \Ker(A) = \{\mathbf{0}\} $$
+              </div>
+            </div>
+          `;
+          if (window.MathJax?.typeset) MathJax.typeset([resultsDiv]);
+        } else {
+          resultsDiv.innerHTML += `
+            <p class="text-gray-600 mb-2">Các biến tự do (đánh số từ 1): ${freeCols.map(c => c + 1).join(', ')}</p>
+            <p class="text-gray-600 mb-2">Đặt các tham số cho biến tự do và giải các biến pivot:</p>
+          `;
+
+          // Tìm cơ sở cho không gian null
+          const nullBasis = [];
+          freeCols.forEach(freeCol => {
+            const vec = Array(n).fill(0);
+            vec[freeCol] = 1; // Đặt biến tự do = 1
+            
+            // Giải ngược để tìm các biến pivot
+            for (let i = pivotCols.length - 1; i >= 0; i--) {
+              const pivotCol = pivotCols[i];
+              vec[pivotCol] = 0;
+              
+              for (let j = pivotCol + 1; j < n; j++) {
+                vec[pivotCol] -= currentMatrix[i][j] * vec[j];
+              }
+            }
+            
+            nullBasis.push(vec);
+          });
+
+          // Hiển thị từng vector cơ sở
+          nullBasis.forEach((vec, idx) => {
+            const vecMatrix = vec.map(x => [x]);
+            resultsDiv.innerHTML += displayMatrix(vecMatrix, `nullBasis${idx}`, 
+              `Vector cơ sở ${idx+1} (Ứng với biến tự do \(x_{${freeCols[idx]+1}}\) = 1, các biến tự do khác = 0)`);
+            if (window.MathJax?.typeset) MathJax.typeset([resultsDiv]);
+          });
+
+          resultsDiv.innerHTML += `
+            <div class="math-display">
+              $$ \Ker(A) = \operatorname{span}\left\{${nullBasis.map((_, i) => `\mathbf{n}_{${i+1}}`).join(', ')}\right\} $$
+            </div>
+            <div class="mt-2 text-gray-700">
+              <strong>Nullity(A) = ${nullBasis.length}</strong> (số chiều của \(\Ker(A)\))
+            </div>
+          `;
+          if (window.MathJax?.typeset) MathJax.typeset([resultsDiv]);
+        }
+
+        resultsDiv.innerHTML += `</div>`; // Đóng step-container
+
+        // Tóm tắt kết quả
+        resultsDiv.innerHTML += `
+          <div class="step-container bg-blue-50 border-blue-200">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Tóm tắt</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div class="bg-white p-4 rounded-lg shadow-sm">
+                <h3 class="font-medium text-gray-700 mb-2">\(\Im(A)\)</h3>
+                <p class="text-gray-600">Số chiều (rank): <span class="font-bold">${rank}</span></p>
+                <p class="text-gray-600">Cơ sở: ${rank} vector độc lập tuyến tính</p>
+              </div>
+              <div class="bg-white p-4 rounded-lg shadow-sm">
+                <h3 class="font-medium text-gray-700 mb-2">\(\Ker(A)\)</h3>
+                <p class="text-gray-600">Số chiều (nullity): <span class="font-bold">${freeCols.length}</span></p>
+                <p class="text-gray-600">Cơ sở: ${freeCols.length} vector</p>
+              </div>
+            </div>
+            <div class="math-display bg-blue-100">
+              <p class="font-medium text-blue-800">Kiểm tra định lý Rank-Nullity:</p>
+              $$ \dim(\Im(A)) + \dim(\Ker(A)) = ${rank} + ${freeCols.length} = ${rank + freeCols.length} $$
+              $$ = \text{Số cột của } A = ${n} $$
+            </div>
+          </div>
+        `;
+        if (window.MathJax?.typeset) MathJax.typeset([resultsDiv]);
+
+        // Render MathJax
+        if (window.MathJax?.typeset) MathJax.typeset([resultsDiv]);
+        
+      } catch (error) {
+        alert('Có lỗi xảy ra khi tính toán: ' + error.message);
+        console.error(error);
+      }
+    });
+
+    // Tạo ma trận mặc định khi tải trang
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('createMatrixBtn').click();
+      if (window.MathJax?.typeset) MathJax.typeset([document.getElementById('matrixContainer')]);
+    });
+  </script>
+</body>
+</html>
