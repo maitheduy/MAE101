@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Không gian Null và Image của ma trận</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- MathJax -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <!-- Math.js -->
+  <script src="https://cdn.jsdelivr.net/npm/mathjs@11.6.0/lib/browser/math.js"></script>
+  <style>
+    .matrix-input {
+      display: inline-grid;
+      grid-template-columns: repeat(var(--cols), 1fr);
+      gap: 0.5rem;
+      margin: 1rem 0;
+    }
+    .matrix-input input {
+      width: 4rem;
+      height: 4rem;
+      text-align: center;
+      font-size: 1.2rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 0.5rem;
+      transition: all 0.2s;
+    }
+    .matrix-input input:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+    .step-container {
+      background-color: #f8fafc;
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      border-left: 4px solid #3b82f6;
+    }
+    .math-display {
+      background-color: white;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin: 1rem 0;
+      overflow-x: auto;
+    }
+    .pivot {
+      background-color: #dbeafe;
+      font-weight: bold;
+    }
+    .free-var {
+      background-color: #ecfdf5;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen p-8">
+  <div class="max-w-5xl mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-bold text-gray-800 mb-2">Không gian Null và Image của ma trận</h1>
+      <p class="text-gray-600">Nhập ma trận để tìm không gian null và image</p>
+    </div>
+
+    <!-- Matrix Input -->
+    <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+      <h2 class="text-xl font-bold text-gray-800 mb-4">Nhập ma trận</h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Số hàng</label>
+          <input type="number" id="rowsInput" min="1" max="10" value="3" 
+                 class="w-20 px-3 py-2 border border-gray-300 rounded-md">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Số cột</label>
+          <input type="number" id="colsInput" min="1" max="10" value="3" 
+                 class="w-20 px-3 py-2 border border-gray-300 rounded-md">
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-2 mt-4">
+        <button id="createMatrixBtn" class="bg-blue-100 text-blue-600 px-4 py-2 rounded-md hover:bg-blue-200 transition">
+          Tạo ma trận
+        </button>
+        <button id="randomMatrixBtn" class="bg-green-100 text-green-600 px-4 py-2 rounded-md hover:bg-green-200 transition">
+          Tạo ma trận ngẫu nhiên
+        </button>
+        <button id="clearMatrixBtn" class="bg-gray-100 text-gray-600 px-4 py-2 rounded-md hover:bg-gray-200 transition">
+          Xóa ma trận
+        </button>
+      </div>
+
+      <div id="matrixContainer" class="mt-6"></div>
+
+      <button id="computeBtn" class="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-lg shadow-md transition flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+        </svg>
+        Tính toán
+      </button>
+    </div>
+
+    <!-- Results -->
+    <div id="results" class="space-y-8"></div>
+  </div>
+
+  <script>
+    // Hàm chuyển số thập phân sang phân số tối giản (đã sửa lỗi)
+    function toFraction(decimal) {
+      // Xử lý các trường hợp đặc biệt
+      if (!isFinite(decimal)) {
+        if (isNaN(decimal)) return "0";
+        return decimal > 0 ? "\\infty" : "-\\infty";
+      }
+      
+      // Xử lý số 0
+      if (Math.abs(decimal) < 1.0E-10) return "0";
+      
+      // Xử lý số âm
+      const isNegative = decimal < 0;
+      decimal = Math.abs(decimal);
+      
+      const tolerance = 1.0E-6;
+      let h1 = 1, h2 = 0;
+      let k1 = 0, k2 = 1;
+      let b = decimal;
+      
+      do {
+        const a = Math.floor(b);
+        let aux = h1;
+        h1 = a * h1 + h2;
+        h2 = aux;
+        aux = k1;
+        k1 = a * k1 + k2;
+        k2 = aux;
+        b = 1 / (b - a);
+      } while (Math.abs(decimal - h1 / k1) > decimal * tolerance && k1 <= 1000000);
+      
+      // Trường hợp không thể xấp xỉ tốt
+      if (Math.abs(decimal - h1 / k1) > decimal * tolerance) {
+        // Làm tròn đến 6 chữ số thập phân và hiển thị dạng thập phân
+        const rounded = Math.round(decimal * 1e6) / 1e6;
+        return isNegative ? `-${rounded}` : rounded.toString();
+      }
+      
+      if (k1 === 1) return isNegative ? `-${h1}` : h1.toString();
+      return isNegative ? `-\\frac{${h1}}{${k1}}` : `\\frac{${h1}}{${k1}}`;
+    }
+
+    // Tạo ma trận nhập liệu
+    document.getElementById('createMatrixBtn').addEventListener('click', function() {
+      const rows = parseInt(document.getElementById('rowsInput').value);
+      const cols = parseInt(document.getElementById('colsInput').value);
+      
+      let html = '<div class="matrix-input" style="--cols:' + cols + '">';
+      for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < cols; j++) {
+          html += `<input type="number" id="m${i}${j}" placeholder="0" class="matrix-cell">`;
+        }
+      }
+      html += '</div>';
+      
+      document.getElementById('matrixContainer').innerHTML = html;
+    });
+
+    // Tạo ma trận ngẫu nhiên
+    document.getElementById('randomMatrixBtn').addEventListener('click', function() {
+      const rows = parseInt(document.getElementById('rowsInput').value);
+      const cols = parseInt(document.getElementById('colsInput').value);
+      
+      let html = '<div class="matrix-input" style="--cols:' + cols + '">';
+      for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < cols; j++) {
+          const randomValue = Math.floor(Math.random() * 10) - 4; // -4 đến 5
+          html += `<input type="number" id="m${i}${j}" value="${randomValue}" class="matrix-cell">`;
+        }
+      }
+      html += '</div>';
+      
+      document.getElementById('matrixContainer').innerHTML = html;
+    });
+
+    // Xóa ma trận
+    document.getElementById('clearMatrixBtn').addEventListener('click', function() {
+      document.getElementById('matrixContainer').innerHTML = '';
+      document.getElementById('results').innerHTML = '';
+    });
+
+    // Lấy ma trận từ input
+    function getMatrix() {
+      const rows = parseInt(document.getElementById('rowsInput').value);
+      const cols = parseInt(document.getElementById('colsInput').value);
+      const matrix = [];
+      
+      for (let i = 0; i < rows; i++) {
+        const row = [];
+        for (let j = 0; j < cols; j++) {
+          const val = parseFloat(document.getElementById(`m${i}${j}`).value) || 0;
+          row.push(val);
+        }
+        matrix.push(row);
+      }
+      
+      return matrix;
+    }
+
+    // Chuyển ma trận sang LaTeX với phân số
+    function matrixToLatex(matrix, pivotCols = [], freeCols = []) {
+      const rows = matrix.map((row, i) => 
+        row.map((val, j) => {
+          let value;
+          // Kiểm tra xem giá trị có phải là số nguyên không
+          if (Number.isInteger(val)) {
+            value = val.toString();
+          } else {
+            value = toFraction(val);
+          }
+          
+          if (pivotCols.includes(j)) return `\\color{blue}{\\mathbf{${value}}}`;
+          if (freeCols.includes(j)) return `\\color{teal}{\\mathbf{${value}}}`;
+          return value;
+        }).join(' & ')
+      );
+      return `\\begin{bmatrix} ${rows.join(' \\\\ ')} \\end{bmatrix}`;
+    }
+
+    // Hiển thị ma trận với MathJax
+    function displayMatrix(matrix, id, title = '', pivotCols = [], freeCols = []) {
+      const latex = matrixToLatex(matrix, pivotCols, freeCols);
+      return `
+        <div class="mb-4">
+          ${title ? `<p class="text-gray-600 mb-2">${title}</p>` : ''}
+          <div class="math-display" id="${id}">$$${latex}$$</div>
+        </div>
+      `;
+    }
+
+    // Tính toán RREF và các không gian
+    document.getElementById('computeBtn').addEventListener('click', function() {
+      try {
+        const A = getMatrix();
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = '';
+        
+        // Bước 1: Phép khử Gauss đưa về dạng bậc thang
+        resultsDiv.innerHTML += `
+          <div class="step-container">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Bước 1: Phép khử Gauss đưa về dạng bậc thang</h2>
+            <p class="text-gray-600 mb-2">Ma trận gốc:</p>
+            ${displayMatrix(A, 'originalMatrix')}
+        `;
+
+        // Thực hiện phép khử Gauss (từng bước)
+        let currentMatrix = JSON.parse(JSON.stringify(A));
+        const steps = [];
+        const m = currentMatrix.length;
+        const n = currentMatrix[0].length;
+        let pivotCols = [];
+        let rank = 0;
+
+        for (let col = 0, row = 0; col < n && row < m; col++) {
+          // Tìm pivot
+          let pivot = row;
+          while (pivot < m && Math.abs(currentMatrix[pivot][col]) < 1e-10) {
+            pivot++;
+          }
+          
+          if (pivot === m) continue; // Không có pivot trong cột này
+          
+          pivotCols.push(col);
+          rank++;
+          
+          // Hoán đổi hàng nếu cần
+          if (pivot !== row) {
+            [currentMatrix[row], currentMatrix[pivot]] = [currentMatrix[pivot], currentMatrix[row]];
+            steps.push({
+              action: `Hoán đổi hàng ${row+1} và hàng ${pivot+1}`,
+              matrix: JSON.parse(JSON.stringify(currentMatrix))
+            });
+          }
+          
+          // Chuẩn hóa hàng pivot
+          const pivotVal = currentMatrix[row][col];
+          if (Math.abs(pivotVal) < 1e-10) {
+            // Bỏ qua nếu gặp phần tử gần 0 (tránh chia cho 0)
+            continue;
+          }
+
+          if (Math.abs(pivotVal - 1) > 1e-10) {
+            for (let j = col; j < n; j++) {
+              currentMatrix[row][j] /= pivotVal;
+            }
+            steps.push({
+              action: `Chuẩn hóa hàng ${row+1} (chia cho ${toFraction(pivotVal)})`,
+              matrix: JSON.parse(JSON.stringify(currentMatrix))
+            });
+          }
+          
+          // Khử các hàng khác
+          for (let i = 0; i < m; i++) {
+            if (i !== row && Math.abs(currentMatrix[i][col]) > 1e-10) {
+              const factor = currentMatrix[i][col];
+              for (let j = col; j < n; j++) {
+                currentMatrix[i][j] -= factor * currentMatrix[row][j];
+              }
+              steps.push({
+                action: `Hàng ${i+1} - ${toFraction(factor)} × hàng ${row+1}`,
+                matrix: JSON.parse(JSON.stringify(currentMatrix))
+              });
+            }
+          }
+          
+          row++;
+        }
+
+        // Hiển thị từng bước khử Gauss
+        steps.forEach((step, idx) => {
+          resultsDiv.innerHTML += `
+            <div class="mb-4">
+              <p class="text-gray-600 mb-1">Bước ${idx+1}: ${step.action}</p>
+              ${displayMatrix(step.matrix, `step${idx}Matrix`)}
+            </div>
+          `;
+        });
+
+        // Ma trận bậc thang cuối cùng
+        resultsDiv.innerHTML += `
+          <div class="mt-4">
+            <p class="text-gray-600 mb-1">Ma trận bậc thang cuối cùng:</p>
+            ${displayMatrix(currentMatrix, 'finalEchelonMatrix', '', pivotCols)}
+            <div class="bg-blue-50 text-blue-800 px-3 py-2 rounded-md inline-block mt-2">
+              Các cột pivot (đánh số từ 1): ${pivotCols.map(c => c + 1).join(', ')}
+            </div>
+          </div>
+        `;
+
+        resultsDiv.innerHTML += `</div>`; // Đóng step-container
+
+        // Bước 2: Xác định không gian Image
+        resultsDiv.innerHTML += `
+          <div class="step-container">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Bước 2: Xác định không gian Image(A)</h2>
+            <p class="text-gray-600 mb-2">Các cột tương ứng với cột pivot trong ma trận gốc là các vector độc lập tuyến tính:</p>
+        `;
+
+        const imageBasis = pivotCols.map(c => A.map(row => row[c]));
+        imageBasis.forEach((col, idx) => {
+          const colMatrix = col.map(x => [x]);
+          resultsDiv.innerHTML += displayMatrix(colMatrix, `imageBasis${idx}`, `Vector cơ sở ${idx+1} (Cột ${pivotCols[idx]+1} của ma trận gốc)`);
+        });
+
+        resultsDiv.innerHTML += `
+          <div class="math-display">
+            $$\\text{Im}(A) = \\text{span}\\left\\{${imageBasis.map((_, i) => `\\mathbf{v}_{${i+1}}`).join(', ')}\\right\\}$$
+          </div>
+          <div class="mt-2 text-gray-700">
+            <strong>Rank(A) = ${rank}</strong> (số chiều của Im(A))
+          </div>
+        `;
+
+        resultsDiv.innerHTML += `</div>`; // Đóng step-container
+
+        // Bước 3: Xác định không gian Null
+        resultsDiv.innerHTML += `
+          <div class="step-container">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Bước 3: Xác định không gian Null(A)</h2>
+            <p class="text-gray-600 mb-2">Giải hệ phương trình tuyến tính thuần nhất $A\\mathbf{x} = \\mathbf{0}$:</p>
+            ${displayMatrix(currentMatrix, 'echelonForNull', 'Ma trận hệ số mở rộng:', pivotCols)}
+        `;
+
+        // Xác định các cột tự do (không phải pivot)
+        const freeCols = Array.from({length: n}, (_, j) => j)
+                          .filter(j => !pivotCols.includes(j));
+        
+        if (freeCols.length === 0) {
+          resultsDiv.innerHTML += `
+            <div class="bg-green-50 text-green-800 p-4 rounded-lg">
+              <p class="font-medium">Không có biến tự do ⇒ Hệ chỉ có nghiệm tầm thường</p>
+              <div class="math-display mt-2">
+                $$\\text{Null}(A) = \\{\\mathbf{0}\\}$$
+              </div>
+            </div>
+          `;
+        } else {
+          resultsDiv.innerHTML += `
+            <p class="text-gray-600 mb-2">Các biến tự do (đánh số từ 1): ${freeCols.map(c => c + 1).join(', ')}</p>
+            <p class="text-gray-600 mb-2">Đặt các tham số cho biến tự do và giải các biến pivot:</p>
+          `;
+
+          // Tìm cơ sở cho không gian null
+          const nullBasis = [];
+          freeCols.forEach(freeCol => {
+            const vec = Array(n).fill(0);
+            vec[freeCol] = 1; // Đặt biến tự do = 1
+            
+            // Giải ngược để tìm các biến pivot
+            for (let i = pivotCols.length - 1; i >= 0; i--) {
+              const pivotCol = pivotCols[i];
+              vec[pivotCol] = 0;
+              
+              for (let j = pivotCol + 1; j < n; j++) {
+                vec[pivotCol] -= currentMatrix[i][j] * vec[j];
+              }
+            }
+            
+            nullBasis.push(vec);
+          });
+
+          // Hiển thị từng vector cơ sở
+          nullBasis.forEach((vec, idx) => {
+            const vecMatrix = vec.map(x => [x]);
+            resultsDiv.innerHTML += displayMatrix(vecMatrix, `nullBasis${idx}`, 
+              `Vector cơ sở ${idx+1} (Ứng với biến tự do x${freeCols[idx]+1} = 1, các biến tự do khác = 0)`);
+          });
+
+          resultsDiv.innerHTML += `
+            <div class="math-display">
+              $$\\text{Null}(A) = \\text{span}\\left\\{${nullBasis.map((_, i) => `\\mathbf{n}_{${i+1}}`).join(', ')}\\right\\}$$
+            </div>
+            <div class="mt-2 text-gray-700">
+              <strong>Nullity(A) = ${nullBasis.length}</strong> (số chiều của Null(A))
+            </div>
+          `;
+        }
+
+        resultsDiv.innerHTML += `</div>`; // Đóng step-container
+
+        // Tóm tắt kết quả
+        resultsDiv.innerHTML += `
+          <div class="step-container bg-blue-50 border-blue-200">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Tóm tắt</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div class="bg-white p-4 rounded-lg shadow-sm">
+                <h3 class="font-medium text-gray-700 mb-2">Image(A)</h3>
+                <p class="text-gray-600">Số chiều (rank): <span class="font-bold">${rank}</span></p>
+                <p class="text-gray-600">Cơ sở: ${rank} vector độc lập tuyến tính</p>
+              </div>
+              <div class="bg-white p-4 rounded-lg shadow-sm">
+                <h3 class="font-medium text-gray-700 mb-2">Null(A)</h3>
+                <p class="text-gray-600">Số chiều (nullity): <span class="font-bold">${freeCols.length}</span></p>
+                <p class="text-gray-600">Cơ sở: ${freeCols.length} vector</p>
+              </div>
+            </div>
+            <div class="math-display bg-blue-100">
+              <p class="font-medium text-blue-800">Kiểm tra định lý Rank-Nullity:</p>
+              $$\\dim(\\text{Im}(A)) + \\dim(\\text{Null}(A)) = ${rank} + ${freeCols.length} = ${rank + freeCols.length}$$
+              $$= \\text{Số cột của } A = ${n}$$
+            </div>
+          </div>
+        `;
+
+        // Render MathJax
+        if (window.MathJax) {
+          MathJax.typesetPromise();
+        }
+        
+      } catch (error) {
+        alert('Có lỗi xảy ra khi tính toán: ' + error.message);
+        console.error(error);
+      }
+    });
+
+    // Tạo ma trận mặc định khi tải trang
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('createMatrixBtn').click();
+    });
+  </script>
+</body>
+</html>
