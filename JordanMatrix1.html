@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài giảng: Dạng Jordan & Trực quan phép xoay với ma trận 2x2</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- MathJax -->
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          displayMath: [['$$', '$$'], ['\\[', '\\]']],
+          processEscapes: true,
+          processEnvironments: true
+        },
+        options: {
+          skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+        }
+      };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" id="MathJax-script"></script>
+    <style>
+      #jordan-canvas { border: 1px solid #e5e7eb; background: #f9fafb; }
+      .matrix-table td { border: 1px solid #bbb; padding: 2px 12px; font-size: 16px; text-align: center; min-width: 40px;}
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+
+<div class="h-screen w-full grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+  <!-- CỘT TRÁI: BÀI GIẢNG -->
+  <div class="flex flex-col h-full bg-white rounded-lg shadow-lg overflow-y-auto">
+    <div class="p-6 flex-grow space-y-8">
+      <h1 class="text-3xl font-bold text-blue-900 mb-4 border-b pb-4">Bài giảng: Dạng Jordan và Biến đổi Tuyến tính 2x2</h1>
+
+      <div class="p-4 border-l-4 border-blue-500 bg-blue-50 rounded-r-lg">
+        <h2 class="text-xl font-semibold mb-2">1. Khi nào xuất hiện trị riêng phức?</h2>
+        <p>
+          Với ma trận vuông 2x2 tổng quát $A = \begin{bmatrix} a & b \\ c & d \end{bmatrix}$, đa thức đặc trưng là:
+          $$
+            \chi_A(\lambda) = \det(A-\lambda I) = (\lambda - a)(\lambda - d) - bc = \lambda^2 - (a+d)\lambda + (ad-bc)
+          $$
+          Trị riêng phức xuất hiện khi biệt thức:
+          $$
+            (a+d)^2 - 4(ad-bc) < 0
+          $$
+          Tức là không có nghiệm thực, $\lambda$ là số phức.
+        </p>
+      </div>
+
+      <div class="p-4 border-l-4 border-purple-500 bg-purple-50 rounded-r-lg">
+        <h2 class="text-xl font-semibold mb-2">2. Ý nghĩa hình học khi trị riêng là phức</h2>
+        <ul class="list-disc ml-5 text-gray-800">
+          <li>Không tồn tại véc tơ nào chỉ bị kéo dãn mà không bị xoay qua một phép biến đổi ma trận đó.</li>
+          <li>Mọi điểm (trừ gốc) sẽ bị xoay quanh gốc, ngoài ra còn có thể bị co dãn/giãn ra (tùy phần thực của trị riêng).</li>
+          <li>Ví dụ kinh điển: Ma trận quay $R(\theta) = \begin{bmatrix} \cos\theta & -\sin\theta \\\\ \sin\theta & \cos\theta \end{bmatrix}$ có trị riêng là $e^{\pm i\theta}$, chỉ xoay, không co dãn.</li>
+        </ul>
+      </div>
+
+      <div class="p-4 border-l-4 border-green-500 bg-green-50 rounded-r-lg">
+        <h2 class="text-xl font-semibold mb-2">3. Dạng Jordan cho ma trận 2x2</h2>
+        <p>
+          <b>Trên trường số phức</b>, mọi ma trận vuông đều đồng dạng với một ma trận đường chéo (nếu có đủ véc tơ riêng), hoặc đưa về <b>dạng Jordan</b>:
+          $$
+            J = \begin{bmatrix} \lambda & 1 \\\\ 0 & \lambda \end{bmatrix}
+          $$
+          với $\lambda$ là trị riêng trùng. Dạng Jordan là dạng đơn giản nhất mà mọi ma trận vuông đều có thể đưa về (trên số phức).
+        </p>
+        <p class="mt-3">
+          Nếu hai trị riêng là phức liên hợp $\lambda, \overline{\lambda}$ thì trên trường thực, bạn có thể đồng dạng với một khối 2x2 kiểu:
+          $$
+            Q = \begin{bmatrix} p & -q \\\\ q & p \end{bmatrix}
+          $$
+          với $p$ là phần thực, $q$ phần ảo của trị riêng, tức là nếu $\lambda = p + iq$.
+        </p>
+      </div>
+
+      <div class="p-4 border-l-4 border-yellow-500 bg-yellow-50 rounded-r-lg">
+        <h2 class="text-xl font-semibold mb-2">4. Minh họa chuyển động: Hiệu ứng Xoay và Dạng Jordan</h2>
+        <ul class="list-disc ml-5 text-gray-900">
+          <li><b>Khi trị riêng là thực:</b> Có tồn tại hướng cố định, phép biến đổi kéo dãn/thu nhỏ/đảo chiều dọc theo các véc tơ riêng đó.</li>
+          <li><b>Khi trị riêng là phức:</b> Tất cả các véc tơ (trừ gốc) đều chuyển động theo đường xoắn ốc/quay quanh gốc nếu lặp lại phép biến đổi nhiều lần.</li>
+        </ul>
+        <p class="mt-3 text-gray-700">
+          Điều này có thể quan sát trực quan bằng việc liên tục áp dụng ma trận lên một điểm, bạn sẽ thấy nó xoay quanh gốc và dãn/thu lại (nếu module trị riêng khác 1).
+        </p>
+      </div>
+
+      <div class="p-4 border-l-4 border-gray-500 bg-gray-50 rounded-r-lg">
+        <h2 class="text-xl font-semibold mb-2">5. Chốt lại ý nghĩa:</h2>
+        <ul class="list-disc ml-5 text-gray-900">
+          <li>Dạng Jordan giúp phân tích và dự đoán hành vi lâu dài của hệ động lực, hệ lặp, chuyển động.</li>
+          <li>Phép xoay/phép xoắn ốc trong không gian phẳng xuất hiện khi trị riêng là phức.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- CỘT PHẢI: TRỰC QUAN HÓA -->
+  <div class="flex flex-col h-full space-y-4">
+    <!-- Điều khiển ma trận -->
+    <div class="bg-white rounded-lg shadow-lg p-4">
+      <h2 class="text-lg font-bold text-gray-800 mb-4">Chọn Ma trận $A = \begin{bmatrix} a & b \\\\ c & d \end{bmatrix}$</h2>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label for="slider_a" class="flex justify-between text-sm font-medium text-gray-700">
+            <span>$a$</span><span id="value_a" class="font-bold">0.5</span>
+          </label>
+          <input id="slider_a" type="range" min="-2" max="2" value="0.5" step="0.05" class="w-full h-2 bg-blue-100 rounded-lg">
+        </div>
+        <div>
+          <label for="slider_b" class="flex justify-between text-sm font-medium text-gray-700">
+            <span>$b$</span><span id="value_b" class="font-bold">-1.0</span>
+          </label>
+          <input id="slider_b" type="range" min="-2" max="2" value="-1" step="0.05" class="w-full h-2 bg-blue-100 rounded-lg">
+        </div>
+        <div>
+          <label for="slider_c" class="flex justify-between text-sm font-medium text-gray-700">
+            <span>$c$</span><span id="value_c" class="font-bold">1.2</span>
+          </label>
+          <input id="slider_c" type="range" min="-2" max="2" value="1.2" step="0.05" class="w-full h-2 bg-blue-100 rounded-lg">
+        </div>
+        <div>
+          <label for="slider_d" class="flex justify-between text-sm font-medium text-gray-700">
+            <span>$d$</span><span id="value_d" class="font-bold">0.5</span>
+          </label>
+          <input id="slider_d" type="range" min="-2" max="2" value="0.5" step="0.05" class="w-full h-2 bg-blue-100 rounded-lg">
+        </div>
+      </div>
+      <div class="mt-4 text-center text-base text-gray-600">
+        <div id="matrix-latex" class="inline-block bg-gray-50 border rounded p-2">
+          $A = \begin{bmatrix} 0.50 & -1.00 \\ 1.20 & 0.50 \end{bmatrix}$
+        </div>
+      </div>
+    </div>
+    <!-- Canvas minh họa xoay -->
+    <div class="flex-grow bg-white rounded-lg shadow-lg p-4 flex flex-col">
+      <h2 class="text-lg font-bold text-gray-800 mb-4">Trực quan hóa chuyển động (Xoay/Xoắn ốc)</h2>
+      <canvas id="jordan-canvas" style="width:100%; height:100%; max-height:400px; min-height:320px; background:#f8fafb; border-radius:0.5rem;"></canvas>
+      <div class="mt-2 text-gray-700 text-sm" id="eigen-info"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+function latexMath(el) { if (window.MathJax) MathJax.typesetPromise([el]); }
+function getMatrixFromSliders() {
+    return [
+        parseFloat(document.getElementById('slider_a').value),
+        parseFloat(document.getElementById('slider_b').value),
+        parseFloat(document.getElementById('slider_c').value),
+        parseFloat(document.getElementById('slider_d').value),
+    ];
+}
+// ==== ĐÃ SỬA: hiển thị đúng chuẩn Latex với MathJax mỗi lần cập nhật ====
+function updateMatrixLatex(a,b,c,d) {
+    const latex = `$A = \\begin{bmatrix} ${a.toFixed(2)} & ${b.toFixed(2)} \\\\ ${c.toFixed(2)} & ${d.toFixed(2)} \\end{bmatrix}$`;
+    document.getElementById('matrix-latex').innerHTML = latex;
+    if (window.MathJax) MathJax.typesetPromise([document.getElementById('matrix-latex')]);
+}
+function showEigenData(a,b,c,d) {
+    // Đa thức đặc trưng
+    const tr = a + d, det = a*d-b*c;
+    const b_poly = -tr, c_poly = det;
+    const delta = tr*tr - 4*det;
+    let eigenText = '<b>Đa thức đặc trưng:</b> $$\\lambda^2 - ' + tr.toFixed(2) + '\\lambda + ' + det.toFixed(2) + '=0$$';
+
+    let eig1, eig2, eig1str, eig2str;
+    if (delta >= 0) {
+        eig1 = (tr + Math.sqrt(delta)) / 2;
+        eig2 = (tr - Math.sqrt(delta)) / 2;
+        eig1str = eig1.toFixed(4);
+        eig2str = eig2.toFixed(4);
+    } else {
+        const re = tr/2;
+        const im = Math.sqrt(-delta)/2;
+        eig1str = `${re.toFixed(4)} + ${im.toFixed(4)}i`;
+        eig2str = `${re.toFixed(4)} - ${im.toFixed(4)}i`;
+    }
+    eigenText += `<br><b>Giá trị riêng:</b> $\\lambda_1 = ${eig1str}$, $\\lambda_2 = ${eig2str}$`;
+    document.getElementById('eigen-info').innerHTML = eigenText;
+    latexMath(document.getElementById('eigen-info'));
+}
+function drawJordanMotion(a, b, c, d) {
+    const canvas = document.getElementById('jordan-canvas');
+    // auto height/width for tailwind
+    const parent = canvas.parentElement;
+    canvas.width = parent.clientWidth - 4;
+    canvas.height = 360;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    // Gốc và tỉ lệ
+    const S = Math.min(canvas.width, canvas.height) / 4.3;
+    const ox = canvas.width/2, oy = canvas.height/2;
+
+    // Trục
+    ctx.save();
+    ctx.strokeStyle="#bbb"; ctx.lineWidth=1;
+    for(let k=-4;k<=4;k++){
+        ctx.beginPath(); ctx.moveTo(0, oy+S*k); ctx.lineTo(canvas.width, oy+S*k); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(ox+S*k, 0); ctx.lineTo(ox+S*k, canvas.height); ctx.stroke();
+    }
+    ctx.restore();
+    // Trục X-Y đậm
+    ctx.save();
+    ctx.strokeStyle="#888"; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(0, oy); ctx.lineTo(canvas.width, oy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(ox, 0); ctx.lineTo(ox, canvas.height); ctx.stroke();
+    ctx.restore();
+
+    // Vẽ hình vuông gốc
+    ctx.save();
+    ctx.strokeStyle="#0af"; ctx.lineWidth=2; ctx.setLineDash([4,2]);
+    ctx.beginPath();
+    [[0,0],[1,0],[1,1],[0,1],[0,0]].forEach((p,i)=>{ 
+        const x=ox+S*p[0], y=oy-S*p[1];
+        if(i==0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+    ctx.restore();
+
+    // Vẽ hình sau biến đổi
+    function transform(p){
+        const x=p[0], y=p[1];
+        return [a*x+b*y, c*x+d*y];
+    }
+    ctx.save();
+    ctx.strokeStyle="#e11d48"; ctx.lineWidth=2.5; ctx.setLineDash([]);
+    ctx.beginPath();
+    [[0,0],[1,0],[1,1],[0,1],[0,0]].map(transform).forEach((p,i)=>{ 
+        const x=ox+S*p[0], y=oy-S*p[1];
+        if(i==0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+    ctx.restore();
+
+    // Chuyển động: quỹ đạo của 1 điểm lặp lại N lần
+    const dotStart = [1, 0.3];
+    let path = [dotStart];
+    for(let i=1;i<=28;i++){
+        const prev = path[path.length-1];
+        path.push(transform(prev));
+    }
+    ctx.save();
+    ctx.strokeStyle = "#f59e42";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    path.forEach((p,i)=>{
+        const x=ox+S*p[0], y=oy-S*p[1];
+        if(i==0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+    // vẽ dấu chấm các vị trí
+    for(let i=0;i<path.length;i++){
+        const [xg,yg]=path[i];
+        ctx.beginPath();
+        ctx.arc(ox+S*xg, oy-S*yg, i===0?6:3, 0, 2*Math.PI);
+        ctx.fillStyle=i===0?"#2563eb":(i===path.length-1?"#e11d48":"#fbbf24");
+        ctx.globalAlpha = i===0?1:(i===path.length-1?1:0.7);
+        ctx.fill();
+    }
+    ctx.restore();
+}
+
+function updateAll() {
+    const [a, b, c, d] = getMatrixFromSliders();
+    updateMatrixLatex(a, b, c, d);
+    drawJordanMotion(a, b, c, d);
+    showEigenData(a, b, c, d);
+}
+
+// Sự kiện
+['a','b','c','d'].forEach(k=>{
+    const s=document.getElementById('slider_'+k), v=document.getElementById('value_'+k);
+    s.addEventListener('input', ()=>{v.textContent=s.value; updateAll();});
+});
+
+// Ban đầu
+updateAll();
+window.addEventListener('resize', ()=>setTimeout(updateAll, 400));
+</script>
+</body>
+</html>
