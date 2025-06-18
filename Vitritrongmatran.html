@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài giảng: Biến đổi tuyến tính với Ma trận 2x2</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- MathJax -->
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          displayMath: [['$$', '$$'], ['\\[', '\\]']],
+          processEscapes: true,
+          processEnvironments: true
+        },
+        options: {
+          skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+        }
+      };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" id="MathJax-script"></script>
+
+    <style>
+        /* Tùy chỉnh thanh cuộn cho trình duyệt Webkit */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <div class="h-screen w-full grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+
+        <!-- ===== CỘT TRÁI: BÀI GIẢNG ===== -->
+        <div class="flex flex-col h-full bg-white rounded-lg shadow-lg overflow-y-auto">
+            <div class="p-6 flex-grow">
+                <h1 class="text-3xl font-bold text-gray-900 mb-6 border-b pb-4">Ảnh hưởng của ma trận vuông cấp 2 lên hình vuông $[0, 1]^2$</h1>
+
+                <!-- Slide 1: Tổng quan -->
+                <div class="mb-8 p-4 border-l-4 border-blue-500 bg-blue-50 rounded-r-lg">
+                    <h3 class="text-xl font-semibold text-blue-800 mb-2">1. Tổng quan về biến đổi tuyến tính</h3>
+                    <p class="text-gray-700">
+                        Khi một ma trận vuông cấp 2 tác động lên các điểm trong mặt phẳng, nó thực hiện một phép biến đổi tuyến tính, có thể làm co giãn, xoay, phản xạ hoặc xiên hình ban đầu. Đặc biệt, khi tác động lên hình vuông đơn vị, nó sẽ bị biến đổi thành một hình mới, thường là hình bình hành.
+                    </p>
+                </div>
+
+                <!-- Slide 2: Ma trận chuẩn hóa / Biến đổi cơ bản -->
+                <div class="mb-8">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-3">2. Ma trận Biến đổi Cơ bản (Dạng tam giác dưới)</h3>
+                    
+                    <div class="p-4 border-l-4 border-blue-500 bg-blue-50 rounded-r-lg mb-4">
+                        <p class="text-gray-700">
+                           Trong bài học này, chúng ta tập trung vào một dạng ma trận đặc biệt, gọi là <b>Ma trận biến đổi cơ bản</b> hay <b>Ma trận tam giác dưới</b>, có dạng:
+                        </p>
+                        $$ M = \begin{bmatrix} a & 0 \\ c & b \end{bmatrix} $$
+                        <p class="text-gray-700 mt-2">
+                            Dạng ma trận này rất hữu ích vì mỗi phần tử có một vai trò rõ ràng trong việc co giãn và làm xiên hình.
+                        </p>
+                    </div>
+
+                    <div class="p-4 border border-gray-200 rounded-lg mb-4">
+                         <h4 class="font-semibold text-gray-700 mb-2">Giải thích chi tiết từng phần tử:</h4>
+                         <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-100">
+                                    <th class="border p-2 font-bold">Phần tử</th>
+                                    <th class="border p-2 font-bold">Tác động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="border p-2 font-mono text-red-600 font-bold">$a$</td>
+                                    <td class="border p-2">Hệ số co/giãn theo <b>trục x</b> (ngang).</td>
+                                </tr>
+                                <tr>
+                                    <td class="border p-2 font-mono text-blue-600 font-bold">$b$</td>
+                                    <td class="border p-2">Hệ số co/giãn theo <b>trục y</b> (dọc).</td>
+                                </tr>
+                                <tr>
+                                    <td class="border p-2 font-mono text-green-600 font-bold">$c$</td>
+                                    <td class="border p-2">Hệ số gây hiệu ứng <b>xiên (shear)</b> theo trục y.</td>
+                                </tr>
+                                <tr>
+                                    <td class="border p-2 font-mono font-bold">0</td>
+                                    <td class="border p-2">Không có hiệu ứng xiên theo trục x.</td>
+                                </tr>
+                            </tbody>
+                         </table>
+                    </div>
+                    
+                    <div class="p-4 border-l-4 border-yellow-500 bg-yellow-50 rounded-r-lg">
+                        <h4 class="font-semibold text-yellow-800 mb-2">Lưu ý về thuật ngữ</h4>
+                        <p class="text-gray-700">
+                           Thuật ngữ "Ma trận chuẩn hóa" có thể được sử dụng trong ngữ cảnh này để chỉ dạng ma trận đơn giản, dễ kiểm soát. Tuy nhiên, tên gọi chính xác trong toán học là <b>"Ma trận tam giác dưới"</b>. Dạng này chưa bao gồm phép xoay tổng quát (cần phần tử ở góc trên phải khác 0).
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Slide 3: Ví dụ và Định thức -->
+                <div class="mb-8">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-3">3. Ví dụ và Ý nghĩa Định thức</h3>
+                    <div class="p-4 border-l-4 border-green-500 bg-green-50 rounded-r-lg mb-4">
+                        <h4 class="font-semibold text-green-800 mb-2">Ví dụ</h4>
+                        <p>Xét ma trận: $$ M = \begin{bmatrix} 2 & 0 \\ -1 & 0.5 \end{bmatrix} $$</p>
+                        <ul class="list-disc list-inside text-gray-700 mt-2">
+                            <li>$a = 2$: Giãn gấp đôi theo trục x.</li>
+                            <li>$b = 0.5$: Co lại còn một nửa theo trục y.</li>
+                            <li>$c = -1$: Xiên xuống dưới (ngược chiều dương trục y).</li>
+                        </ul>
+                    </div>
+                    <div class="p-4 border-l-4 border-yellow-500 bg-yellow-50 rounded-r-lg">
+                        <h4 class="font-semibold text-yellow-800 mb-2">Định thức và Diện tích</h4>
+                        <p class="text-gray-700">
+                            Định thức của ma trận cho biết tỉ lệ thay đổi diện tích của hình sau biến đổi.
+                             $$ \det(M) = a \cdot b - 0 \cdot c = a \cdot b $$
+                            Diện tích hình mới = $|\det(M)| \times$ Diện tích hình gốc. Với hình vuông đơn vị (diện tích = 1), diện tích hình bình hành mới là $|a \cdot b|$.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Slide 4: Minh họa Code -->
+                <div class="mb-8">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-3">4. Minh họa bằng mã (Python)</h3>
+                    <div class="p-4 border-l-4 border-green-500 bg-green-50 rounded-r-lg">
+                        <p class="text-gray-700 mb-2">
+                           Để trực quan hóa các phép biến đổi này một cách linh hoạt, bạn có thể sử dụng đoạn mã Python trong môi trường Google Colab.
+                        </p>
+                        <div class="mt-4 text-center">
+                            <a href="https://colab.research.google.com/drive/1d8KGpOKuZ88cukDYBdG0qfizb3SIq4LN?usp=sharing" target="_blank" class="inline-block bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-2 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:scale-105">
+                                Ấn vào đây để chạy thử code Python
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Slide 5: Kết luận -->
+                <div class="mb-8 p-4 border-l-4 border-blue-500 bg-blue-50 rounded-r-lg">
+                    <h3 class="text-xl font-semibold text-blue-800 mb-2">5. Kết luận</h3>
+                    <ul class="list-disc list-inside text-gray-700 space-y-2">
+                        <li>Phần tử $a$ và $b$ trên <b>đường chéo chính</b> quyết định <b>độ co giãn</b> theo các trục.</li>
+                        <li>Phần tử $c$ <b>ngoài đường chéo chính</b> quyết định <b>mức độ xiên</b>.</li>
+                        <li><b>Định thức ($a \cdot b$)</b> của ma trận cho biết tỉ lệ thay đổi diện tích.</li>
+                        <li>Trực quan hóa là cách tốt nhất để hiểu rõ bản chất của các phép biến đổi tuyến tính.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== CỘT PHẢI: TƯƠNG TÁC & ÂM THANH ===== -->
+        <div class="flex flex-col h-full space-y-4">
+            <!-- Trình phát Âm thanh -->
+            <div class="bg-white rounded-lg shadow-lg p-4 sticky top-0 z-10">
+                <h2 class="text-xl font-bold text-gray-800 mb-3">Âm thanh Bài giảng</h2>
+                <audio id="audio-player" src="audio.wav" class="hidden"></audio>
+                
+                <div class="flex items-center space-x-4">
+                    <button id="play-pause-btn" class="bg-blue-500 text-white rounded-full w-12 h-12 flex items-center justify-center text-2xl hover:bg-blue-600 transition-transform transform hover:scale-105">
+                        <svg id="play-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <svg id="pause-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </button>
+                    <div class="flex-grow">
+                        <input type="range" id="progress-bar" value="0" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                            <span id="current-time">00:00</span>
+                            <span id="total-time">00:00</span>
+                        </div>
+                    </div>
+                </div>
+                <label class="block mt-3 text-sm font-medium text-gray-700">
+                    Tải lên file âm thanh khác:
+                    <input type="file" id="audio-upload" accept="audio/*" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
+                </label>
+            </div>
+
+            <!-- Ứng dụng tương tác -->
+            <div class="flex-grow bg-white rounded-lg shadow-lg p-6 flex flex-col">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Trực quan hóa Phép biến đổi</h2>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-grow">
+                    <!-- Khu vực điều khiển -->
+                    <div class="space-y-4">
+                        <h3 class="font-semibold text-gray-700">Điều chỉnh ma trận $M = \begin{bmatrix} a & 0 \\ c & b \end{bmatrix}$</h3>
+                        
+                        <!-- Slider a -->
+                        <div>
+                            <label for="slider_a" class="flex justify-between text-sm font-medium text-gray-700">
+                                <span>Co giãn X ($a$)</span>
+                                <span id="value_a" class="font-bold">1.0</span>
+                            </label>
+                            <input id="slider_a" type="range" min="-2" max="2" value="1" step="0.1" class="w-full h-2 bg-red-100 rounded-lg appearance-none cursor-pointer">
+                        </div>
+
+                        <!-- Slider b (UPDATED) -->
+                        <div>
+                           <label for="slider_b" class="flex justify-between text-sm font-medium text-gray-700">
+                               <span>Co giãn Y ($b$)</span>
+                               <span id="value_b" class="font-bold">1.00</span>
+                           </label>
+                           <input id="slider_b" type="range" min="0" max="1" value="1" step="0.01" class="w-full h-2 bg-blue-100 rounded-lg appearance-none cursor-pointer">
+                        </div>
+
+                        <!-- Slider c -->
+                        <div>
+                           <label for="slider_c" class="flex justify-between text-sm font-medium text-gray-700">
+                               <span>Xiên Y ($c$)</span>
+                               <span id="value_c" class="font-bold">0.0</span>
+                           </label>
+                           <input id="slider_c" type="range" min="-2" max="2" value="0" step="0.1" class="w-full h-2 bg-green-100 rounded-lg appearance-none cursor-pointer">
+                        </div>
+
+                        <button id="reset-btn" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition-colors duration-300">
+                            Reset
+                        </button>
+
+                        <!-- Khu vực hiển thị kết quả -->
+                        <div class="mt-4 p-4 bg-gray-50 rounded-lg border">
+                            <h4 class="font-semibold text-gray-800">Kết quả:</h4>
+                            <div class="text-sm mt-2">
+                                <p><b>Ma trận hiện tại:</b></p>
+                                <div id="matrix-display" class="font-mono text-center text-lg p-2 bg-white rounded"></div>
+                                <p class="mt-2">
+                                    <b>Định thức (Tỉ lệ diện tích):</b> 
+                                    <span id="determinant-display" class="font-bold">1.00</span>
+                                </p>
+                            </div>
+                        </div>
+
+                    </div>
+                    <!-- Khu vực trực quan -->
+                    <div class="w-full h-full min-h-[300px] lg:min-h-0 bg-gray-100 rounded-lg flex items-center justify-center p-2">
+                        <canvas id="transform-canvas"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // =================================================================
+        // PHẦN 1: LOGIC TRÌNH PHÁT ÂM THANH
+        // =================================================================
+        const audio = document.getElementById('audio-player');
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const playIcon = document.getElementById('play-icon');
+        const pauseIcon = document.getElementById('pause-icon');
+        const progressBar = document.getElementById('progress-bar');
+        const currentTimeEl = document.getElementById('current-time');
+        const totalTimeEl = document.getElementById('total-time');
+        const audioUpload = document.getElementById('audio-upload');
+
+        function togglePlayPause() {
+            if (audio.paused) {
+                audio.play();
+                playIcon.classList.add('hidden');
+                pauseIcon.classList.remove('hidden');
+            } else {
+                audio.pause();
+                playIcon.classList.remove('hidden');
+                pauseIcon.classList.add('hidden');
+            }
+        }
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function updateProgress() {
+            progressBar.value = (audio.currentTime / audio.duration) * 100 || 0;
+            currentTimeEl.textContent = formatTime(audio.currentTime);
+        }
+
+        function setAudioTime() {
+            audio.currentTime = (progressBar.value / 100) * audio.duration;
+        }
+
+        audio.addEventListener('loadedmetadata', () => {
+            totalTimeEl.textContent = formatTime(audio.duration);
+        });
+
+        audio.addEventListener('timeupdate', updateProgress);
+        playPauseBtn.addEventListener('click', togglePlayPause);
+        progressBar.addEventListener('input', setAudioTime);
+        
+        audioUpload.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const fileURL = URL.createObjectURL(file);
+                audio.src = fileURL;
+                audio.load();
+                audio.oncanplaythrough = () => {
+                    togglePlayPause();
+                    if(audio.paused) togglePlayPause();
+                };
+            }
+        });
+
+
+        // =================================================================
+        // PHẦN 2: LOGIC ỨNG DỤNG TƯƠNG TÁC CANVAS
+        // =================================================================
+        const canvas = document.getElementById('transform-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        const sliderA = document.getElementById('slider_a');
+        const sliderB = document.getElementById('slider_b');
+        const sliderC = document.getElementById('slider_c');
+        const valueA = document.getElementById('value_a');
+        const valueB = document.getElementById('value_b');
+        const valueC = document.getElementById('value_c');
+        const matrixDisplay = document.getElementById('matrix-display');
+        const determinantDisplay = document.getElementById('determinant-display');
+        const resetBtn = document.getElementById('reset-btn');
+
+        let scale = 50;
+        let originX, originY;
+
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            originX = canvas.width / 2;
+            originY = canvas.height / 2;
+            scale = Math.min(canvas.width, canvas.height) / 5;
+            draw();
+        }
+
+        function drawGrid() {
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 1;
+            for (let x = -10; x <= 10; x++) {
+                ctx.beginPath();
+                ctx.moveTo(originX + x * scale, 0);
+                ctx.lineTo(originX + x * scale, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = -10; y <= 10; y++) {
+                ctx.beginPath();
+                ctx.moveTo(0, originY + y * scale);
+                ctx.lineTo(canvas.width, originY + y * scale);
+                ctx.stroke();
+            }
+
+            ctx.strokeStyle = '#9e9e9e';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, originY);
+            ctx.lineTo(canvas.width, originY);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(originX, 0);
+            ctx.lineTo(originX, canvas.height);
+            ctx.stroke();
+        }
+
+        function drawShape(points, color, fillColor) {
+            ctx.beginPath();
+            ctx.moveTo(originX + points[0][0] * scale, originY - points[0][1] * scale);
+            for (let i = 1; i < points.length; i++) {
+                ctx.lineTo(originX + points[i][0] * scale, originY - points[i][1] * scale);
+            }
+            ctx.closePath();
+            
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            ctx.fillStyle = fillColor;
+            ctx.fill();
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawGrid();
+
+            const a = parseFloat(sliderA.value);
+            const b = parseFloat(sliderB.value);
+            const c = parseFloat(sliderC.value);
+
+            valueA.textContent = a.toFixed(1);
+            valueB.textContent = b.toFixed(2); // Show more precision for slider b
+            valueC.textContent = c.toFixed(1);
+
+            matrixDisplay.innerHTML = `
+                <table class="w-full">
+                    <tr>
+                        <td class="text-red-600">${a.toFixed(2)}</td>
+                        <td>0.00</td>
+                    </tr>
+                    <tr>
+                        <td class="text-green-600">${c.toFixed(2)}</td>
+                        <td class="text-blue-600">${b.toFixed(2)}</td>
+                    </tr>
+                </table>
+            `;
+            const determinant = a * b;
+            determinantDisplay.textContent = determinant.toFixed(2);
+
+            const originalSquare = [
+                [0, 0], [1, 0], [1, 1], [0, 1]
+            ];
+
+            const transformedShape = originalSquare.map(p => {
+                const x = p[0];
+                const y = p[1];
+                const newX = a * x;
+                const newY = c * x + b * y;
+                return [newX, newY];
+            });
+
+            drawShape(originalSquare, 'rgba(0, 123, 255, 1)', 'rgba(0, 123, 255, 0.3)');
+            drawShape(transformedShape, 'rgba(220, 53, 69, 1)', 'rgba(220, 53, 69, 0.3)');
+        }
+        
+        function resetVisualization() {
+            sliderA.value = 1;
+            sliderB.value = 1;
+            sliderC.value = 0;
+            draw();
+        }
+
+        [sliderA, sliderB, sliderC].forEach(slider => {
+            slider.addEventListener('input', draw);
+        });
+        resetBtn.addEventListener('click', resetVisualization);
+        
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        resetVisualization();
+
+    });
+    </script>
+</body>
+</html>
