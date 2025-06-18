@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biến đổi Ma trận 4 Tham số</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+        .plot-container {
+            flex: 2;
+            min-width: 500px;
+            height: 600px;
+        }
+        .controls {
+            flex: 1;
+            min-width: 350px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .control-group {
+            margin-bottom: 25px;
+        }
+        .control-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .control-title {
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .control-value {
+            font-family: monospace;
+            font-size: 16px;
+            width: 60px;
+            text-align: right;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            margin-top: 5px;
+            -webkit-appearance: none;
+            background: #e0e0e0;
+            border-radius: 4px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #4285f4;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .matrix-display {
+            margin-top: 30px;
+            padding: 20px;
+            background: #e9ecef;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 18px;
+            line-height: 1.8;
+            text-align: center;
+        }
+        .matrix-display h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Biến đổi Ma trận 4 Tham số</h1>
+    
+    <div class="container">
+        <div id="plot" class="plot-container"></div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <div class="control-header">
+                    <span class="control-title">Lambda1 (λ₁):</span>
+                    <input type="number" id="lambda1-input" class="control-value" min="-3" max="3" step="0.01" value="1.50">
+                </div>
+                <input type="range" id="lambda1-slider" min="-3" max="3" step="0.01" value="1.5">
+            </div>
+            
+            <div class="control-group">
+                <div class="control-header">
+                    <span class="control-title">n:</span>
+                    <input type="number" id="n-input" class="control-value" min="-3" max="3" step="0.01" value="0.00">
+                </div>
+                <input type="range" id="n-slider" min="-3" max="3" step="0.01" value="0.0">
+            </div>
+            
+            <div class="control-group">
+                <div class="control-header">
+                    <span class="control-title">m:</span>
+                    <input type="number" id="m-input" class="control-value" min="-3" max="3" step="0.01" value="0.50">
+                </div>
+                <input type="range" id="m-slider" min="-3" max="3" step="0.01" value="0.5">
+            </div>
+            
+            <div class="control-group">
+                <div class="control-header">
+                    <span class="control-title">Lambda2 (λ₂):</span>
+                    <input type="number" id="lambda2-input" class="control-value" min="-3" max="3" step="0.01" value="2.00">
+                </div>
+                <input type="range" id="lambda2-slider" min="-3" max="3" step="0.01" value="2.0">
+            </div>
+            
+            <div class="matrix-display">
+                <h3>Ma trận biến đổi:</h3>
+                <div id="matrix">
+                    [ [λ₁,  n] <br>
+                    [m,  λ₂] ]
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const plotDiv = document.getElementById('plot');
+        const originalX = [0, 1, 1, 0, 0];
+        const originalY = [0, 0, 1, 1, 0];
+
+        function applyTransformation(lambda1, n, m, lambda2) {
+            const transformedX = [], transformedY = [];
+            for (let i = 0; i < originalX.length; i++) {
+                const x = originalX[i], y = originalY[i];
+                transformedX.push(lambda1 * x + n * y);
+                transformedY.push(m * x + lambda2 * y);
+            }
+            return { transformedX, transformedY };
+        }
+
+        function drawPlot(lambda1, n, m, lambda2) {
+            const { transformedX, transformedY } = applyTransformation(lambda1, n, m, lambda2);
+            document.getElementById('matrix').innerHTML = `
+                [ [${lambda1.toFixed(2)}, ${n.toFixed(2)}] <br>
+                [${m.toFixed(2)}, ${lambda2.toFixed(2)}] ]
+            `;
+            const trace1 = {
+                x: originalX, y: originalY, mode: 'lines',
+                name: 'Hình gốc', line: { color: 'blue', width: 3 }
+            };
+            const trace2 = {
+                x: transformedX, y: transformedY, mode: 'lines',
+                name: 'Hình biến đổi', line: { color: 'red', width: 3 }
+            };
+            const layout = {
+                title: `Biến đổi Tuyến tính<br>λ₁=${lambda1.toFixed(2)}, n=${n.toFixed(2)}, m=${m.toFixed(2)}, λ₂=${lambda2.toFixed(2)}`,
+                xaxis: { range: [-5, 5], zeroline: true, zerolinewidth: 2, gridcolor: 'lightgray', title: 'Trục X' },
+                yaxis: { range: [-5, 5], zeroline: true, zerolinewidth: 2, gridcolor: 'lightgray', scaleanchor: 'x', title: 'Trục Y' },
+                showlegend: true,
+                legend: { x: 0.8, y: 0.1 },
+                margin: { t: 80, b: 80, l: 80, r: 80 },
+                hovermode: 'closest'
+            };
+            Plotly.newPlot(plotDiv, [trace1, trace2], layout);
+        }
+
+        // Đồng bộ input và slider hai chiều
+        function syncInputSlider(sliderId, inputId, onUpdate) {
+            const slider = document.getElementById(sliderId);
+            const input = document.getElementById(inputId);
+
+            slider.addEventListener('input', () => {
+                input.value = parseFloat(slider.value).toFixed(2);
+                onUpdate();
+            });
+            input.addEventListener('change', () => {
+                let val = parseFloat(input.value);
+                if (isNaN(val)) val = 0;
+                val = Math.max(-3, Math.min(3, val));
+                input.value = val.toFixed(2);
+                slider.value = val;
+                onUpdate();
+            });
+        }
+
+        function updatePlot() {
+            const lambda1 = parseFloat(document.getElementById('lambda1-input').value);
+            const n       = parseFloat(document.getElementById('n-input').value);
+            const m       = parseFloat(document.getElementById('m-input').value);
+            const lambda2 = parseFloat(document.getElementById('lambda2-input').value);
+            drawPlot(lambda1, n, m, lambda2);
+        }
+
+        // Thiết lập liên kết cho các tham số
+        syncInputSlider('lambda1-slider', 'lambda1-input', updatePlot);
+        syncInputSlider('n-slider', 'n-input', updatePlot);
+        syncInputSlider('m-slider', 'm-input', updatePlot);
+        syncInputSlider('lambda2-slider', 'lambda2-input', updatePlot);
+
+        // Khởi tạo lần đầu
+        updatePlot();
+    </script>
+</body>
+</html>
