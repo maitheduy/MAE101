@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - MAE101</title>
+    <style>
+        body { font-family: 'Montserrat', sans-serif; background-color: #0d1117; color: #c9d1d9; margin: 0; padding: 2rem; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header { text-align: center; border-bottom: 1px solid #30363d; padding-bottom: 2rem; margin-bottom: 2rem; }
+        .repo-title { display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 1.25rem; margin-bottom: 1rem; }
+        .repo-title svg { fill: #8b949e; }
+        .repo-title a { color: #58a6ff; text-decoration: none; }
+        .repo-title a:hover { text-decoration: underline; }
+        h1 { font-size: 2.5rem; color: #f0f6fc; margin: 0.5rem 0; }
+        .subtitle { font-size: 1.1rem; color: #8b949e; }
+        code { background-color: #2c323a; padding: 3px 6px; border-radius: 5px; font-family: monospace; }
+        .project-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+        .project-card { background-color: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 1.5rem; text-decoration: none; color: #c9d1d9; transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: bold; text-align: center; min-height: 80px; }
+        .project-card:hover { transform: translateY(-5px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4); border-color: #8b949e; }
+        footer { text-align: center; margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid #30363d; color: #8b949e; }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="repo-title">
+                <svg aria-hidden="true" height="24" viewBox="0 0 16 16" version="1.1" width="24"><path d="M2 2.5A2.5 2.5 0 0 1 4.5 0h8.75a.75.75 0 0 1 .75.75v12.5a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 1 0-1.5h1.75v-2h-8a1 1 0 0 0-.71.29L2 11.71v-9.21A1 1 0 0 1 2.5 1.5H4a.75.75 0 0 1 0 1.5H2.5v9.21l1.22-1.22a2.5 2.5 0 0 1 1.77-.73h8.26v-2H7.5a.75.75 0 0 1 0-1.5h5.25v-2H4.5a1 1 0 0 0-1 1v1.51L2 8.71V2.5Z"></path></svg>
+                <a href="https://github.com/maitheduy/MAE101" target="_blank">maitheduy / MAE101</a>
+            </div>
+            <h1>Bảng điều khiển các chương trình con</h1>
+            <p class="subtitle">Danh sách các file .html trong repository.</p>
+        </header>
+
+        <main>
+            <div id="project-list" class="project-grid">
+                <a href="Baitaplon" class="project-card">Baitaplon</a>
+                <a href="Cofactor_matrix" class="project-card">Cofactor Matrix</a>
+                <a href="FINAL_MAE101" class="project-card">Final Mae 101</a>
+                <a href="baitaplon" class="project-card">Baitaplon</a>
+                <a href="baitaplon-final" class="project-card">Baitaplon Final</a>
+            </div>
+        </main>
+
+        <footer>
+            <p>&copy; 2024 - Triển khai qua GitHub Pages.</p>
+        </footer>
+    </div>
+</body>
+</html>
