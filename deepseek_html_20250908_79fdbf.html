@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Học Tìm Phần Tử Ma Trận Tích A*B</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1, h2 {
+            color: #2c3e50;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .matrix {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        .matrix table {
+            border-collapse: collapse;
+            margin: 0 auto;
+        }
+        .matrix td {
+            width: 40px;
+            height: 40px;
+            text-align: center;
+            border: 1px solid #ddd;
+            padding: 5px;
+        }
+        .exercise {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .current {
+            border: 2px solid #3498db;
+            background-color: #e8f4fc;
+        }
+        .input-area {
+            margin: 15px 0;
+        }
+        input[type="number"] {
+            width: 60px;
+            padding: 8px;
+            margin: 0 5px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .step {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+        }
+        .correct {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        .incorrect {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .theory {
+            background-color: #e8f4fc;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Học Cách Tìm Phần Tử Của Ma Trận Tích A*B</h1>
+        
+        <div class="theory">
+            <h2>Lý thuyết</h2>
+            <p>Phần tử ở vị trí (i, j) của ma trận tích C = A × B được tính bằng công thức:</p>
+            <p><strong>C<sub>ij</sub> = A<sub>i1</sub>B<sub>1j</sub> + A<sub>i2</sub>B<sub>2j</sub> + ... + A<sub>in</sub>B<sub>nj</sub></strong></p>
+            <p>Nghĩa là lấy hàng thứ i của ma trận A nhân với cột thứ j của ma trận B (theo từng phần tử tương ứng và cộng lại).</p>
+        </div>
+
+        <h2>Bài Tập</h2>
+        <div id="exercise-container">
+            <!-- Bài tập sẽ được tạo bằng JavaScript -->
+        </div>
+
+        <div class="navigation">
+            <button id="prev-btn" onclick="prevExercise()">Bài trước</button>
+            <button id="next-btn" onclick="nextExercise()">Bài tiếp theo</button>
+        </div>
+    </div>
+
+    <script>
+        // Dữ liệu bài tập
+        const exercises = [
+            {
+                title: "Bài tập 1: Ma trận 2x2",
+                A: [[1, 2], [3, 4]],
+                B: [[5, 6], [7, 8]],
+                question: "Tìm phần tử (1, 1) của ma trận tích A*B",
+                answerRow: 0,
+                answerCol: 0,
+                steps: [
+                    "Phần tử (1,1) = (Hàng 1 của A) × (Cột 1 của B)",
+                    "= (A₁₁ × B₁₁) + (A₁₂ × B₂₁)",
+                    "= (1 × 5) + (2 × 7)",
+                    "= 5 + 14",
+                    "= 19"
+                ]
+            },
+            {
+                title: "Bài tập 2: Ma trận 2x3 và 3x2",
+                A: [[2, 0, 1], [3, 1, 4]],
+                B: [[1, 5], [2, 3], [0, 4]],
+                question: "Tìm phần tử (2, 2) của ma trận tích A*B",
+                answerRow: 1,
+                answerCol: 1,
+                steps: [
+                    "Phần tử (2,2) = (Hàng 2 của A) × (Cột 2 của B)",
+                    "= (A₂₁ × B₁₂) + (A₂₂ × B₂₂) + (A₂₃ × B₃₂)",
+                    "= (3 × 5) + (1 × 3) + (4 × 4)",
+                    "= 15 + 3 + 16",
+                    "= 34"
+                ]
+            },
+            {
+                title: "Bài tập 3: Ma trận 3x2 và 2x3",
+                A: [[1, 2], [0, 3], [4, 1]],
+                B: [[2, 1, 3], [0, 4, 2]],
+                question: "Tìm phần tử (3, 1) của ma trận tích A*B",
+                answerRow: 2,
+                answerCol: 0,
+                steps: [
+                    "Phần tử (3,1) = (Hàng 3 của A) × (Cột 1 của B)",
+                    "= (A₃₁ × B₁₁) + (A₃₂ × B₂₁)",
+                    "= (4 × 2) + (1 × 0)",
+                    "= 8 + 0",
+                    "= 8"
+                ]
+            },
+            {
+                title: "Bài tập 4: Ma trận với số âm",
+                A: [[-1, 2], [3, -4]],
+                B: [[5, -2], [-3, 1]],
+                question: "Tìm phần tử (1, 2) của ma trận tích A*B",
+                answerRow: 0,
+                answerCol: 1,
+                steps: [
+                    "Phần tử (1,2) = (Hàng 1 của A) × (Cột 2 của B)",
+                    "= (A₁₁ × B₁₂) + (A₁₂ × B₂₂)",
+                    "= (-1 × -2) + (2 × 1)",
+                    "= 2 + 2",
+                    "= 4"
+                ]
+            },
+            {
+                title: "Bài tập 5: Ma trận 3x3",
+                A: [[1, 2, 3], [4, 5, 6], [7, 8, 9]],
+                B: [[9, 8, 7], [6, 5, 4], [3, 2, 1]],
+                question: "Tìm phần tử (2, 3) của ma trận tích A*B",
+                answerRow: 1,
+                answerCol: 2,
+                steps: [
+                    "Phần tử (2,3) = (Hàng 2 của A) × (Cột 3 của B)",
+                    "= (A₂₁ × B₁₃) + (A₂₂ × B₂₃) + (A₂₃ × B₃₃)",
+                    "= (4 × 7) + (5 × 4) + (6 × 1)",
+                    "= 28 + 20 + 6",
+                    "= 54"
+                ]
+            }
+        ];
+
+        let currentExercise = 0;
+
+        // Hiển thị bài tập
+        function renderExercise(index) {
+            const exercise = exercises[index];
+            const container = document.getElementById('exercise-container');
+            
+            container.innerHTML = `
+                <div class="exercise ${index === currentExercise ? 'current' : ''}">
+                    <h3>${exercise.title}</h3>
+                    
+                    <div style="display: flex; justify-content: space-around; flex-wrap: wrap;">
+                        <div class="matrix">
+                            <h4>Ma trận A</h4>
+                            ${renderMatrix(exercise.A)}
+                        </div>
+                        
+                        <div style="font-size: 24px; margin: 40px 10px;">×</div>
+                        
+                        <div class="matrix">
+                            <h4>Ma trận B</h4>
+                            ${renderMatrix(exercise.B)}
+                        </div>
+                    </div>
+                    
+                    <p><strong>${exercise.question}</strong></p>
+                    
+                    <div class="input-area">
+                        <label for="answer">Câu trả lời của bạn:</label>
+                        <input type="number" id="answer" step="any">
+                        <button onclick="checkAnswer()">Kiểm tra</button>
+                    </div>
+                    
+                    <div id="result"></div>
+                    
+                    <button onclick="toggleSteps()" id="toggle-steps-btn">Xem hướng dẫn từng bước</button>
+                    
+                    <div id="steps" style="display: none;">
+                        <h4>Hướng dẫn từng bước:</h4>
+                        ${exercise.steps.map((step, i) => `<div class="step">Bước ${i+1}: ${step}</div>`).join('')}
+                    </div>
+                </div>
+            `;
+            
+            // Cập nhật nút điều hướng
+            document.getElementById('prev-btn').disabled = index === 0;
+            document.getElementById('next-btn').disabled = index === exercises.length - 1;
+        }
+
+        // Hiển thị ma trận dưới dạng HTML table
+        function renderMatrix(matrix) {
+            let html = '<table>';
+            for (let i = 0; i < matrix.length; i++) {
+                html += '<tr>';
+                for (let j = 0; j < matrix[i].length; j++) {
+                    html += `<td>${matrix[i][j]}</td>`;
+                }
+                html += '</tr>';
+            }
+            html += '</table>';
+            return html;
+        }
+
+        // Kiểm tra câu trả lời
+        function checkAnswer() {
+            const userAnswer = parseInt(document.getElementById('answer').value);
+            const correctAnswer = calculateAnswer(exercises[currentExercise]);
+            
+            const resultDiv = document.getElementById('result');
+            
+            if (userAnswer === correctAnswer) {
+                resultDiv.innerHTML = `<p class="correct">Chính xác! Phần tử này có giá trị ${correctAnswer}.</p>`;
+            } else {
+                resultDiv.innerHTML = `<p class="incorrect">Chưa chính xác. Hãy thử lại hoặc xem hướng dẫn từng bước.</p>`;
+            }
+        }
+
+        // Tính toán câu trả lời đúng
+        function calculateAnswer(exercise) {
+            const A = exercise.A;
+            const B = exercise.B;
+            const i = exercise.answerRow;
+            const j = exercise.answerCol;
+            
+            // Tính phần tử (i,j) của ma trận tích
+            let result = 0;
+            for (let k = 0; k < A[0].length; k++) {
+                result += A[i][k] * B[k][j];
+            }
+            
+            return result;
+        }
+
+        // Hiển thị/ẩn hướng dẫn từng bước
+        function toggleSteps() {
+            const stepsDiv = document.getElementById('steps');
+            const button = document.getElementById('toggle-steps-btn');
+            
+            if (stepsDiv.style.display === 'none') {
+                stepsDiv.style.display = 'block';
+                button.textContent = 'Ẩn hướng dẫn từng bước';
+            } else {
+                stepsDiv.style.display = 'none';
+                button.textContent = 'Xem hướng dẫn từng bước';
+            }
+        }
+
+        // Điều hướng bài tập
+        function nextExercise() {
+            if (currentExercise < exercises.length - 1) {
+                currentExercise++;
+                renderExercise(currentExercise);
+            }
+        }
+
+        function prevExercise() {
+            if (currentExercise > 0) {
+                currentExercise--;
+                renderExercise(currentExercise);
+            }
+        }
+
+        // Khởi tạo
+        window.onload = function() {
+            renderExercise(currentExercise);
+        };
+    </script>
+</body>
+</html>
