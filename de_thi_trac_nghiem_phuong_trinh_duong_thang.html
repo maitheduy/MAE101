@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Đề thi trắc nghiệm tương tác: Phương trình đường thẳng</title>
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$','$$'], ['\\[','\\]']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <style>
+    :root { --blue:#005aa0; --pink:#b4285a; --green:#16a34a; --red:#dc2626; --bg:#f5f7fb; --card:#ffffff; --ink:#172033; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: Arial, sans-serif; background:linear-gradient(180deg,#eef6ff,var(--bg)); color:var(--ink); }
+    header { padding:32px 18px; text-align:center; background:linear-gradient(135deg,#005aa0,#2c9bd8); color:white; }
+    header h1 { margin:0 0 8px; font-size: clamp(26px,4vw,44px); }
+    header p { margin:6px auto; max-width:980px; line-height:1.55; }
+    .wrap { max-width:1120px; margin:24px auto; padding:0 16px 48px; }
+    .panel { background:rgba(255,255,255,.92); border:1px solid #d7e6f7; border-radius:20px; padding:18px; box-shadow:0 12px 30px rgba(0,40,90,.08); margin-bottom:18px; }
+    .stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+    .stat { background:#f8fbff; border:1px solid #d9e8f7; padding:14px; border-radius:16px; text-align:center; }
+    .stat b { display:block; font-size:24px; color:var(--blue); }
+    .tools { display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
+    button, select { border:0; border-radius:12px; padding:11px 14px; font-weight:700; cursor:pointer; }
+    button.primary { background:var(--blue); color:white; }
+    button.secondary { background:#e9f2fb; color:#0b4f85; }
+    select { background:white; border:1px solid #cfe0ef; }
+    .question { background:var(--card); border:1px solid #dfe8f2; border-radius:18px; padding:18px; margin:16px 0; box-shadow:0 8px 22px rgba(20,60,100,.06); }
+    .qtop { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+    .badge { font-size:13px; border-radius:999px; padding:5px 10px; background:#eaf4ff; color:#075b9e; font-weight:700; }
+    .badge.easy { background:#e8f8ee; color:#16743a; } .badge.medium { background:#fff7dd; color:#8a6200; } .badge.hard { background:#ffe9e9; color:#a51c1c; }
+    .qtext { font-size:18px; font-weight:700; line-height:1.55; }
+    .choices { display:grid; gap:10px; margin-top:14px; }
+    .choice { text-align:left; background:#f7f9fc; border:2px solid transparent; color:#1d2939; transition:.15s; }
+    .choice:hover:not(:disabled) { transform:translateY(-1px); border-color:#9cc4e7; }
+    .choice.correct { background:#dcfce7; border-color:#22c55e; color:#14532d; }
+    .choice.wrong { background:#fee2e2; border-color:#ef4444; color:#7f1d1d; }
+    .choice:disabled { cursor:default; opacity:1; }
+    .feedback { display:none; margin-top:14px; border-left:5px solid var(--blue); background:#f6fbff; padding:14px; border-radius:12px; line-height:1.6; }
+    .feedback.show { display:block; }
+    .feedback .answer { font-weight:800; color:var(--blue); }
+    .tip { margin-top:8px; background:#fff8df; border:1px solid #ffe08a; padding:10px; border-radius:12px; }
+    .hidden { display:none !important; }
+    footer { text-align:center; color:#526071; padding:24px; }
+    @media(max-width:760px) { .stats { grid-template-columns:repeat(2,1fr); } .tools { display:block; } .tools > * { margin:5px 0; } }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Đề thi trắc nghiệm tương tác</h1>
+  <p><b>Chủ đề:</b> Phương trình đường thẳng – Từ hai điểm đến quy luật liên kết</p>
+  <p>20 câu hỏi: 5 câu lý thuyết, 15 câu bài tập gồm 5 dễ, 5 trung bình, 5 khó. Bấm đáp án để xem đúng/sai, lời giải và mẹo làm nhanh.</p>
+</header>
+<main class="wrap">
+  <section class="panel">
+    <div class="stats">
+      <div class="stat"><b id="score">0</b>Điểm đúng</div>
+      <div class="stat"><b id="done">0</b>Câu đã làm</div>
+      <div class="stat"><b id="total">20</b>Tổng câu</div>
+      <div class="stat"><b id="percent">0%</b>Tỉ lệ đúng</div>
+    </div>
+  </section>
+  <section class="panel tools">
+    <div>
+      <label for="filter"><b>Lọc câu hỏi:</b></label>
+      <select id="filter" onchange="filterQuestions()">
+        <option value="all">Tất cả</option>
+        <option value="Lý thuyết">5 câu lý thuyết</option>
+        <option value="Dễ">5 bài tập dễ</option>
+        <option value="Trung bình">5 bài tập trung bình</option>
+        <option value="Khó">5 bài tập khó</option>
+      </select>
+    </div>
+    <div>
+      <button class="secondary" onclick="showAllExplanations()">Hiện toàn bộ lời giải</button>
+      <button class="primary" onclick="resetQuiz()">Làm lại từ đầu</button>
+    </div>
+  </section>
+  <section id="quiz"></section>
+</main>
+<footer>Thiết kế cho bài giảng của Dr.rer.nat Duymt · Có hỗ trợ MathJax</footer>
+<script>
+const questions = [{"type": "Lý thuyết", "level": "Lý thuyết", "q": "Theo bài giảng, bản chất của phương trình đường thẳng là gì?", "choices": ["Một công thức để tính diện tích", "Mối liên hệ giữa hoành độ và tung độ của mọi điểm trên đường thẳng", "Một quy tắc chỉ dùng để vẽ hình", "Một hệ phương trình có hai nghiệm"], "ans": 1, "explain": "Phương trình đường thẳng không chỉ là ký hiệu. Nó là quy luật liên kết giữa $x$ và $y$ sao cho mọi điểm $(x,y)$ trên đường đều thỏa mãn.", "tip": "Gặp câu hỏi bản chất: hãy nhớ cụm khóa ‘mối liên hệ giữa tọa độ’."}, {"type": "Lý thuyết", "level": "Lý thuyết", "q": "Một đường thẳng trong mặt phẳng thường được xác định bởi dữ kiện nào?", "choices": ["Ba điểm bất kỳ, kể cả thẳng hàng hay không", "Hai điểm phân biệt hoặc một điểm và hệ số góc", "Một điểm duy nhất", "Chỉ cần biết tung độ gốc"], "ans": 1, "explain": "Hai điểm phân biệt xác định duy nhất một đường thẳng. Hoặc biết một điểm và hướng/độ nghiêng của đường thẳng cũng đủ.", "tip": "Muốn xác định ‘cái que’ trên mặt phẳng: biết hai vị trí, hoặc biết một vị trí và hướng nghiêng."}, {"type": "Lý thuyết", "level": "Lý thuyết", "q": "Hệ số góc $k$ biểu thị điều gì?", "choices": ["Tung độ gốc", "Tỉ lệ thay đổi $\\Delta y/\\Delta x$", "Độ dài của đường thẳng", "Khoảng cách từ đường thẳng tới gốc tọa độ"], "ans": 1, "explain": "Hệ số góc là độ nghiêng của đường thẳng: $k=\\frac{\\Delta y}{\\Delta x}=\\frac{y_2-y_1}{x_2-x_1}$.", "tip": "Cứ thấy hệ số góc, nghĩ ngay: ‘đi ngang bao nhiêu, đi lên/xuống bao nhiêu’."}, {"type": "Lý thuyết", "level": "Lý thuyết", "q": "Dạng tham số của đường thẳng nhấn mạnh yếu tố nào?", "choices": ["Một điểm xuất phát và một vector chỉ phương", "Chỉ tung độ gốc", "Chỉ nghiệm của phương trình bậc hai", "Diện tích tam giác tạo bởi đường thẳng"], "ans": 0, "explain": "Dạng tham số có dạng $(x,y)=(x_0,y_0)+t(a,b)$, gồm một điểm đi qua và vector chỉ phương $(a,b)$.", "tip": "Dạng tham số giống chuyển động: điểm ban đầu + thời gian $t$ nhân hướng đi."}, {"type": "Lý thuyết", "level": "Lý thuyết", "q": "Khi mở rộng từ đường thẳng 2D lên mặt phẳng 3D, ý tưởng cốt lõi nào vẫn giữ nguyên?", "choices": ["Tìm mối liên hệ giữa các tọa độ", "Tính chu vi hình tròn", "Luôn dùng đúng hai điểm", "Luôn có dạng $y=kx+m$"], "ans": 0, "explain": "Đường thẳng là quan hệ giữa $x,y$; mặt phẳng là quan hệ giữa $x,y,z$; siêu phẳng là quan hệ giữa nhiều tọa độ.", "tip": "Từ 2D đến nD: số tọa độ tăng, nhưng tư tưởng ‘liên hệ tọa độ’ không đổi."}, {"type": "Bài tập", "level": "Dễ", "q": "Đường thẳng đi qua $A(1,2)$ và có hệ số góc $k=3$ có phương trình nào?", "choices": ["$y=3x-1$", "$y=3x+1$", "$y=x+3$", "$y=-3x+5$"], "ans": 0, "explain": "Dùng $y-y_0=k(x-x_0)$: $y-2=3(x-1)=3x-3$, nên $y=3x-1$.", "tip": "Thế điểm vào đáp án nhanh: với $x=1$ phải ra $y=2$; rồi kiểm tra độ nghiêng."}, {"type": "Bài tập", "level": "Dễ", "q": "Hệ số góc của đường thẳng đi qua $A(0,1)$ và $B(2,5)$ là bao nhiêu?", "choices": ["$1$", "$2$", "$3$", "$4$"], "ans": 1, "explain": "$k=\\frac{5-1}{2-0}=\\frac{4}{2}=2$.", "tip": "Lấy ‘trên trừ dưới’ cùng thứ tự: $\\Delta y/\\Delta x$."}, {"type": "Bài tập", "level": "Dễ", "q": "Đường thẳng $y=2x+3$ có tung độ gốc là bao nhiêu?", "choices": ["$2$", "$3$", "$-3$", "$0$"], "ans": 1, "explain": "Dạng $y=kx+m$ có tung độ gốc là $m$. Ở đây $m=3$.", "tip": "Tung độ gốc là giá trị $y$ khi $x=0$."}, {"type": "Bài tập", "level": "Dễ", "q": "Vector chỉ phương của đường thẳng dạng tham số $x=1+2t,\\ y=3-5t$ là gì?", "choices": ["$(1,3)$", "$(2,-5)$", "$(3,1)$", "$(-5,2)$"], "ans": 1, "explain": "Trong $x=x_0+ta, y=y_0+tb$, vector chỉ phương là $(a,b)$. Do đó là $(2,-5)$.", "tip": "Nhìn hệ số đứng cạnh $t$ trong từng tọa độ."}, {"type": "Bài tập", "level": "Dễ", "q": "Điểm nào thuộc đường thẳng $y=2x-1$?", "choices": ["$(1,1)$", "$(1,2)$", "$(0,1)$", "$(2,2)$"], "ans": 0, "explain": "Thử $(1,1)$: $2\\cdot1-1=1$, đúng. Các điểm khác không thỏa mãn phương trình.", "tip": "Trắc nghiệm thuộc/không thuộc: thay tọa độ vào là nhanh nhất."}, {"type": "Bài tập", "level": "Trung bình", "q": "Phương trình đường thẳng đi qua $A(2,3)$ và $B(4,7)$ là gì?", "choices": ["$y=2x-1$", "$y=2x+1$", "$y=x+1$", "$y=-2x+7$"], "ans": 0, "explain": "$k=\\frac{7-3}{4-2}=2$. Dùng $A(2,3)$: $y-3=2(x-2)$ nên $y=2x-1$.", "tip": "Tính $k$ trước, rồi thế một điểm để tìm $m$."}, {"type": "Bài tập", "level": "Trung bình", "q": "Đường thẳng đi qua $A(-1,4)$ và có hệ số góc $k=-2$ có dạng nào?", "choices": ["$y=-2x+2$", "$y=-2x+4$", "$y=2x+6$", "$y=x-2$"], "ans": 0, "explain": "$y-4=-2(x+1)=-2x-2$, nên $y=-2x+2$.", "tip": "Cẩn thận dấu: $x-(-1)=x+1$."}, {"type": "Bài tập", "level": "Trung bình", "q": "Đường thẳng qua hai điểm $A(1,1)$ và $B(3,5)$ có dạng hai điểm nào đúng?", "choices": ["$\\frac{y-1}{5-1}=\\frac{x-1}{3-1}$", "$\\frac{y-3}{5-1}=\\frac{x-5}{3-1}$", "$\\frac{y-1}{3-1}=\\frac{x-1}{5-1}$", "$\\frac{y+1}{5+1}=\\frac{x+1}{3+1}$"], "ans": 0, "explain": "Dạng hai điểm: $\\frac{y-y_1}{y_2-y_1}=\\frac{x-x_1}{x_2-x_1}$. Với $A(1,1),B(3,5)$ được $\\frac{y-1}{4}=\\frac{x-1}{2}$.", "tip": "Mẫu của vế $y$ là hiệu tung độ; mẫu của vế $x$ là hiệu hoành độ."}, {"type": "Bài tập", "level": "Trung bình", "q": "Cho đường thẳng $3x-2y+6=0$. Hệ số góc của nó là gì?", "choices": ["$\\frac{3}{2}$", "$-\\frac{3}{2}$", "$2$", "$-2$"], "ans": 0, "explain": "Chuyển về $y=kx+m$: $-2y=-3x-6$, nên $y=\\frac{3}{2}x+3$. Vậy $k=\\frac{3}{2}$.", "tip": "Đưa về dạng $y=kx+m$ để đọc hệ số góc."}, {"type": "Bài tập", "level": "Trung bình", "q": "Từ dạng tham số $x=2+t,\\ y=1+3t$, loại $t$ ta được phương trình nào?", "choices": ["$y=3x-5$", "$y=3x+5$", "$y=x+3$", "$y=-3x+7$"], "ans": 0, "explain": "Từ $x=2+t$ suy ra $t=x-2$. Thay vào $y=1+3t$ được $y=1+3(x-2)=3x-5$.", "tip": "Lấy phương trình dễ nhất để rút $t$, rồi thay vào phương trình còn lại."}, {"type": "Bài tập", "level": "Khó", "q": "Đường thẳng qua $A(2,-1)$ và song song với đường thẳng $4x-2y+1=0$ có phương trình nào?", "choices": ["$y=2x-5$", "$y=-2x+3$", "$y=4x-9$", "$y=\\frac12x-2$"], "ans": 0, "explain": "Đường $4x-2y+1=0$ cho $y=2x+\\frac12$, nên hệ số góc là $2$. Qua $A(2,-1)$: $y+1=2(x-2)$, suy ra $y=2x-5$.", "tip": "Song song thì cùng hệ số góc."}, {"type": "Bài tập", "level": "Khó", "q": "Đường thẳng qua $A(1,2)$ và vuông góc với đường thẳng $y=-\\frac12x+3$ có phương trình nào?", "choices": ["$y=2x$", "$y=-2x+4$", "$y=\\frac12x+\\frac32$", "$y=2x+1$"], "ans": 0, "explain": "Đường đã cho có hệ số góc $-\\frac12$. Đường vuông góc có hệ số góc $2$ vì $k_1k_2=-1$. Qua $(1,2)$: $y-2=2(x-1)$, nên $y=2x$.", "tip": "Vuông góc: đổi dấu và đảo nghịch hệ số góc."}, {"type": "Bài tập", "level": "Khó", "q": "Trong không gian, mặt phẳng $2x-y+3z-6=0$ thể hiện điều gì theo tinh thần bài giảng?", "choices": ["Một mối liên hệ tuyến tính giữa $x,y,z$", "Một đường cong bậc hai", "Một điểm duy nhất trong không gian", "Một công thức tính thể tích"], "ans": 0, "explain": "Mặt phẳng trong 3D là quy luật liên kết giữa ba tọa độ $x,y,z$. Đây là mở rộng của tư tưởng phương trình đường thẳng.", "tip": "Thấy biểu thức tuyến tính theo nhiều tọa độ: nghĩ đến siêu phẳng/mặt phẳng."}, {"type": "Bài tập", "level": "Khó", "q": "Đường thẳng có dạng tham số $(x,y)=(3,-2)+t(4,6)$. Hệ số góc của nó là bao nhiêu?", "choices": ["$\\frac{3}{2}$", "$\\frac{2}{3}$", "$-\\frac{3}{2}$", "$6$"], "ans": 0, "explain": "Vector chỉ phương là $(4,6)$. Khi $x$ tăng $4$, $y$ tăng $6$, nên $k=\\frac{6}{4}=\\frac32$.", "tip": "Với vector chỉ phương $(a,b)$, hệ số góc là $b/a$ nếu $a\\ne0$."}, {"type": "Bài tập", "level": "Khó", "q": "Cho đường thẳng đi qua $A(0,2)$ và cắt trục hoành tại $B(4,0)$. Phương trình đúng là gì?", "choices": ["$y=-\\frac12x+2$", "$y=\\frac12x+2$", "$y=-2x+2$", "$y=2x-4$"], "ans": 0, "explain": "Hai điểm là $(0,2)$ và $(4,0)$. $k=\\frac{0-2}{4-0}=-\\frac12$. Vì tung độ gốc là $2$, phương trình là $y=-\\frac12x+2$.", "tip": "Cắt trục hoành nghĩa là $y=0$; cắt trục tung nghĩa là $x=0$."}];
+let answered = Array(questions.length).fill(false);
+let correct = Array(questions.length).fill(false);
+
+function badgeClass(level) {
+  if(level === 'Dễ') return 'easy';
+  if(level === 'Trung bình') return 'medium';
+  if(level === 'Khó') return 'hard';
+  return '';
+}
+function renderQuiz() {
+  const quiz = document.getElementById('quiz');
+  quiz.innerHTML = questions.map((q, i) => `
+    <article class="question" data-level="${q.level}" data-type="${q.type}">
+      <div class="qtop">
+        <span class="badge">Câu ${i+1}</span>
+        <span class="badge ${badgeClass(q.level)}">${q.level}</span>
+        <span class="badge">${q.type}</span>
+      </div>
+      <div class="qtext">${q.q}</div>
+      <div class="choices">
+        ${q.choices.map((c, j) => `<button class="choice" onclick="choose(${i}, ${j}, this)"><b>${String.fromCharCode(65+j)}.</b> ${c}</button>`).join('')}
+      </div>
+      <div class="feedback" id="fb-${i}">
+        <div class="answer">Đáp án đúng: ${String.fromCharCode(65+q.ans)}. ${q.choices[q.ans]}</div>
+        <div><b>Giải thích:</b> ${q.explain}</div>
+        <div class="tip"><b>Mẹo làm nhanh:</b> ${q.tip}</div>
+      </div>
+    </article>
+  `).join('');
+  if (window.MathJax) MathJax.typesetPromise();
+}
+function choose(i, j, btn) {
+  const card = btn.closest('.question');
+  const buttons = Array.from(card.querySelectorAll('.choice'));
+  if(answered[i]) return;
+  answered[i] = true;
+  correct[i] = (j === questions[i].ans);
+  buttons.forEach((b, idx) => {
+    b.disabled = true;
+    if(idx === questions[i].ans) b.classList.add('correct');
+    if(idx === j && idx !== questions[i].ans) b.classList.add('wrong');
+  });
+  document.getElementById(`fb-${i}`).classList.add('show');
+  updateStats();
+  if (window.MathJax) MathJax.typesetPromise([card]);
+}
+function updateStats() {
+  const done = answered.filter(Boolean).length;
+  const score = correct.filter(Boolean).length;
+  document.getElementById('done').textContent = done;
+  document.getElementById('score').textContent = score;
+  document.getElementById('percent').textContent = done ? Math.round(score/done*100) + '%' : '0%';
+}
+function resetQuiz() {
+  answered = Array(questions.length).fill(false);
+  correct = Array(questions.length).fill(false);
+  renderQuiz(); updateStats(); filterQuestions();
+}
+function showAllExplanations() {
+  document.querySelectorAll('.feedback').forEach(x => x.classList.add('show'));
+  document.querySelectorAll('.question').forEach((card, i) => {
+    const buttons = card.querySelectorAll('.choice');
+    buttons.forEach((b, idx) => { if(idx === questions[i].ans) b.classList.add('correct'); });
+  });
+  if (window.MathJax) MathJax.typesetPromise();
+}
+function filterQuestions() {
+  const val = document.getElementById('filter').value;
+  document.querySelectorAll('.question').forEach(card => {
+    const ok = val === 'all' || card.dataset.level === val;
+    card.classList.toggle('hidden', !ok);
+  });
+}
+renderQuiz(); updateStats();
+</script>
+</body>
+</html>
