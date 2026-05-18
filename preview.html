@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Đề thi trắc nghiệm - Phương trình đường thẳng</title>
+
+<!-- MathJax -->
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['\\(','\\)'], ['$', '$']]
+  }
+};
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background:#f3f6fb;
+    margin:0;
+    padding:0;
+    color:#222;
+}
+
+header{
+    background:linear-gradient(135deg,#0f4c81,#2563eb);
+    color:white;
+    padding:30px;
+    text-align:center;
+}
+
+header h1{
+    margin:0;
+    font-size:38px;
+}
+
+header p{
+    margin-top:10px;
+    font-size:18px;
+}
+
+.container{
+    width:90%;
+    max-width:1200px;
+    margin:auto;
+    padding:20px;
+}
+
+.section-title{
+    margin-top:40px;
+    background:#1e3a8a;
+    color:white;
+    padding:14px;
+    border-radius:12px;
+    font-size:24px;
+}
+
+.question{
+    background:white;
+    margin-top:25px;
+    padding:25px;
+    border-radius:18px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.08);
+}
+
+.question h3{
+    margin-top:0;
+    color:#0f172a;
+}
+
+.options button{
+    display:block;
+    width:100%;
+    margin-top:12px;
+    padding:14px;
+    border:none;
+    border-radius:10px;
+    background:#e2e8f0;
+    cursor:pointer;
+    text-align:left;
+    font-size:17px;
+    transition:0.3s;
+}
+
+.options button:hover{
+    background:#cbd5e1;
+}
+
+.correct{
+    background:#22c55e !important;
+    color:white;
+}
+
+.wrong{
+    background:#ef4444 !important;
+    color:white;
+}
+
+.explanation{
+    margin-top:18px;
+    padding:15px;
+    border-left:6px solid #2563eb;
+    background:#eff6ff;
+    border-radius:8px;
+    display:none;
+}
+
+.tip{
+    margin-top:12px;
+    background:#fff7ed;
+    border-left:6px solid orange;
+    padding:12px;
+    border-radius:8px;
+}
+
+.next-button{
+    text-align:center;
+    margin:50px 0;
+}
+
+.next-button a{
+    display:inline-block;
+    padding:18px 34px;
+    background:linear-gradient(135deg,#2563eb,#1e40af);
+    color:white;
+    text-decoration:none;
+    font-size:24px;
+    font-weight:bold;
+    border-radius:18px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.2);
+    transition:0.3s;
+}
+
+.next-button a:hover{
+    transform:scale(1.05);
+}
+
+footer{
+    background:#0f172a;
+    color:white;
+    text-align:center;
+    padding:20px;
+    margin-top:40px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>ĐỀ THI TRẮC NGHIỆM</h1>
+    <p>Phương trình đường thẳng – Dr.rer.nat Duymt</p>
+</header>
+
+<div class="container">
+
+<div class="section-title">
+PHẦN I — LÝ THUYẾT (5 CÂU)
+</div>
+
+<!-- QUESTION 1 -->
+<div class="question">
+<h3>Câu 1. Một đường thẳng được xác định khi biết:</h3>
+
+<div class="options">
+<button onclick="checkAnswer(this,false,'exp1')">A. Một điểm bất kỳ</button>
+<button onclick="checkAnswer(this,true,'exp1')">B. Hai điểm hoặc một điểm và độ nghiêng</button>
+<button onclick="checkAnswer(this,false,'exp1')">C. Một vector bất kỳ</button>
+<button onclick="checkAnswer(this,false,'exp1')">D. Một tọa độ y</button>
+</div>
+
+<div class="explanation" id="exp1">
+✅ Đáp án đúng là B.
+
+Phương trình đường thẳng cần:
+\[
+\text{Hai điểm}
+\]
+hoặc:
+\[
+\text{Một điểm + hệ số góc}
+\]
+
+<div class="tip">
+💡 Mẹo nhanh: "2 điểm tạo thành 1 đường thẳng".
+</div>
+</div>
+</div>
+
+<!-- QUESTION 2 -->
+<div class="question">
+<h3>Câu 2. Hệ số góc của đường thẳng là:</h3>
+
+<div class="options">
+<button onclick="checkAnswer(this,true,'exp2')">A. \(k=\frac{\Delta y}{\Delta x}\)</button>
+<button onclick="checkAnswer(this,false,'exp2')">B. \(k=\frac{\Delta x}{\Delta y}\)</button>
+<button onclick="checkAnswer(this,false,'exp2')">C. \(k=x+y\)</button>
+<button onclick="checkAnswer(this,false,'exp2')">D. \(k=xy\)</button>
+</div>
+
+<div class="explanation" id="exp2">
+✅ Đáp án đúng là:
+\[
+k=\frac{\Delta y}{\Delta x}
+\]
+
+<div class="tip">
+💡 Mẹo nhanh: "Tăng y chia tăng x".
+</div>
+</div>
+</div>
+
+<!-- QUESTION 3 -->
+<div class="question">
+<h3>Câu 3. Phương trình tổng quát của đường thẳng là:</h3>
+
+<div class="options">
+<button onclick="checkAnswer(this,true,'exp3')">A. \(Ax+By+C=0\)</button>
+<button onclick="checkAnswer(this,false,'exp3')">B. \(x^2+y^2=1\)</button>
+<button onclick="checkAnswer(this,false,'exp3')">C. \(y=ax^2+b\)</button>
+<button onclick="checkAnswer(this,false,'exp3')">D. \(z=x+y\)</button>
+</div>
+
+<div class="explanation" id="exp3">
+✅ Đáp án đúng:
+\[
+Ax+By+C=0
+\]
+
+<div class="tip">
+💡 Dạng bậc nhất theo x và y → đường thẳng.
+</div>
+</div>
+</div>
+
+<!-- QUESTION 4 -->
+<div class="question">
+<h3>Câu 4. Dạng tham số của đường thẳng dùng:</h3>
+
+<div class="options">
+<button onclick="checkAnswer(this,false,'exp4')">A. Hai đường tròn</button>
+<button onclick="checkAnswer(this,true,'exp4')">B. Một điểm và vector chỉ phương</button>
+<button onclick="checkAnswer(this,false,'exp4')">C. Một mặt phẳng</button>
+<button onclick="checkAnswer(this,false,'exp4')">D. Một hyperbol</button>
+</div>
+
+<div class="explanation" id="exp4">
+✅ Đáp án đúng là B.
+
+<div class="tip">
+💡 Điểm + hướng đi = dạng tham số.
+</div>
+</div>
+</div>
+
+<!-- QUESTION 5 -->
+<div class="question">
+<h3>Câu 5. Bản chất của phương trình đường thẳng là:</h3>
+
+<div class="options">
+<button onclick="checkAnswer(this,false,'exp5')">A. Công thức hình học</button>
+<button onclick="checkAnswer(this,true,'exp5')">B. Mối liên hệ giữa x và y</button>
+<button onclick="checkAnswer(this,false,'exp5')">C. Công thức diện tích</button>
+<button onclick="checkAnswer(this,false,'exp5')">D. Công thức thể tích</button>
+</div>
+
+<div class="explanation" id="exp5">
+✅ Đáp án đúng: Mối liên hệ giữa tung độ và hoành độ.
+
+<div class="tip">
+💡 Hãy nhớ triết lý:
+“Phương trình là ngôn ngữ liên kết giữa các tọa độ”.
+</div>
+</div>
+</div>
+
+<div class="section-title">
+PHẦN II — BÀI TẬP DỄ
+</div>
+
+<!-- EASY QUESTION -->
+<div class="question">
+<h3>Câu 6. Tính hệ số góc của đường thẳng đi qua \(A(1,2)\) và \(B(3,6)\)</h3>
+
+<div class="options">
+<button onclick="checkAnswer(this,true,'exp6')">A. \(2\)</button>
+<button onclick="checkAnswer(this,false,'exp6')">B. \(1\)</button>
+<button onclick="checkAnswer(this,false,'exp6')">C. \(4\)</button>
+<button onclick="checkAnswer(this,false,'exp6')">D. \(6\)</button>
+</div>
+
+<div class="explanation" id="exp6">
+\[
+k=\frac{6-2}{3-1}=\frac{4}{2}=2
+\]
+
+<div class="tip">
+💡 Lấy hiệu y chia hiệu x.
+</div>
+</div>
+</div>
+
+<!-- MORE QUESTIONS -->
+<!-- COPY TEMPLATE -->
+
+<script>
+for(let i=7;i<=20;i++){
+
+document.write(`
+<div class="question">
+<h3>Câu ${i}. Đây là câu hỏi mẫu số ${i}</h3>
+
+<div class="options">
+<button onclick="checkAnswer(this,true,'exp${i}')">A. Đáp án đúng</button>
+<button onclick="checkAnswer(this,false,'exp${i}')">B. Sai</button>
+<button onclick="checkAnswer(this,false,'exp${i}')">C. Sai</button>
+<button onclick="checkAnswer(this,false,'exp${i}')">D. Sai</button>
+</div>
+
+<div class="explanation" id="exp${i}">
+✅ Đây là phần lời giải cho câu ${i}.
+
+<div class="tip">
+💡 Mẹo làm nhanh câu ${i}.
+</div>
+</div>
+</div>
+`);
+
+}
+</script>
+
+<!-- NEXT BUTTON -->
+<div class="next-button">
+<a href="https://vnwfpb.github.io/math-exam/de-thi-2.html">
+NEXT ➜ Bài thi tiếp theo: Phương trình mặt phẳng
+</a>
+</div>
+
+</div>
+
+<footer>
+© Dr.rer.nat Duymt — Interactive Math Exam System
+</footer>
+
+<script>
+function checkAnswer(button,isCorrect,explanationId){
+
+    let parent = button.parentElement;
+    let buttons = parent.querySelectorAll("button");
+
+    buttons.forEach(btn=>{
+        btn.disabled=true;
+    });
+
+    if(isCorrect){
+        button.classList.add("correct");
+    }else{
+        button.classList.add("wrong");
+
+        buttons.forEach(btn=>{
+            if(btn.getAttribute("onclick").includes("true")){
+                btn.classList.add("correct");
+            }
+        });
+    }
+
+    document.getElementById(explanationId).style.display="block";
+
+    MathJax.typeset();
+}
+</script>
+
+</body>
+</html>
