@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Đề thi trắc nghiệm tương tác - Phương trình tiếp tuyến</title>
+
+  <!-- MathJax config: đặt TRƯỚC khi nạp thư viện -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)'], ['$', '$']],
+        displayMath: [['\\[', '\\]']],
+        processEscapes: true
+      },
+      svg: { fontCache: 'global' },
+      startup: { typeset: false }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+  <style>
+    :root{--blue:#0f5fa8;--blue2:#2563eb;--dark:#0f172a;--green:#16a34a;--red:#dc2626;--orange:#f97316;--card:#fff}
+    *{box-sizing:border-box} body{margin:0;font-family:Arial,Helvetica,sans-serif;background:linear-gradient(180deg,#eef6ff,#f8fafc);color:#1e293b;line-height:1.65}
+    header{background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;padding:34px 18px;text-align:center} header h1{margin:0;font-size:clamp(26px,4vw,44px)} header p{margin:10px auto 0;max-width:920px;font-size:18px}
+    .wrap{max-width:1100px;margin:auto;padding:24px 16px 60px}.intro{background:#fff;border-radius:22px;padding:22px;box-shadow:0 10px 28px rgba(15,23,42,.08);border:1px solid #dbeafe;margin-top:24px}.intro strong{color:var(--blue)}
+    .toolbar{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin:22px 0}.pill{border:1px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;padding:10px 14px;border-radius:999px;font-weight:700}
+    .section-title{margin:34px 0 14px;background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;padding:15px 18px;border-radius:16px;font-size:22px;font-weight:800;box-shadow:0 8px 20px rgba(37,99,235,.18)}
+    .question{background:var(--card);border-radius:20px;margin:18px 0;padding:22px;box-shadow:0 8px 24px rgba(15,23,42,.08);border:1px solid #e2e8f0}.qhead{display:flex;align-items:flex-start;gap:12px;margin-bottom:10px}.badge{background:#dbeafe;color:#1d4ed8;border-radius:12px;padding:7px 10px;font-weight:800;white-space:nowrap} h3{margin:3px 0 12px;font-size:20px;color:#0f172a}
+    .options{display:grid;gap:10px;margin-top:12px}.option{width:100%;border:2px solid #e2e8f0;background:#f8fafc;border-radius:14px;padding:14px 15px;text-align:left;font-size:17px;cursor:pointer;transition:.18s;color:#0f172a}.option:hover{background:#eef6ff;border-color:#93c5fd;transform:translateY(-1px)}.option.correct{background:#dcfce7;border-color:var(--green);color:#14532d;font-weight:700}.option.wrong{background:#fee2e2;border-color:var(--red);color:#7f1d1d;font-weight:700}.option:disabled{cursor:not-allowed;opacity:1}
+    .explanation{display:none;margin-top:16px;padding:16px;border-radius:14px;background:#eff6ff;border-left:6px solid var(--blue2)}.tip{margin-top:12px;padding:12px 14px;border-radius:12px;background:#fff7ed;border-left:6px solid var(--orange)}
+    .scorebox{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);border:1px solid #dbeafe;border-radius:18px;padding:14px 16px;box-shadow:0 10px 25px rgba(15,23,42,.08);display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.scorebox button,.next a{border:0;border-radius:14px;padding:12px 18px;background:linear-gradient(135deg,#2563eb,#1e40af);color:#fff;font-weight:800;cursor:pointer;text-decoration:none;display:inline-block}.next{text-align:center;margin:46px 0 10px}.next a{font-size:20px;padding:16px 26px;box-shadow:0 8px 20px rgba(30,64,175,.25)} footer{text-align:center;color:#64748b;padding:25px}
+  </style>
+</head>
+<body>
+<header>
+  <h1>ĐỀ THI TRẮC NGHIỆM TƯƠNG TÁC</h1>
+  <p>Chủ đề: <strong>Phương trình tiếp tuyến</strong> — Từ cát tuyến đến đạo hàm, khi \(M_1\) tiến về \(M\)</p>
+</header>
+<main class="wrap">
+  <div class="intro"><p><strong>Mục tiêu:</strong> luyện nhanh công thức tiếp tuyến \(y=f(a)+f'(a)(x-a)\), hiểu nguồn gốc từ cát tuyến, giới hạn và đạo hàm. Mỗi câu có 4 lựa chọn, chọn xong sẽ hiện màu xanh/đỏ, đáp án, lời giải và mẹo làm nhanh.</p></div>
+  <div class="toolbar"><span class="pill">20 câu hỏi</span><span class="pill">5 lý thuyết</span><span class="pill">5 dễ</span><span class="pill">5 trung bình</span><span class="pill">5 khó</span></div>
+  <div class="scorebox"><div><strong>Điểm:</strong> <span id="score">0</span>/<span id="answered">0</span> câu đã làm</div><button onclick="resetQuiz()">Làm lại</button></div>
+  <div id="quiz"></div>
+  <div class="next"><a href="https://vnwfpb.github.io/math-exam/de-thi-tiep-theo.html" target="_blank">NEXT ➜ Bài thi tiếp theo: Ứng dụng đạo hàm</a></div>
+</main>
+<footer>© Dr.rer.nat Duymt — Interactive Math Exam System</footer>
+<script>
+const R = String.raw;
+const sections = [
+{title:'PHẦN I — LÝ THUYẾT (5 CÂU)', qs:[
+{q:R`Công thức phương trình tiếp tuyến của đồ thị \(y=f(x)\) tại điểm \(M(a,f(a))\) là gì?`, opts:[R`\(y=f(a)+f(a)(x-a)\)`,R`\(y=f(a)+f'(a)(x-a)\)`,R`\(y=f'(a)+f(a)(x-a)\)`,R`\(y=f'(a)(x+a)\)`], ans:1, exp:R`Công thức chuẩn là \(y-f(a)=f'(a)(x-a)\), hay \(y=f(a)+f'(a)(x-a)\).`, tip:R`Nhớ mẫu: tung độ tiếp điểm + hệ số góc × khoảng lệch hoành độ.`},
+{q:R`Trong phương trình tiếp tuyến, \(f'(a)\) đóng vai trò gì?`, opts:[R`Tung độ tiếp điểm`,R`Hoành độ tiếp điểm`,R`Hệ số góc của tiếp tuyến`,R`Diện tích dưới đồ thị`], ans:2, exp:R`Đạo hàm tại \(a\) chính là hệ số góc hay độ nghiêng của tiếp tuyến tại điểm đó.`, tip:R`Thấy \(f'(a)\) hãy nghĩ ngay: độ nghiêng tại chỗ.`},
+{q:R`Tiếp tuyến tại \(M\) được hình thành từ quá trình hình học nào?`, opts:[R`Cho cát tuyến \(MM_1\) quay khi \(M_1\to M\)`,R`Cho đường tròn co lại`,R`Cho trục tọa độ dịch chuyển`,R`Cho đồ thị đối xứng qua trục \(Oy\)`], ans:0, exp:R`Khi điểm \(M_1\) trên đồ thị tiến dần về \(M\), cát tuyến \(MM_1\) tiến tới vị trí giới hạn là tiếp tuyến.`, tip:R`Tiếp tuyến = giới hạn của cát tuyến.`},
+{q:R`Hệ số góc của cát tuyến qua \(M(a,f(a))\) và \(M_1(x,f(x))\) là:`, opts:[R`\(\frac{x-a}{f(x)-f(a)}\)`,R`\(\frac{f(x)-f(a)}{x-a}\)`,R`\(f(x)+f(a)\)`,R`\(x-a\)`], ans:1, exp:R`Hệ số góc bằng độ thay đổi của tung độ chia cho độ thay đổi của hoành độ: \(\frac{\Delta y}{\Delta x}\).`, tip:R`Công thức slope: trên là \(\Delta y\), dưới là \(\Delta x\).`},
+{q:R`Đạo hàm tại \(a\) được định nghĩa bởi giới hạn nào?`, opts:[R`\(\lim_{x\to a}\frac{f(x)-f(a)}{x-a}\)`,R`\(\lim_{x\to a}\frac{x-a}{f(x)-f(a)}\)`,R`\(\lim_{x\to a}(f(x)+f(a))\)`,R`\(\lim_{x\to a}(x+a)\)`], ans:0, exp:R`Đây là định nghĩa đạo hàm tại một điểm, đồng thời là giới hạn hệ số góc cát tuyến.`, tip:R`Đạo hàm là “tốc độ thay đổi tức thời”.`}
+]},
+{title:'PHẦN II — BÀI TẬP DỄ (5 CÂU)', qs:[
+{q:R`Cho \(f(x)=x^2\). Tính \(f'(x)\).`, opts:[R`\(x\)`,R`\(2x\)`,R`\(x^2\)`,R`\(2\)`], ans:1, exp:R`Theo quy tắc đạo hàm lũy thừa: \((x^2)'=2x\).`, tip:R`Đưa số mũ xuống làm hệ số, rồi giảm số mũ đi 1.`},
+{q:R`Cho \(f(x)=x^2\). Tính \(f(2)\) và \(f'(2)\).`, opts:[R`\(f(2)=2,\ f'(2)=4\)`,R`\(f(2)=4,\ f'(2)=4\)`,R`\(f(2)=4,\ f'(2)=2\)`,R`\(f(2)=2,\ f'(2)=2\)`], ans:1, exp:R`\(f(2)=2^2=4\), còn \(f'(x)=2x\) nên \(f'(2)=4\).`, tip:R`Tính giá trị hàm và giá trị đạo hàm riêng biệt.`},
+{q:R`Tiếp tuyến của \(y=x^2\) tại \(a=2\) là:`, opts:[R`\(y=4x-4\)`,R`\(y=4x+4\)`,R`\(y=2x\)`,R`\(y=x+2\)`], ans:0, exp:R`\(f(2)=4\), \(f'(2)=4\). Vậy \(y=4+4(x-2)=4x-4\).`, tip:R`Thay thẳng vào \(y=f(a)+f'(a)(x-a)\).`},
+{q:R`Cho \(f(x)=3x+1\). Tiếp tuyến tại mọi điểm có hệ số góc là:`, opts:[R`\(1\)`,R`\(3\)`,R`\(x\)`,R`\(0\)`], ans:1, exp:R`Vì \(f'(x)=3\), đường thẳng có độ nghiêng không đổi.`, tip:R`Hàm bậc nhất \(y=mx+n\) có hệ số góc \(m\).`},
+{q:R`Cho \(f(x)=x^3\). Hệ số góc tiếp tuyến tại \(a=1\) là:`, opts:[R`\(1\)`,R`\(2\)`,R`\(3\)`,R`\(4\)`], ans:2, exp:R`\(f'(x)=3x^2\), nên \(f'(1)=3\).`, tip:R`Hỏi hệ số góc thì chỉ cần tính đạo hàm tại điểm.`}
+]},
+{title:'PHẦN III — BÀI TẬP TRUNG BÌNH (5 CÂU)', qs:[
+{q:R`Cho \(f(x)=x^2+2x\). Phương trình tiếp tuyến tại \(a=1\) là:`, opts:[R`\(y=4x-1\)`,R`\(y=4x+1\)`,R`\(y=2x+1\)`,R`\(y=3x\)`], ans:0, exp:R`\(f(1)=3\), \(f'(x)=2x+2\), \(f'(1)=4\). Vậy \(y=3+4(x-1)=4x-1\).`, tip:R`Bước 1 tính \(f(a)\), bước 2 tính \(f'(a)\), bước 3 thay công thức.`},
+{q:R`Cho \(f(x)=x^3-2x\). Hệ số góc tiếp tuyến tại \(a=2\) là:`, opts:[R`\(8\)`,R`\(10\)`,R`\(12\)`,R`\(14\)`], ans:1, exp:R`\(f'(x)=3x^2-2\). Do đó \(f'(2)=12-2=10\).`, tip:R`Không cần viết phương trình nếu đề chỉ hỏi hệ số góc.`},
+{q:R`Tiếp tuyến của \(y=x^3\) tại \(a=1\) là:`, opts:[R`\(y=3x-2\)`,R`\(y=3x+2\)`,R`\(y=x+2\)`,R`\(y=2x-1\)`], ans:0, exp:R`\(f(1)=1\), \(f'(1)=3\). Vậy \(y=1+3(x-1)=3x-2\).`, tip:R`Sau khi có hệ số góc, nhớ đường thẳng phải đi qua tiếp điểm.`},
+{q:R`Cho \(f(x)=\frac{1}{x}\). Hệ số góc tiếp tuyến tại \(a=1\) là:`, opts:[R`\(1\)`,R`\(-1\)`,R`\(2\)`,R`\(-2\)`], ans:1, exp:R`\(f'(x)=-\frac{1}{x^2}\), nên \(f'(1)=-1\).`, tip:R`\((x^{-1})'=-x^{-2}\).`},
+{q:R`Cho \(f(x)=x^2-4x+1\). Tiếp tuyến tại \(a=3\) là:`, opts:[R`\(y=2x-8\)`,R`\(y=2x-7\)`,R`\(y=6x-20\)`,R`\(y=x-4\)`], ans:0, exp:R`\(f(3)=9-12+1=-2\), \(f'(x)=2x-4\), \(f'(3)=2\). Vậy \(y=-2+2(x-3)=2x-8\).`, tip:R`Cẩn thận dấu âm khi tính \(f(a)\).`}
+]},
+{title:'PHẦN IV — BÀI TẬP KHÓ (5 CÂU)', qs:[
+{q:R`Tiếp tuyến của \(y=x^2\) song song với đường thẳng \(y=6x+1\) có tiếp điểm hoành độ là:`, opts:[R`\(a=2\)`,R`\(a=3\)`,R`\(a=6\)`,R`\(a=-3\)`], ans:1, exp:R`Song song thì hệ số góc bằng nhau. Với \(f(x)=x^2\), \(f'(a)=2a=6\), suy ra \(a=3\).`, tip:R`Song song: \(k_1=k_2\).`},
+{q:R`Cho \(f(x)=x^2\). Tiếp tuyến vuông góc với đường thẳng \(y=-\frac14x+2\) có hoành độ tiếp điểm là:`, opts:[R`\(a=1\)`,R`\(a=2\)`,R`\(a=4\)`,R`\(a=-2\)`], ans:1, exp:R`Đường thẳng đã cho có hệ số góc \(-\frac14\). Vuông góc nên hệ số góc tiếp tuyến là \(4\). Do \(2a=4\), suy ra \(a=2\).`, tip:R`Vuông góc: tích hệ số góc bằng \(-1\).`},
+{q:R`Cho \(f(x)=x^2\). Tiếp tuyến tại \(a\) đi qua điểm \(A(0,-1)\). Tìm \(a\).`, opts:[R`\(a=1\) hoặc \(a=-1\)`,R`\(a=0\)`,R`\(a=2\)`,R`Không tồn tại`], ans:0, exp:R`Tiếp tuyến tại \(a\): \(y=a^2+2a(x-a)=2ax-a^2\). Đi qua \((0,-1)\) nên \(-1=-a^2\), suy ra \(a=\pm1\).`, tip:R`Viết tiếp tuyến theo ẩn \(a\), rồi thay tọa độ điểm ngoài.`},
+{q:R`Cho \(f(x)=x^3-3x\). Tìm các hoành độ mà tiếp tuyến song song với trục \(Ox\).`, opts:[R`\(a=0\)`,R`\(a=\pm1\)`,R`\(a=\pm\sqrt3\)`,R`Không có`], ans:1, exp:R`Song song trục \(Ox\) nghĩa là hệ số góc bằng 0. \(f'(x)=3x^2-3\). Giải \(3a^2-3=0\) được \(a=\pm1\).`, tip:R`Tiếp tuyến ngang ⇔ \(f'(a)=0\).`},
+{q:R`Cho \(f(x)=\ln x\). Phương trình tiếp tuyến tại \(a=1\) là:`, opts:[R`\(y=x-1\)`,R`\(y=x+1\)`,R`\(y=-x+1\)`,R`\(y=\ln x\)`], ans:0, exp:R`\(f(1)=\ln1=0\), \(f'(x)=1/x\), \(f'(1)=1\). Vậy \(y=0+1(x-1)=x-1\).`, tip:R`Nhớ \((\ln x)'=1/x\) và \(\ln1=0\).`}
+]}
+];
+let score=0, answered=0;
+function renderQuiz(){
+  const quiz=document.getElementById('quiz'); let html=''; let n=1;
+  sections.forEach(sec=>{ html += `<div class="section-title">${sec.title}</div>`; sec.qs.forEach(item=>{ html += `<div class="question" data-q="${n}"><div class="qhead"><span class="badge">Câu ${n}</span><h3>${item.q}</h3></div><div class="options">${item.opts.map((op,i)=>`<button class="option" onclick="choose(this,${i},${item.ans})">${String.fromCharCode(65+i)}. ${op}</button>`).join('')}</div><div class="explanation"><strong>Đáp án đúng:</strong> ${String.fromCharCode(65+item.ans)}.<br>${item.exp}<div class="tip">💡 <strong>Mẹo nhanh:</strong> ${item.tip}</div></div></div>`; n++; }); });
+  quiz.innerHTML=html;
+  typesetAll();
+}
+function typesetAll(){
+  if(window.MathJax && MathJax.typesetPromise){ MathJax.typesetPromise(); }
+}
+function choose(btn, chosen, ans){
+  const q=btn.closest('.question'); if(q.dataset.done==='1') return; q.dataset.done='1'; answered++;
+  const buttons=q.querySelectorAll('.option'); buttons.forEach((b,i)=>{ b.disabled=true; if(i===ans) b.classList.add('correct'); });
+  if(chosen===ans){ score++; } else { btn.classList.add('wrong'); }
+  q.querySelector('.explanation').style.display='block';
+  document.getElementById('score').textContent=score; document.getElementById('answered').textContent=answered;
+  if(window.MathJax && MathJax.typesetPromise){ MathJax.typesetPromise([q]); }
+}
+function resetQuiz(){ score=0; answered=0; document.getElementById('score').textContent=0; document.getElementById('answered').textContent=0; renderQuiz(); window.scrollTo({top:0,behavior:'smooth'}); }
+window.addEventListener('load', () => { if(window.MathJax?.startup?.promise){ MathJax.startup.promise.then(renderQuiz); } else { renderQuiz(); } });
+</script>
+</body>
+</html>
