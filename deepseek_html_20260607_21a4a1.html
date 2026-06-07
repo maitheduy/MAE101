@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAE101 – Lộ trình 15 ngày | Mathematics for Engineers</title>
+<style>
+  :root {
+    --primary: #0b3b5f;
+    --accent: #1e6f5c;
+    --important: #e63946;
+    --important-light: #ffe5e5;
+    --review: #9c27b0;
+    --review-light: #f3e5f5;
+    --normal: #2a9d8f;
+    --normal-light: #e0f2f1;
+    --bg: #f8fafc;
+    --card-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    background: var(--bg);
+    color: #1e293b;
+    line-height: 1.5;
+  }
+  .header {
+    background: linear-gradient(135deg, var(--primary), #289672);
+    color: white;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    border-bottom-left-radius: 2rem;
+    border-bottom-right-radius: 2rem;
+  }
+  .header h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+  .header p { opacity: 0.9; margin-bottom: 1rem; }
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin: 1rem 0;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255,255,255,0.15);
+    padding: 0.25rem 1rem;
+    border-radius: 2rem;
+    font-size: 0.8rem;
+  }
+  .legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+  .progress-container {
+    max-width: 300px;
+    margin: 1rem auto 0;
+  }
+  .progress-bar {
+    background: rgba(255,255,255,0.3);
+    border-radius: 1rem;
+    height: 8px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    width: 0%;
+    height: 100%;
+    background: #f4d03f;
+    transition: width 0.3s;
+  }
+  .progress-text {
+    font-size: 0.75rem;
+    margin-top: 0.4rem;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+  }
+  .week {
+    margin-bottom: 2rem;
+  }
+  .week-title {
+    font-weight: 700;
+    font-size: 1.1rem;
+    background: #e9ecef;
+    padding: 0.5rem 1rem;
+    border-left: 5px solid var(--accent);
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+  }
+  .days-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+  }
+  .day-card {
+    background: white;
+    border-radius: 1rem;
+    padding: 0.8rem;
+    cursor: pointer;
+    box-shadow: var(--card-shadow);
+    border-top: 4px solid var(--normal);
+    transition: transform 0.1s, box-shadow 0.2s;
+  }
+  .day-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+  .day-card.important { border-top-color: var(--important); background: var(--important-light); }
+  .day-card.review { border-top-color: var(--review); background: var(--review-light); }
+  .day-card.done { opacity: 0.6; text-decoration: line-through; filter: grayscale(0.05); }
+  .day-card.done::after {
+    content: "✓";
+    float: right;
+    color: #2e7d32;
+    font-weight: bold;
+  }
+  .day-num {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #5f6c80;
+    text-transform: uppercase;
+  }
+  .day-title {
+    font-weight: 600;
+    font-size: 0.85rem;
+    margin: 0.3rem 0;
+  }
+  .day-chapter {
+    font-size: 0.7rem;
+    background: #eef2ff;
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 1rem;
+    color: var(--accent);
+  }
+  /* MODAL */
+  .modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+  }
+  .modal.active { display: flex; }
+  .modal-content {
+    background: white;
+    max-width: 550px;
+    width: 100%;
+    border-radius: 1.5rem;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 35px rgba(0,0,0,0.2);
+  }
+  .modal-header {
+    padding: 1.2rem 1.5rem;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .modal-header.important { background: var(--important-light); }
+  .modal-header.review { background: var(--review-light); }
+  .modal-body { padding: 1.5rem; }
+  .badge-important {
+    display: inline-block;
+    background: var(--important);
+    color: white;
+    padding: 0.2rem 0.8rem;
+    border-radius: 2rem;
+    font-size: 0.7rem;
+    margin-bottom: 0.8rem;
+  }
+  .topic-list { padding-left: 1.2rem; margin: 0.8rem 0; }
+  .topic-list li { margin: 0.4rem 0; }
+  .tip-box {
+    background: #fff8e1;
+    padding: 0.8rem;
+    border-radius: 0.8rem;
+    border-left: 4px solid #ffb74d;
+    margin: 1rem 0;
+  }
+  .ref-tag {
+    display: inline-block;
+    background: #e9ecef;
+    padding: 0.2rem 0.8rem;
+    border-radius: 2rem;
+    font-size: 0.7rem;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .ref-vn { background: #d4edda; color: #155724; }
+  .ref-ta { background: #cfe2ff; color: #084298; }
+  .done-btn {
+    width: 100%;
+    padding: 0.7rem;
+    margin-top: 1rem;
+    background: #eafaf1;
+    border: none;
+    border-radius: 2rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .done-btn:hover { background: #d0ebdf; }
+  .close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+  }
+  @media (max-width: 600px) {
+    .days-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📐 MAE101 – Mathematics for Engineers</h1>
+  <p>Lộ trình 15 ngày | 10 slots trọng tâm</p>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#2a9d8f"></div> Thường</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#e63946"></div> Quan trọng ⭐</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#9c27b0"></div> Ôn tập</div>
+  </div>
+  <div class="progress-container">
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-text" id="progressText">0/15 ngày hoàn thành</div>
+  </div>
+</div>
+
+<div class="container" id="weeksContainer"></div>
+
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header" id="modalHeader">
+      <div>
+        <div id="modalDayNum" style="font-size:0.75rem; color:#555;"></div>
+        <h3 id="modalTitle"></h3>
+      </div>
+      <button class="close-btn" id="closeModalBtn">&times;</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+  // DỮ LIỆU 15 NGÀY DỰA TRÊN 10 SLOTS MAE101
+  const DAYS = [
+    { day:1, slot:"Slot 1", title:"Hàm số & Giới hạn cơ bản", type:"normal",
+      topics:["Ôn tập hàm số sơ cấp","Miền xác định, miền giá trị","Giới hạn hàm số (dạng 0/0, vô định)","Giới hạn một phía"],
+      tip:"Nắm vững các dạng vô định ∞/∞, 0/0. Luyện nhân liên hợp và quy tắc L’Hôpital cơ bản.",
+      refs:[{type:"vn",text:"Chương 1 – Hàm số & Giới hạn (tr.1-20)"},{type:"ta",text:"Ch.1: Functions & Limits"}] },
+    { day:2, slot:"Slot 2", title:"Đạo hàm & Quy tắc tính", type:"important",
+      topics:["Định nghĩa đạo hàm","Đạo hàm các hàm cơ bản","Quy tắc tổng, hiệu, tích, thương","Đạo hàm hàm hợp (Chain rule)"],
+      tip:"⭐ Công thức nền tảng cho toàn bộ giải tích. Học thuộc bảng đạo hàm và luyện nhiều bài tập chain rule.",
+      refs:[{type:"vn",text:"Slot 2 – Đạo hàm (tr.2)"},{type:"ta",text:"Ch.2: Derivatives & Chain Rule"}] },
+    { day:3, slot:"Slot 2", title:"Đạo hàm hàm ẩn & Đạo hàm tích phân", type:"normal",
+      topics:["Đạo hàm hàm ẩn (implicit differentiation)","Đạo hàm của tích phân xác định (Leibniz)","Ứng dụng tính slope"],
+      tip:"Đạo hàm hàm ẩn: đạo hàm 2 vế, chuyển vế đổi dấu. Công thức Newton-Leibniz rất hay gặp.",
+      refs:[{type:"vn",text:"Slot 2 – Hàm ẩn"},{type:"ta",text:"Ch.2: Implicit & Integral derivative"}] },
+    { day:4, slot:"Slot 3", title:"Ứng dụng đạo hàm: Related Rates & Xấp xỉ", type:"important",
+      topics:["Linear approximation (xấp xỉ tuyến tính)","Related rates – bài toán tốc độ liên quan","Bài toán rót nước, thang trượt"],
+      tip:"⭐ Vẽ hình, xác định phương trình liên hệ, lấy đạo hàm theo thời gian. Làm ít nhất 3 dạng bài.",
+      refs:[{type:"vn",text:"Slot 3 – Ứng dụng đạo hàm"},{type:"ta",text:"Ch.3: Related Rates & Linear Approx"}] },
+    { day:5, slot:"Slot 4", title:"Định lý trung bình & Tiệm cận", type:"important",
+      topics:["Rolle & Lagrange MVT","Ứng dụng MVT chứng minh bất đẳng thức","Tiệm cận đứng, ngang, xiên","Cực trị & đồ thị"],
+      tip:"⭐ Phân biệt MVT Lagrange và giá trị trung bình tích phân. Nhớ cách tìm tiệm cận bằng giới hạn.",
+      refs:[{type:"vn",text:"Slot 4 – Lagrange, tiệm cận"},{type:"ta",text:"Ch.4: MVT, Asymptotes"}] },
+    { day:6, slot:"Slot 5", title:"Phương pháp Newton & Xấp xỉ diện tích", type:"normal",
+      topics:["Newton's method (tìm nghiệm gần đúng)","Xấp xỉ tích phân: Left, Right, Midpoint","Trapezoidal & Simpson rule"],
+      tip:"Newton method: công thức xn+1 = xn - f/f'. Simpson chính xác cho đa thức bậc ≤3.",
+      refs:[{type:"vn",text:"Slot 5 – Newton, xấp xỉ"},{type:"ta",text:"Ch.5: Numerical Methods"}] },
+    { day:7, slot:"Slot 6", title:"Tích phân xác định & Net Change", type:"normal",
+      topics:["Nguyên hàm & tích phân bất định","Định lý Newton-Leibniz","Net change theorem (độ dời, quãng đường)"],
+      tip:"Tính quãng đường = ∫|v(t)|dt, độ dời = ∫v(t)dt. Phân biệt rõ.",
+      refs:[{type:"vn",text:"Slot 6 – Tích phân xác định"},{type:"ta",text:"Ch.6: Definite Integral"}] },
+    { day:8, slot:"Slot 7", title:"Tích phân suy rộng & Ôn tập giải tích", type:"review",
+      topics:["Tích phân suy rộng loại 1 (cận vô cùng)","Loại 2 (hàm không bị chặn)","Tiêu chuẩn so sánh","Ôn tập toàn bộ giải tích"],
+      tip:"🔄 Ôn lại p-nguyên: ∫1/x^p hội tụ khi p>1. Làm đề mini test.",
+      refs:[{type:"vn",text:"Slot 7 – Tích phân suy rộng"},{type:"ta",text:"Ch.7: Improper Integrals"}] },
+    { day:9, slot:"Slot 8", title:"Hệ PT tuyến tính & Ma trận", type:"important",
+      topics:["Biểu diễn ma trận","Phép khử Gauss – giải hệ","Hệ thuần nhất & nghiệm cơ bản"],
+      tip:"⭐ Ma trận bậc thang (REF) và bậc thang rút gọn (RREF). Số nghiệm = số ẩn - rank.",
+      refs:[{type:"vn",text:"Slot 8 – Hệ PT tuyến tính"},{type:"ta",text:"Ch.8: Linear Systems & Gauss"}] },
+    { day:10, slot:"Slot 9,10", title:"Nhân ma trận & Ma trận nghịch đảo", type:"normal",
+      topics:["Phép nhân ma trận – điều kiện","Ma trận đơn vị, nghịch đảo","Tính A⁻¹ bằng công thức & Gauss-Jordan"],
+      tip:"(AB)⁻¹ = B⁻¹A⁻¹. Chỉ ma trận vuông khả nghịch mới có nghịch đảo (det≠0).",
+      refs:[{type:"ta",text:"Ch.9: Matrix Multiplication, Inverse"}] },
+    { day:11, slot:"Slot 11,12", title:"Định thức & Cofactor", type:"important",
+      topics:["Định thức cấp 2, 3 (Sarrus)","Khai triển Laplace theo hàng/cột","Tính chất det(AB)=detA·detB","det(A⁻¹)=1/detA"],
+      tip:"⭐ Định thức khác 0 ↔ ma trận khả nghịch ↔ hạng tối đa. Luyện tính nhanh 3x3.",
+      refs:[{type:"vn",text:"Slot 11-12 – Định thức"},{type:"ta",text:"Ch.10: Determinants"}] },
+    { day:12, slot:"Slot 13", title:"Giá trị riêng, véc tơ riêng", type:"important",
+      topics:["Phương trình đặc trưng det(A-λI)=0","Tìm trị riêng λ","Tìm cơ sở không gian riêng","Ứng dụng chéo hóa"],
+      tip:"⭐ Giá trị riêng thường gặp trong ma trận 2x2, 3x3. Nhớ bậc đa thức = cấp ma trận.",
+      refs:[{type:"ta",text:"Ch.11: Eigenvalues & Eigenvectors"}] },
+    { day:13, slot:"Slot 14-16", title:"Không gian vector & Tổ hợp tuyến tính", type:"normal",
+      topics:["Không gian con, cơ sở, số chiều","Độc lập tuyến tính – phụ thuộc tuyến tính","Span, Basis, Rank–Nullity theorem"],
+      tip:"dim(ImA) + dim(KerA) = n (số cột). Rank = số hàng độc lập.",
+      refs:[{type:"vn",text:"Slot 14-16 – Vector space"},{type:"ta",text:"Ch.12: Subspaces, Basis"}] },
+    { day:14, slot:"Slot 17-19", title:"Tích vô hướng & Phép chiếu", type:"normal",
+      topics:["Dot product, độ dài, góc","Phép chiếu vuông góc lên đường thẳng/mặt phẳng","Công thức proj_u(v) = (v·u)/(u·u) u"],
+      tip:"Công thức chiếu rất quan trọng trong AI, đồ họa. Làm bài tập khoảng cách.",
+      refs:[{type:"ta",text:"Ch.13: Orthogonality & Projections"}] },
+    { day:15, slot:"Slot 20 + Tổng kết", title:"TỔNG ÔN MAE101 + Đề mẫu", type:"review",
+      topics:["Tổng hợp giải tích + đại số tuyến tính","Giải đề thi mẫu cuối kỳ","Chiến thuật làm bài trắc nghiệm","Review lỗi sai thường gặp"],
+      tip:"🔥 Ngày cuối: không học mới, chỉ làm đề & xem lại các ngày quan trọng (2,4,5,9,11,12).",
+      refs:[{type:"vn",text:"Đề mẫu cuối kỳ MAE101"},{type:"ta",text:"Practice Exams"}] }
+  ];
+
+  const WEEKS = [
+    { name:"Tuần 1 – Giải tích cơ bản", days:[1,2,3,4] },
+    { name:"Tuần 2 – Ứng dụng đạo hàm & Tích phân", days:[5,6,7,8] },
+    { name:"Tuần 3 – Đại số tuyến tính 1 (Hệ pt, ma trận)", days:[9,10,11] },
+    { name:"Tuần 4 – Đại số tuyến tính 2 (Định thức, trị riêng)", days:[12,13,14] },
+    { name:"Tuần 5 – Tổng kết & Luyện đề", days:[15] }
+  ];
+
+  const IMPORTANT = [2,4,5,9,11,12];
+  const REVIEW = [8,15];
+
+  let doneDays = JSON.parse(localStorage.getItem('mae101_progress') || '[]');
+
+  function saveProgress() {
+    localStorage.setItem('mae101_progress', JSON.stringify(doneDays));
+    updateProgress();
+  }
+
+  function updateProgress() {
+    const percent = Math.round((doneDays.length / 15) * 100);
+    document.getElementById('progressFill').style.width = percent + '%';
+    document.getElementById('progressText').innerText = `${doneDays.length} / 15 ngày hoàn thành`;
+  }
+
+  function renderWeeks() {
+    const container = document.getElementById('weeksContainer');
+    container.innerHTML = '';
+    for (let wk of WEEKS) {
+      const weekDiv = document.createElement('div');
+      weekDiv.className = 'week';
+      weekDiv.innerHTML = `<div class="week-title"><span>📘 ${wk.name}</span><span>${wk.days.length} ngày</span></div><div class="days-grid" id="grid-${wk.name.replace(/\s/g,'')}"></div>`;
+      container.appendChild(weekDiv);
+      const grid = weekDiv.querySelector('.days-grid');
+      wk.days.forEach(dayNum => {
+        const d = DAYS[dayNum-1];
+        const isImportant = IMPORTANT.includes(dayNum);
+        const isReview = REVIEW.includes(dayNum);
+        const isDone = doneDays.includes(dayNum);
+        let typeClass = isImportant ? 'important' : (isReview ? 'review' : 'normal');
+        const card = document.createElement('div');
+        card.className = `day-card ${typeClass} ${isDone ? 'done' : ''}`;
+        card.setAttribute('data-day', dayNum);
+        card.innerHTML = `
+          <div class="day-num">Ngày ${dayNum} – ${d.slot}</div>
+          <div class="day-title">${d.title}</div>
+          <div class="day-chapter">${d.type === 'important' ? '⭐' : (d.type==='review'?'🔄':'📘')} ${d.slot}</div>
+        `;
+        card.onclick = () => openModal(dayNum);
+        grid.appendChild(card);
+      });
+    }
+  }
+
+  function openModal(dayNum) {
+    const d = DAYS[dayNum-1];
+    const isImportant = IMPORTANT.includes(dayNum);
+    const isReview = REVIEW.includes(dayNum);
+    const isDone = doneDays.includes(dayNum);
+    const modalHeader = document.getElementById('modalHeader');
+    modalHeader.className = 'modal-header';
+    if (isImportant) modalHeader.classList.add('important');
+    if (isReview) modalHeader.classList.add('review');
+
+    document.getElementById('modalDayNum').innerText = `Ngày ${dayNum} | ${d.slot}`;
+    document.getElementById('modalTitle').innerText = d.title;
+
+    let body = '';
+    if (isImportant) body += `<div class="badge-important">⭐ NGÀY QUAN TRỌNG ⭐</div>`;
+    body += `<div><strong>📌 Nội dung chính:</strong><ul class="topic-list">`;
+    d.topics.forEach(t => body += `<li>${t}</li>`);
+    body += `</ul></div>`;
+    body += `<div class="tip-box"><strong>💡 Mẹo học:</strong><br>${d.tip}</div>`;
+    if (d.refs && d.refs.length) {
+      body += `<div><strong>📚 Tài liệu tham khảo:</strong><br>`;
+      d.refs.forEach(ref => body += `<span class="ref-tag ${ref.type==='vn'?'ref-vn':'ref-ta'}">${ref.type==='vn'?'🇻🇳':'🇬🇧'} ${ref.text}</span>`);
+      body += `</div>`;
+    }
+    body += `<button class="done-btn" id="doneModalBtn">${isDone ? '↩ Đánh dấu chưa học' : '✅ Đánh dấu đã hoàn thành'}</button>`;
+    document.getElementById('modalBody').innerHTML = body;
+    document.getElementById('modal').classList.add('active');
+
+    const doneBtn = document.getElementById('doneModalBtn');
+    doneBtn.onclick = () => {
+      if (doneDays.includes(dayNum)) {
+        doneDays = doneDays.filter(d => d !== dayNum);
+      } else {
+        doneDays.push(dayNum);
+      }
+      saveProgress();
+      // cập nhật giao diện
+      const card = document.querySelector(`.day-card[data-day="${dayNum}"]`);
+      if (card) {
+        if (doneDays.includes(dayNum)) card.classList.add('done');
+        else card.classList.remove('done');
+      }
+      openModal(dayNum); // refresh modal
+    };
+  }
+
+  function closeModal() {
+    document.getElementById('modal').classList.remove('active');
+  }
+
+  document.getElementById('closeModalBtn').onclick = closeModal;
+  window.onclick = (e) => { if (e.target === document.getElementById('modal')) closeModal(); };
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+  renderWeeks();
+  updateProgress();
+</script>
+</body>
+</html>
