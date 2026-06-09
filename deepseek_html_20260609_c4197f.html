@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trắc nghiệm: Độc lập & Phụ thuộc tuyến tính - Đại số tuyến tính</title>
+    <!-- MathJax cho công thức toán -->
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: #f0f4fc;
+            color: #1e2f3e;
+            padding: 30px 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a4d8c, #0e3a6b);
+            color: white;
+            padding: 28px 24px;
+            border-radius: 36px;
+            margin-bottom: 36px;
+            text-align: center;
+            box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-style: italic;
+        }
+
+        .section-title {
+            font-size: 1.7rem;
+            font-weight: 700;
+            margin: 40px 0 20px 0;
+            padding-left: 16px;
+            border-left: 8px solid #e67e22;
+            color: #1a4d8c;
+        }
+
+        .question-card {
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
+            margin-bottom: 28px;
+            padding: 22px 26px;
+            transition: 0.2s;
+            border: 1px solid #e2edf7;
+        }
+
+        .question-text {
+            font-size: 1.18rem;
+            font-weight: 600;
+            color: #1f3b4c;
+            margin-bottom: 20px;
+            background: #f8fafd;
+            padding: 12px 18px;
+            border-radius: 24px;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .opt-btn {
+            background: #f9fcff;
+            border: 2px solid #dce5f0;
+            border-radius: 60px;
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-weight: 500;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.15s;
+            display: flex;
+            align-items: center;
+            font-family: inherit;
+            color: #1f3b4c;
+        }
+
+        .opt-btn:hover:not(:disabled) {
+            background: #eef2ff;
+            border-color: #e67e22;
+            transform: scale(1.01);
+        }
+
+        .opt-letter {
+            font-weight: 800;
+            background: #e2eaf1;
+            width: 34px;
+            height: 34px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 40px;
+            margin-right: 16px;
+            font-size: 1rem;
+        }
+
+        .opt-btn.correct {
+            background: #2ecc71;
+            border-color: #27ae60;
+            color: white;
+        }
+        .opt-btn.correct .opt-letter {
+            background: white;
+            color: #2ecc71;
+        }
+
+        .opt-btn.incorrect {
+            background: #e74c3c;
+            border-color: #c0392b;
+            color: white;
+        }
+        .opt-btn.incorrect .opt-letter {
+            background: white;
+            color: #e74c3c;
+        }
+
+        .explanation {
+            background: #fef5e8;
+            border-left: 6px solid #e67e22;
+            padding: 16px 20px;
+            border-radius: 20px;
+            margin-top: 14px;
+            display: none;
+            font-size: 0.95rem;
+            color: #2c3e50;
+        }
+
+        .feedback {
+            margin-top: 12px;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            font-size: 0.85rem;
+            color: #5a6e85;
+        }
+        
+        .math-inline {
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>📐 ĐỘC LẬP & PHỤ THUỘC TUYẾN TÍNH</h1>
+        <p>det(A) ≠ 0 → Độc lập | det(A) = 0 → Phụ thuộc | n > m → Chắc chắn phụ thuộc</p>
+        <p style="font-size: 0.9rem; margin-top: 8px;">✨ Chọn đáp án – Xem ngay đúng/sai + giải thích chi tiết ✨</p>
+    </div>
+    <div id="quiz-root"></div>
+    <footer>📏 “det(A) ≠ 0 – Độc lập; det(A) = 0 – Phụ thuộc; n > m – Chắc chắn phụ thuộc” | Dr.rer.nat Duymt</footer>
+</div>
+
+<script>
+    // ------------------- 20 CÂU HỎI (5 lý thuyết, 5 dễ, 5 TB, 5 khó) -------------------
+    const questions = [
+        // ========== LÝ THUYẾT (5 câu) ==========
+        { 
+            category: "📘 LÝ THUYẾT NỀN TẢNG",
+            text: "Hệ vectơ \\(\\{v_1, v_2, \\dots, v_n\\}\\) được gọi là độc lập tuyến tính nếu:",
+            options: ["Mọi vectơ đều khác 0", "Phương trình \\(c_1v_1 + \\dots + c_nv_n = 0\\) chỉ có nghiệm \\(c_1 = \\dots = c_n = 0\\)", "Các vectơ đôi một vuông góc", "Số vectơ bằng số chiều"],
+            correct: 1,
+            explanation: "✅ Định nghĩa chuẩn: Hệ độc lập tuyến tính khi chỉ có tổ hợp tuyến tính tầm thường bằng 0."
+        },
+        { 
+            category: "📘 LÝ THUYẾT NỀN TẢNG",
+            text: "Khi số vectơ \\(n\\) bằng số chiều \\(m\\) của không gian, để kiểm tra độc lập tuyến tính ta dùng:",
+            options: ["Phép biến đổi Gauss", "Định thức của ma trận tạo bởi các vectơ", "Tổng các vectơ", "Tích vô hướng"],
+            correct: 1,
+            explanation: "🎯 Khi \\(n = m\\), ma trận vuông: \\(\\det(A) \\neq 0\\) → độc lập; \\(\\det(A) = 0\\) → phụ thuộc."
+        },
+        { 
+            category: "📘 LÝ THUYẾT NỀN TẢNG",
+            text: "Nếu \\(n > m\\) (số vectơ nhiều hơn số chiều không gian), kết luận:",
+            options: ["Có thể độc lập hoặc phụ thuộc", "Luôn độc lập tuyến tính", "Luôn phụ thuộc tuyến tính", "Không xác định được"],
+            correct: 2,
+            explanation: "📐 \\(n > m\\) → chắc chắn phụ thuộc tuyến tính, không cần tính toán."
+        },
+        { 
+            category: "📘 LÝ THUYẾT NỀN TẢNG",
+            text: "Hạng của ma trận (rank) liên hệ với tính độc lập tuyến tính như thế nào?",
+            options: ["Hệ độc lập ⇔ rank(A) = số chiều", "Hệ độc lập ⇔ rank(A) = số vectơ", "Hệ độc lập ⇔ rank(A) = 0", "Hệ độc lập ⇔ rank(A) = 1"],
+            correct: 1,
+            explanation: "📊 Hệ độc lập tuyến tính khi và chỉ khi rank(A) = số vectơ."
+        },
+        { 
+            category: "📘 LÝ THUYẾT NỀN TẢNG",
+            text: "Khi biến đổi Gauss ma trận các vectơ, nếu xuất hiện một dòng toàn 0, điều đó có nghĩa:",
+            options: ["Hệ độc lập tuyến tính", "Hệ phụ thuộc tuyến tính", "Các vectơ đều khác 0", "Chưa thể kết luận"],
+            correct: 1,
+            explanation: "⚠️ Dòng 0 → vectơ đó là tổ hợp tuyến tính của các vectơ khác → phụ thuộc tuyến tính."
+        },
+
+        // ========== BÀI TẬP DỄ (5 câu) ==========
+        { 
+            category: "📗 BÀI TẬP DỄ",
+            text: "Hệ vectơ nào sau đây phụ thuộc tuyến tính?",
+            options: ["\\((1,0), (0,1)\\)", "\\((1,2), (2,4)\\)", "\\((1,0,0), (0,1,0), (0,0,1)\\)", "\\((1,0), (0,1), (1,1)\\)"],
+            correct: 1,
+            explanation: "📐 \\((2,4) = 2(1,2)\\) → một vectơ biểu diễn qua vectơ kia → phụ thuộc."
+        },
+        { 
+            category: "📗 BÀI TẬP DỄ",
+            text: "Tính định thức của ma trận tạo bởi hai vectơ \\((1,3)\\) và \\((2,6)\\):",
+            options: ["-6", "0", "6", "12"],
+            correct: 1,
+            explanation: "🔢 \\(\\det = 1\\times6 - 3\\times2 = 6 - 6 = 0\\) → phụ thuộc tuyến tính."
+        },
+        { 
+            category: "📗 BÀI TẬP DỄ",
+            text: "Hệ 4 vectơ trong \\(\\mathbb{R}^3\\):",
+            options: ["Có thể độc lập", "Chắc chắn độc lập", "Chắc chắn phụ thuộc tuyến tính", "Không xác định"],
+            correct: 2,
+            explanation: "📐 \\(n=4 > m=3\\) → luôn phụ thuộc tuyến tính."
+        },
+        { 
+            category: "📗 BÀI TẬP DỄ",
+            text: "Cho \\(v_1 = (1,2,3)\\) và \\(v_2 = (2,4,6)\\). Kết luận:",
+            options: ["Độc lập", "Phụ thuộc tuyến tính", "Không thể kết luận", "Cần thêm vectơ"],
+            correct: 1,
+            explanation: "🔍 \\(v_2 = 2v_1\\) → phụ thuộc tuyến tính."
+        },
+        { 
+            category: "📗 BÀI TẬP DỄ",
+            text: "Hệ gồm một vectơ khác không là:",
+            options: ["Độc lập tuyến tính", "Phụ thuộc tuyến tính", "Vừa độc lập vừa phụ thuộc", "Không xác định"],
+            correct: 0,
+            explanation: "✅ Một vectơ khác 0 luôn độc lập tuyến tính."
+        },
+
+        // ========== BÀI TẬP TRUNG BÌNH (5 câu) ==========
+        { 
+            category: "📙 BÀI TẬP TRUNG BÌNH",
+            text: "Tính định thức của ma trận tạo bởi \\((1,2), (3,4)\\):",
+            options: ["-2", "0", "2", "4"],
+            correct: 0,
+            explanation: "📐 \\(\\det = 1\\times4 - 2\\times3 = 4 - 6 = -2 \\neq 0\\) → độc lập tuyến tính."
+        },
+        { 
+            category: "📙 BÀI TẬP TRUNG BÌNH",
+            text: "Hệ vectơ \\((1,0,0), (0,1,0), (0,0,1)\\) trong \\(\\mathbb{R}^3\\):",
+            options: ["Phụ thuộc tuyến tính", "Độc lập tuyến tính", "Có hạng bằng 2", "Không phải cơ sở"],
+            correct: 1,
+            explanation: "⭐ Ma trận đơn vị có \\(\\det = 1 \\neq 0\\) → độc lập tuyến tính (cơ sở chính tắc)."
+        },
+        { 
+            category: "📙 BÀI TẬP TRUNG BÌNH",
+            text: "Biến đổi Gauss ma trận \\(\\begin{pmatrix} 1 & 2 \\\\ 2 & 4 \\end{pmatrix}\\), kết quả:",
+            options: ["\\(\\begin{pmatrix} 1 & 2 \\\\ 0 & 0 \\end{pmatrix}\\)", "\\(\\begin{pmatrix} 1 & 2 \\\\ 0 & 2 \\end{pmatrix}\\)", "\\(\\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix}\\)", "\\(\\begin{pmatrix} 1 & 2 \\\\ 2 & 4 \\end{pmatrix}\\)"],
+            correct: 0,
+            explanation: "🔧 \\(R_2 \\to R_2 - 2R_1\\): \\(\\begin{pmatrix} 1 & 2 \\\\ 0 & 0 \\end{pmatrix}\\) → có dòng 0 → phụ thuộc."
+        },
+        { 
+            category: "📙 BÀI TẬP TRUNG BÌNH",
+            text: "Hệ 3 vectơ trong \\(\\mathbb{R}^2\\):",
+            options: ["Luôn độc lập", "Có thể độc lập", "Luôn phụ thuộc tuyến tính", "Chỉ phụ thuộc khi có vectơ 0"],
+            correct: 2,
+            explanation: "📐 \\(n=3 > m=2\\) → luôn phụ thuộc tuyến tính."
+        },
+        { 
+            category: "📙 BÀI TẬP TRUNG BÌNH",
+            text: "Nếu \\(\\det(A) = 0\\) với A là ma trận vuông tạo từ các vectơ, kết luận:",
+            options: ["Hệ độc lập", "Hệ phụ thuộc tuyến tính", "Chưa thể kết luận", "Ma trận khả nghịch"],
+            correct: 1,
+            explanation: "⚠️ \\(\\det(A) = 0\\) → ma trận suy biến → các vectơ phụ thuộc tuyến tính."
+        },
+
+        // ========== BÀI TẬP KHÓ (5 câu) ==========
+        { 
+            category: "📕 BÀI TẬP KHÓ",
+            text: "Cho \\(v_1 = (1,2,3), v_2 = (4,5,6), v_3 = (7,8,9)\\). Hệ này:",
+            options: ["Độc lập tuyến tính", "Phụ thuộc tuyến tính vì \\(v_3 = 2v_2 - v_1\\)", "Phụ thuộc vì \\(n=m=3\\) nhưng \\(\\det=0\\)", "Cả B và C đều đúng"],
+            correct: 3,
+            explanation: "📐 \\(\\det = 0\\) vì các vectơ đồng phẳng; \\(v_3 = 2v_2 - v_1\\) là hệ thức phụ thuộc."
+        },
+        { 
+            category: "📕 BÀI TẬP KHÓ",
+            text: "Rank của ma trận 3 dòng 5 cột tối đa bằng bao nhiêu?",
+            options: ["3", "5", "8", "15"],
+            correct: 0,
+            explanation: "📊 rank ≤ min(số dòng, số cột) = min(3,5) = 3."
+        },
+        { 
+            category: "📕 BÀI TẬP KHÓ",
+            text: "Hệ 4 vectơ trong \\(\\mathbb{R}^4\\) có \\(\\det(A) = 0\\). Kết luận:",
+            options: ["Độc lập tuyến tính", "Phụ thuộc tuyến tính", "Có thể độc lập hoặc phụ thuộc", "Hệ không sinh được \\(\\mathbb{R}^4\\)"],
+            correct: 1,
+            explanation: "⚠️ \\(n=m=4\\) mà \\(\\det=0\\) → phụ thuộc tuyến tính."
+        },
+        { 
+            category: "📕 BÀI TẬP KHÓ",
+            text: "Biến đổi Gauss ma trận \\(\\begin{pmatrix} 1 & 2 & 3 \\\\ 2 & 4 & 6 \\\\ 3 & 6 & 9 \\end{pmatrix}\\). Số dòng khác 0 sau biến đổi là:",
+            options: ["0", "1", "2", "3"],
+            correct: 1,
+            explanation: "🔧 \\(R_2-2R_1, R_3-3R_1\\) → \\(\\begin{pmatrix}1&2&3\\\\0&0&0\\\\0&0&0\\end{pmatrix}\\) → rank=1."
+        },
+        { 
+            category: "📕 BÀI TẬP KHÓ",
+            text: "Trong không gian \\(\\mathbb{R}^n\\), số vectơ độc lập tuyến tính tối đa là:",
+            options: ["\\(n-1\\)", "\\(n\\)", "\\(n+1\\)", "\\(2n\\)"],
+            correct: 1,
+            explanation: "📐 Số chiều = n → tối đa n vectơ độc lập tuyến tính."
+        }
+    ];
+
+    const root = document.getElementById("quiz-root");
+    let currentCat = "";
+
+    function renderQuiz() {
+        root.innerHTML = "";
+        questions.forEach((q, idx) => {
+            if (q.category !== currentCat) {
+                currentCat = q.category;
+                const sectionDiv = document.createElement("div");
+                sectionDiv.className = "section-title";
+                sectionDiv.innerText = q.category;
+                root.appendChild(sectionDiv);
+            }
+
+            const card = document.createElement("div");
+            card.className = "question-card";
+            card.id = `q-${idx}`;
+
+            const qText = document.createElement("div");
+            qText.className = "question-text";
+            qText.innerHTML = `<span style="background:#e67e22; color:white; border-radius:40px; display:inline-block; width:28px; text-align:center; margin-right:12px;">${idx+1}</span> ${q.text}`;
+            card.appendChild(qText);
+
+            const optsDiv = document.createElement("div");
+            optsDiv.className = "options";
+            const letters = ["A", "B", "C", "D"];
+            q.options.forEach((opt, optIdx) => {
+                const btn = document.createElement("button");
+                btn.className = "opt-btn";
+                btn.setAttribute("data-opt", optIdx);
+                btn.innerHTML = `<span class="opt-letter">${letters[optIdx]}</span> ${opt}`;
+                btn.onclick = () => handleAnswer(idx, optIdx);
+                optsDiv.appendChild(btn);
+            });
+            card.appendChild(optsDiv);
+
+            const explDiv = document.createElement("div");
+            explDiv.className = "explanation";
+            explDiv.id = `exp-${idx}`;
+            explDiv.innerHTML = `<strong>📖 Giải thích:</strong> ${q.explanation}`;
+            card.appendChild(explDiv);
+
+            root.appendChild(card);
+        });
+        if (window.MathJax && window.MathJax.typesetPromise) {
+            MathJax.typesetPromise();
+        }
+    }
+
+    function handleAnswer(qid, selected) {
+        const q = questions[qid];
+        const card = document.getElementById(`q-${qid}`);
+        const btns = card.querySelectorAll(".opt-btn");
+        const explBox = document.getElementById(`exp-${qid}`);
+        
+        if (btns[0].disabled) return;
+        
+        // Tô đáp án đúng
+        btns[q.correct].classList.add("correct");
+        
+        let feedbackHtml = "";
+        if (selected === q.correct) {
+            btns[selected].classList.add("correct");
+            feedbackHtml = '<div class="feedback" style="color:#2ecc71;">✅ CHÍNH XÁC! Bạn chọn đúng.</div>';
+        } else {
+            btns[selected].classList.add("incorrect");
+            const correctLetter = String.fromCharCode(65 + q.correct);
+            feedbackHtml = `<div class="feedback" style="color:#e74c3c;">❌ SAI. Đáp án đúng là ${correctLetter}: ${q.options[q.correct]}</div>`;
+        }
+        
+        explBox.style.display = "block";
+        const oldFb = explBox.querySelector(".feedback");
+        if (oldFb) oldFb.remove();
+        explBox.insertAdjacentHTML("beforeend", feedbackHtml);
+        
+        // Vô hiệu hóa nút
+        btns.forEach(btn => {
+            btn.disabled = true;
+            btn.style.cursor = "default";
+        });
+        
+        if (window.MathJax && window.MathJax.typesetPromise) {
+            MathJax.typesetPromise([explBox]);
+        }
+    }
+
+    renderQuiz();
+</script>
+</body>
+</html>
